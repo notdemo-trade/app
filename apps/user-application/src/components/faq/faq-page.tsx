@@ -71,10 +71,10 @@ export function FaqPage({ category }: FaqPageProps) {
         <Link
           to="/"
           hash="faq"
-          className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors mb-8"
+          className="inline-flex items-center gap-1.5 text-sm text-accent hover:text-accent/80 transition-colors mb-8"
         >
           <ArrowLeft className="h-4 w-4" />
-          Back to FAQ
+          Back
         </Link>
 
         <div className="mb-12">
@@ -85,7 +85,7 @@ export function FaqPage({ category }: FaqPageProps) {
             {category.description}
           </p>
           <p className="mt-2 text-sm text-muted-foreground">
-            {category.items.length} questions
+            <span className="text-secondary">{category.items.length}</span> questions
           </p>
         </div>
 

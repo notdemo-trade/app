@@ -50,9 +50,9 @@ export function FaqSection() {
                     </CardDescription>
                     <div className="flex items-center justify-between text-sm">
                       <span className="text-muted-foreground">
-                        {cat.items.length} questions
+                        <span className="text-secondary">{cat.items.length}</span> questions
                       </span>
-                      <span className="flex items-center gap-1 text-secondary group-hover:gap-2 transition-all">
+                      <span className="flex items-center gap-1 text-accent group-hover:gap-2 transition-all">
                         Browse
                         <ArrowRight className="h-4 w-4" />
                       </span>

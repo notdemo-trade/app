@@ -1,6 +1,6 @@
 import * as React from "react";
 import { Link } from "@tanstack/react-router";
-import { Menu, ExternalLink } from "lucide-react";
+import { Menu, ExternalLink, Github } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Sheet,
@@ -66,7 +66,7 @@ export function NavigationBar() {
           >
             <div className="flex flex-col">
               <span className="text-lg lg:text-xl font-bold bg-gradient-to-r from-foreground to-foreground/80 bg-clip-text text-transparent group-hover:from-primary group-hover:to-primary/80 transition-all duration-300">
-                notdemo.trade
+                notdemo<span className="text-destructive">.</span>trade
               </span>
             </div>
           </Link>
@@ -98,9 +98,19 @@ export function NavigationBar() {
               </div>
             ))}
 
-            {/* Theme Toggle */}
-            <div className="ml-2 pl-2 border-l border-border/30">
+            {/* Theme Toggle & GitHub */}
+            <div className="ml-2 pl-2 border-l border-border/30 flex items-center">
               <ThemeToggle variant="ghost" align="end" />
+              <Button variant="ghost" size="icon" asChild>
+                <a
+                  href="https://github.com/notdemo-trade/app"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  aria-label="GitHub repository"
+                >
+                  <Github className="h-4 w-4 text-foreground" />
+                </a>
+              </Button>
             </div>
           </div>
 
@@ -121,7 +131,7 @@ export function NavigationBar() {
                       {fallbackText}
                     </AvatarFallback>
                   </Avatar>
-                  <span className="text-sm font-medium">
+                  <span className="text-sm font-medium text-foreground">
                     {user?.name || "Account"}
                   </span>
                 </Button>
@@ -131,6 +141,16 @@ export function NavigationBar() {
 
           {/* Mobile Menu Button + Theme Toggle */}
           <div className="lg:hidden flex items-center space-x-2">
+            <Button variant="ghost" size="icon" asChild>
+              <a
+                href="https://github.com/notdemo-trade/app"
+                target="_blank"
+                rel="noopener noreferrer"
+                aria-label="GitHub repository"
+              >
+                <Github className="h-4 w-4 text-foreground" />
+              </a>
+            </Button>
             <ThemeToggle variant="ghost" align="end" />
             <Sheet open={isOpen} onOpenChange={setIsOpen}>
               <SheetTrigger asChild>

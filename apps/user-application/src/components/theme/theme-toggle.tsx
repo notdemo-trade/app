@@ -92,7 +92,7 @@ export function ThemeToggle({
           className={`
             relative overflow-hidden transition-all duration-200 ease-in-out
             hover:scale-105 active:scale-95
-            focus:ring-2 focus:ring-ring focus:ring-offset-2
+            focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2
             ${showLabel ? "gap-2" : "aspect-square"}
           `}
           aria-label="Toggle theme"
@@ -127,7 +127,7 @@ export function ThemeToggle({
                 className={`
                   flex items-center gap-3 px-3 py-2.5 cursor-pointer
                   transition-all duration-200 ease-in-out
-                  hover:bg-accent/80 focus:bg-accent/80
+                  hover:bg-accent/80 focus:bg-transparent focus:text-inherit focus-visible:bg-accent/80 focus-visible:text-accent-foreground
                   rounded-md group
                   ${isSelected ? 'bg-accent/60 text-accent-foreground' : ''}
                 `}
@@ -167,7 +167,7 @@ export function ThemeToggle({
             <div className="flex items-center gap-2 px-3 py-1.5 text-xs text-muted-foreground">
               <div className={`
                 w-2 h-2 rounded-full transition-colors duration-200
-                ${resolvedTheme === 'dark' ? 'bg-blue-500' : 'bg-amber-500'}
+                ${resolvedTheme === 'dark' ? 'bg-accent' : 'bg-primary'}
               `} />
               Currently using {resolvedTheme} theme
             </div>
