@@ -1,30 +1,19 @@
 import { ExternalLink } from "lucide-react";
-import { FaXTwitter, FaGithub } from "react-icons/fa6";
 
 const navigation = {
   main: [
-    { name: "TanStack Start", href: "https://tanstack.com/start" },
-    { name: "TanStack Router", href: "https://tanstack.com/router" },
-    { name: "TanStack Query", href: "https://tanstack.com/query" },
-    { name: "React", href: "https://react.dev" },
+    { name: "OpenAI", href: "https://openai.com" },
+    { name: "Anthropic", href: "https://anthropic.com" },
+    { name: "Google Gemini", href: "https://gemini.google.com/app" },
+    { name: "xAI", href: "https://x.ai" },
+    { name: "DeepSeek", href: "https://deepseek.com" },
   ],
   tools: [
-    { name: "Vite", href: "https://vitejs.dev" },
-    { name: "Shadcn/UI", href: "https://ui.shadcn.com" },
-    { name: "pnpm Workspaces", href: "https://pnpm.io/workspaces" },
-    { name: "Drizzle ORM", href: "https://orm.drizzle.team" },
-  ],
-  social: [
-    {
-      name: "GitHub",
-      href: "https://github.com/auditmos/saas-on-cf",
-      icon: FaGithub,
-    },
-    {
-      name: "X",
-      href: "https://x.com/auditmos",
-      icon: FaXTwitter,
-    },
+    { name: "StockTwits", href: "https://stocktwits.com" },
+    { name: "Reddit", href: "https://reddit.com" },
+    { name: "Twitter", href: "https://x.com" },
+    { name: "SEC Filings", href: "https://www.sec.gov/edgar" },
+    { name: "and more..", href: "" },
   ],
 };
 
@@ -35,7 +24,7 @@ export function Footer() {
         <div className="flex flex-col md:flex-row md:items-center md:space-x-8 space-y-6 md:space-y-0">
           <div>
             <h3 className="text-sm font-semibold text-foreground">
-              TanStack Ecosystem
+              LLM Providers
             </h3>
             <ul role="list" className="mt-2 space-y-1">
               {navigation.main.map((item) => (
@@ -56,51 +45,42 @@ export function Footer() {
 
           <div>
             <h3 className="text-sm font-semibold text-foreground">
-              Development Tools
+              Signal Sources
             </h3>
             <ul role="list" className="mt-2 space-y-1">
               {navigation.tools.map((item) => (
                 <li key={item.name}>
-                  <a
-                    href={item.href}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-sm text-muted-foreground hover:text-foreground inline-flex items-center group"
-                  >
-                    {item.name}
-                    <ExternalLink className="ml-1 h-3 w-3 opacity-0 group-hover:opacity-100 transition-opacity" />
-                  </a>
+                  {item.href ? (
+                    <a
+                      href={item.href}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-sm text-muted-foreground hover:text-foreground inline-flex items-center group"
+                    >
+                      {item.name}
+                      <ExternalLink className="ml-1 h-3 w-3 opacity-0 group-hover:opacity-100 transition-opacity" />
+                    </a>
+                  ) : (
+                    <span className="text-sm text-muted-foreground">{item.name}</span>
+                  )}
                 </li>
               ))}
             </ul>
           </div>
         </div>
 
-        <div className="mt-8 md:mt-0 flex flex-col md:flex-row md:items-center space-y-4 md:space-y-0 md:space-x-6">
-          <div className="flex space-x-6">
-            {navigation.social.map((item) => {
-              const IconComponent = item.icon;
-              return (
-                <a
-                  key={item.name}
-                  href={item.href}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-muted-foreground hover:text-foreground transition-colors"
-                >
-                  <span className="sr-only">{item.name}</span>
-                  <IconComponent className="h-5 w-5" />
-                </a>
-              );
-            })}
-          </div>
-
+        <div className="mt-8 md:mt-0">
           <div className="text-center md:text-right">
-            <p className="text-xs text-muted-foreground">
-              Built with TanStack Start
-            </p>
+            <a
+              href="https://x.com/tomkowalczyk"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-xs text-muted-foreground hover:text-foreground transition-colors"
+            >
+              Built by @tomkowalczyk
+            </a>
             <p className="text-xs text-muted-foreground mt-1">
-              &copy; {new Date().getFullYear()} auditmos SaaS Kit. MIT Licensed.
+              &copy; {new Date().getFullYear()} notdemo.trade
             </p>
           </div>
         </div>

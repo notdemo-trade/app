@@ -1,6 +1,6 @@
 import * as React from "react";
 import { Link } from "@tanstack/react-router";
-import { Menu, Github, ExternalLink, LogIn } from "lucide-react";
+import { Menu, ExternalLink } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Sheet,
@@ -20,30 +20,17 @@ interface NavigationItem {
   label: string;
   href: string;
   isExternal?: boolean;
-  scrollTo?: string;
 }
 
 const navigationItems: NavigationItem[] = [
-  { label: "Features", href: "/#features", scrollTo: "features" },
-  { label: "Demos", href: "/demo" },
-  {
-    label: "GitHub",
-    href: "https://github.com/auditmos/saas-on-cf",
-    isExternal: true,
-  },
+  { label: "Features", href: "/#features" },
+  { label: "FAQ", href: "/#faq" },
 ];
 
 export function NavigationBar() {
   const [isOpen, setIsOpen] = React.useState(false);
   const [isScrolled, setIsScrolled] = React.useState(false);
   const { data: session } = authClient.useSession();
-
-  const handleGoogleSignIn = async () => {
-    await authClient.signIn.social({
-      provider: "google",
-      callbackURL: "/app",
-    });
-  };
 
   const user = session?.user;
   const fallbackText = user?.name
@@ -59,9 +46,7 @@ export function NavigationBar() {
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
-  const handleNavClick = (item: NavigationItem) => {
-    setIsOpen(false);
-  };
+  const closeMenu = () => setIsOpen(false);
 
   return (
     <nav
@@ -81,10 +66,7 @@ export function NavigationBar() {
           >
             <div className="flex flex-col">
               <span className="text-lg lg:text-xl font-bold bg-gradient-to-r from-foreground to-foreground/80 bg-clip-text text-transparent group-hover:from-primary group-hover:to-primary/80 transition-all duration-300">
-                SaaS Starter Kit
-              </span>
-              <span className="text-xs text-muted-foreground font-medium tracking-wider">
-                on CLOUDFLARE
+                notdemo.trade
               </span>
             </div>
           </Link>
@@ -101,16 +83,12 @@ export function NavigationBar() {
                     className="flex items-center space-x-2 px-4 py-2 rounded-lg text-sm font-medium text-muted-foreground hover:text-foreground transition-all duration-300 hover:bg-accent/50 group"
                   >
                     <span>{item.label}</span>
-                    {item.label === "GitHub" ? (
-                      <Github className="h-4 w-4" />
-                    ) : (
-                      <ExternalLink className="h-4 w-4" />
-                    )}
+                    <ExternalLink className="h-4 w-4" />
                   </a>
                 ) : (
                   <Link
                     to={item.href}
-                    onClick={() => handleNavClick(item)}
+                    onClick={closeMenu}
                     className="px-4 py-2 rounded-lg text-sm font-medium text-muted-foreground hover:text-foreground transition-all duration-300 hover:bg-accent/50 block"
                   >
                     {item.label}
@@ -148,16 +126,7 @@ export function NavigationBar() {
                   </span>
                 </Button>
               </AccountDialog>
-            ) : (
-              <Button
-                onClick={handleGoogleSignIn}
-                variant="default"
-                className="gap-2"
-              >
-                <LogIn className="h-4 w-4" />
-                Sign In
-              </Button>
-            )}
+            ) : null}
           </div>
 
           {/* Mobile Menu Button + Theme Toggle */}
@@ -183,7 +152,7 @@ export function NavigationBar() {
                     Navigation
                   </SheetTitle>
                   <SheetDescription className="text-muted-foreground">
-                    Explore TanStack Start
+                    Navigate
                   </SheetDescription>
                 </SheetHeader>
 
@@ -199,16 +168,12 @@ export function NavigationBar() {
                           onClick={() => setIsOpen(false)}
                         >
                           <span>{item.label}</span>
-                          {item.label === "GitHub" ? (
-                            <Github className="h-4 w-4" />
-                          ) : (
-                            <ExternalLink className="h-4 w-4" />
-                          )}
+                          <ExternalLink className="h-4 w-4" />
                         </a>
                       ) : (
                         <Link
                           to={item.href}
-                          onClick={() => handleNavClick(item)}
+                          onClick={closeMenu}
                           className="flex items-center w-full px-4 py-3 rounded-lg text-sm font-medium text-muted-foreground hover:text-foreground transition-all duration-300 hover:bg-accent/50 text-left"
                         >
                           {item.label}
@@ -240,16 +205,7 @@ export function NavigationBar() {
                         </p>
                       </div>
                     </div>
-                  ) : (
-                    <Button
-                      onClick={handleGoogleSignIn}
-                      variant="default"
-                      className="w-full gap-2"
-                    >
-                      <LogIn className="h-4 w-4" />
-                      Sign In with Google
-                    </Button>
-                  )}
+                  ) : null}
                 </div>
               </SheetContent>
             </Sheet>

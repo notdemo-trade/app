@@ -34,6 +34,15 @@ export function Modal({ trigger, children }: ModalProps) {
 - Utility-first, no inline styles
 - Use CSS variables for theming
 - Responsive: mobile-first (`md:`, `lg:`)
+- JS-based plugins use `@plugin`, NOT `@import` (`@import` is CSS-only)
+
+```css
+/* Correct — JS plugin */
+@plugin "@tailwindcss/typography";
+
+/* Wrong — will fail to resolve */
+@import "@tailwindcss/typography";
+```
 
 ```tsx
 <div className="flex flex-col gap-4 p-4 md:flex-row md:p-6">

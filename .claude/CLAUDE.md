@@ -43,6 +43,7 @@ Rules auto-load from `.claude/rules/`:
 │   └── better-auth.md
 ├── data-service/           # Backend API
 │   ├── hono.md
+│   ├── agent-sdk.md
 │   ├── cloudflare-workers.md
 │   ├── queues-workflows.md
 │   ├── durable-objects.md
@@ -55,6 +56,13 @@ Rules auto-load from `.claude/rules/`:
 ```
 
 Rules with `paths:` frontmatter apply only when working with matching files.
+
+## Design Docs
+
+- `/docs` is the single source of truth for business requirements
+- When reviewing, auditing, or analyzing a feature—apply all changes (notes, status updates, findings) directly in the corresponding design doc
+- Never create separate md files for reviews/audits/analyses unless explicitly asked
+- Implementation must align with the spec in `/docs`; flag deviations inline in the doc
 
 ## Key Patterns
 

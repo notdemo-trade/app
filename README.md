@@ -1,176 +1,79 @@
-# SaaS-on-CF (Software as a Service on Cloudflare)
+# notdemo.trade
 
-Modular web application template
+> AI trading bot that watches social media, makes trade recommendations 24/7, and lets you approve them from your phone - bring your own broker account and customize the strategy.
+
+## Overview
+
+**notdemo.trade** is a multi-tenant SaaS platform on Cloudflare infrastructure. Each user gets their own AI-powered trading agent that operates independently using their own API keys and capital.
+
+## Core Trading Loop
+
+The platform continuously monitors multiple signal sources:
+- **Social Media**: StockTwits, Reddit, Twitter (optional)
+- **Official Sources**: SEC filings
+- **Analysis**: Aggregates sentiment and momentum indicators
+
+Uses LLM analysis (OpenAI, Anthropic, Google, xAI, DeepSeek) to generate trade recommendations. Users can:
+- **Manual Mode**: Approve trades via Telegram
+- **Autonomous Mode**: Enable auto-execution with configurable risk limits
+
+### Supported Assets
+- **Stocks**: Traditional equities
+- **Crypto**: 24/7 trading (BTC, ETH, SOL)
+- **Options**: Strategies with delta targeting
 
 ## Architecture
 
-Monorepo using [pnpm workspace](https://pnpm.io/workspaces) with modular packages shared across apps:
+Built on **Cloudflare Workers** with global edge deployment.
 
-- [apps/user-application](./apps/user-application/) - TanStack Start consumer-facing app
-- [apps/data-service](./apps/data-service/) - Backend service for long-running tasks
-- [packages/data-ops](./packages/data-ops/) - Shared DB layer (schemas, queries, auth)
+### Monorepo Structure
 
-Stack: 
+| Package | Technology | Purpose |
+|---------|-----------|---------|
+| `packages/data-ops` | Drizzle + Zod | DB schemas, queries, validation |
+| `apps/data-service` | Hono | REST API on CF Workers |
+| `apps/user-application` | TanStack Start | SSR frontend on CF Workers |
 
-- [Better Auth](https://www.better-auth.com/docs/introduction), 
-- [Drizzle ORM](https://orm.drizzle.team/docs/overview), 
-- [Cloudflare Workers](https://developers.cloudflare.com/workers/), 
-- [Neon Postgres](https://neon.tech).
+### Infrastructure
+- **State Management**: Durable Objects (per-user agent state)
+- **Database**: Neon Postgres
+- **Auth**: Better Auth (multi-tenancy)
+- **Deployment**: Independent component deployment to Cloudflare edge
 
-## [packages/data-ops](./packages/data-ops/)
+## Unique Features
 
-Central shared package for all database operations. Both apps consume this package for type-safe DB access.
+### Strategy Templates
+Shareable templates for custom prompt engineering approaches. Users can publish/fork signal analysis strategies.
 
-**Purpose**: Single source of truth for database schemas, queries, validations, and auth config.
+### Anonymous Leaderboards
+Two-tier system with asset class breakdown:
+- **Tier 1**: Funded accounts
+- **Tier 2**: Paper traders
+- **Breakdown**: Stocks, crypto, options
 
-### Directory Structure
+### Trade Journal
+Tracks outcomes for learning and pattern extraction.
 
-#### [`src/drizzle/`](./packages/data-ops/src/drizzle/)
-Core database definitions using Drizzle ORM.
+### Safety Guardrails
+- Kill switches
+- Position limits
+- Daily loss caps
+- Staleness detection
 
-- **`schema.ts`** - Main application tables
-- **`auth-schema.ts`** - Better Auth tables (auto-generated, don't edit manually)
-- **`relations.ts`** - Drizzle relational queries config (defines joins between tables)
-- **`migrations/{env}/`** - Migration history per environment (dev/staging/production)
+### BYOK (Bring Your Own Keys)
+Users provide their own:
+- **Trading API**: Alpaca
+- **LLM API**: Choice of provider
+- **Capital**: Own broker account
 
-#### [`src/queries/`](./packages/data-ops/src/queries/)
-Reusable database operations exported as functions.
+Eliminates platform billing complexity.
 
-Example: `user.ts` exports `getUser()`
+## Business Model
 
-**Usage**: Import and call from apps - handles DB connection internally via `getDb()`.
+**Freemium + BYOK**
 
-```ts
-import { getUser } from "data-ops/queries/user";
-const user = await getUser(userId);
-```
+- Users pay LLM providers directly
+- No vendor lock-in (open core architecture)
 
-#### [`src/zod-schema/`](./packages/data-ops/src/zod-schema/)
-Validation schemas using Zod.
-- API request/response
-- Forms
-- DTOs
-
-**Naming conventions:**
-
-| Purpose      | Suffix         | Example                 |
-|--------------|----------------|-------------------------|
-| Domain model | Schema         | UserSchema              |
-| Request      | RequestSchema  | UserCreateRequestSchema |
-| Response     | ResponseSchema | UserListResponseSchema  |
-| Type         | no suffix      | User, UserCreateInput   |
-
-**Purpose**: Type-safe contracts between frontend/backend. Validates data shape at runtime.
-
-Example: `user.ts` exports `UserSchema` schema.
-
-#### [`src/database/`](./packages/data-ops/src/database/)
-- **`setup.ts`** - DB client initialization (`getDb()` function)
-- **`seed/`** - Data seeding utilities
-
-#### [`src/auth/`](./packages/data-ops/src/auth/)
-Better Auth configuration.
-- **`setup.ts`** - Auth config (providers, plugins)
-- **`server.ts`** - Auth server instance
-
-### Workflow for New DB Features
-
-1. **Add table** to `src/drizzle/schema.ts`
-2. **Add relations** to `src/drizzle/relations.ts` (if needed)
-3. **Generate migration**: `pnpm run drizzle:dev:generate`
-4. **Apply migration**: `pnpm run drizzle:dev:migrate`
-5. **Create queries** in `src/queries/{feature}.ts`
-6. **Create Zod schemas** in `src/zod-schema/{feature}.ts`
-7. **Rebuild package**: `pnpm run build:data-ops`
-8. **Import in apps**: Use queries/schemas from both apps:
-- [user-application](./apps/user-application/)
-- [data-service](./apps/data-service/)
-
-## Setup
-
-```bash
-pnpm run setup
-```
-
-Installs all dependencies and builds data-ops package.
-
-## Development
-
-```bash
-pnpm run dev:user-application  # TanStack Start app (port 3000)
-pnpm run dev:data-service      # Hono backend service (port 8788)
-```
-
-### Database Migrations
-
-From `packages/data-ops/` directory:
-
-```bash
-pnpm run drizzle:dev:generate  # Generate migration
-pnpm run drizzle:dev:migrate   # Apply to database
-```
-
-Replace `dev` with `staging` or `production`. Migrations stored in `src/drizzle/migrations/{env}/`.
-
-### Environment Variables
-
-Config files in `packages/data-ops/`:
-- `.env.dev` - Local development
-- `.env.staging` - Staging
-- `.env.production` - Production
-
-Replace dev` with `staging` or `production`. 
-
-Migrations stored in `src/drizzle/migrations/{env}/`.
-
-Sample `.env` file with minimum number of values available - [.env.example](./packages/data-ops/.env.example)
-
-## Deployment
-
-### Cloudflare Account Configuration
-
-If you want to deploy to a different Cloudflare account that is not logged in globally on your machine, prepare a `.env` file in the main directory with values from `.env.example`. This allows you to specify account credentials for deployment without changing your global Cloudflare configuration.
-
-### User Application
-
-Once the deployment is done, Cloudflare will response with URL to view the deployment. If you want to change the name associated with Worker, do so by changing the `name` in the [wrangler.jsonc](./apps/user-application/wrangler.jsonc) file.
-
-You can also use your own domain names associated with Cloudflare account by adding a route to this file as well.
-
-#### Staging Environment
-
-```bash
-pnpm run deploy:staging:user-application
-```
-
-This will deploy the [user-application](./apps/user-application/) to Cloudflare Workers into staging environment.
-
-#### Production Environment
-
-```bash
-pnpm run deploy:production:user-application
-```
-
-This will deploy the [user-application](./apps/user-application/) to Cloudflare Workers into production environment.
-
-### Data Service
-
-Once the deployment is done, Cloudflare will response with URL to view the deployment. If you want to change the name associated with Worker, do so by changing the `name` in the [wrangler.jsonc](./apps/data-service/wrangler.jsonc) file.
-
-You can also use your own domain names associated with Cloudflare account by adding a route to this file as well.
-
-#### Staging Environment
-
-```bash
-pnpm run deploy:staging:data-service
-```
-
-This will deploy the [data-service](./apps/data-service/) to Cloudflare Workers into staging environment.
-
-#### Production Environment
-
-```bash
-pnpm run deploy:production:data-service
-```
-
-This will deploy the [data-service](./apps/data-service/) to Cloudflare Workers into production environment.
+### Target Audience
+Retail algorithmic traders seeking institutional-grade infrastructure without building from scratch.

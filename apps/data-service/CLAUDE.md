@@ -46,7 +46,6 @@ src/
 
 - `GET /health/live` - liveness (instant 200)
 - `GET /health/ready` - readiness (checks DB)
-- `GET|POST|PUT|DELETE /users/*` - CRUD (POST/PUT/DELETE require Bearer token)
 - `POST /webhooks/*` - inbound webhooks (signature verified)
 
 ## Webhooks

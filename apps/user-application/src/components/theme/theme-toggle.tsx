@@ -1,4 +1,3 @@
-import * as React from "react";
 import { Monitor, Moon, Sun, Check } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
@@ -35,8 +34,8 @@ export function ThemeToggle({
   const getCurrentIcon = () => {
     if (theme === "system") {
       return (
-        <Monitor 
-          className={`h-4 w-4 ${iconVariants.system} rotate-0 scale-100`}
+        <Monitor
+          className={`h-4 w-4 text-foreground ${iconVariants.system} rotate-0 scale-100`}
           aria-hidden="true" 
         />
       );
@@ -44,16 +43,16 @@ export function ThemeToggle({
     
     if (resolvedTheme === "dark") {
       return (
-        <Moon 
-          className={`h-4 w-4 ${iconVariants.moon} rotate-0 scale-100`}
+        <Moon
+          className={`h-4 w-4 text-foreground ${iconVariants.moon} rotate-0 scale-100`}
           aria-hidden="true" 
         />
       );
     }
     
     return (
-      <Sun 
-        className={`h-4 w-4 ${iconVariants.sun} rotate-0 scale-100`}
+      <Sun
+        className={`h-4 w-4 text-foreground ${iconVariants.sun} rotate-0 scale-100`}
         aria-hidden="true" 
       />
     );
@@ -176,50 +175,5 @@ export function ThemeToggle({
         )}
       </DropdownMenuContent>
     </DropdownMenu>
-  );
-}
-
-// Simplified version for minimal use cases
-export function ThemeToggleSimple() {
-  const { theme, setTheme, resolvedTheme } = useTheme();
-  
-  const handleToggle = () => {
-    if (theme === "light") {
-      setTheme("dark");
-    } else if (theme === "dark") {
-      setTheme("system");
-    } else {
-      setTheme("light");
-    }
-  };
-
-  return (
-    <Button
-      variant="ghost"
-      size="default"
-      onClick={handleToggle}
-      className={`
-        relative overflow-hidden aspect-square
-        transition-all duration-200 ease-in-out
-        hover:scale-105 active:scale-95
-        focus:ring-2 focus:ring-ring focus:ring-offset-2
-      `}
-      aria-label={`Switch to ${theme === "light" ? "dark" : theme === "dark" ? "system" : "light"} theme`}
-    >
-      <div className="relative flex items-center justify-center">
-        {theme === "system" && (
-          <Monitor className="h-4 w-4 transition-all duration-300 ease-in-out rotate-0 scale-100" />
-        )}
-        {resolvedTheme === "dark" && theme !== "system" && (
-          <Moon className="h-4 w-4 transition-all duration-500 ease-in-out rotate-0 scale-100" />
-        )}
-        {resolvedTheme === "light" && theme !== "system" && (
-          <Sun className="h-4 w-4 transition-all duration-500 ease-in-out rotate-0 scale-100" />
-        )}
-      </div>
-      <span className="sr-only">
-        Current theme: {theme === "system" ? `System (${resolvedTheme})` : theme}
-      </span>
-    </Button>
   );
 }

@@ -28,12 +28,25 @@ export const Route = createRootRouteWithContext<{
         content: "width=device-width, initial-scale=1",
       },
       ...seo({
-        title:
-          "TanStack Start | Type-Safe, Client-First, Full-Stack React Framework",
-        description: `TanStack Start is a type-safe, client-first, full-stack React framework. `,
+        title: "notdemo.trade | AI Trading Bot",
+        description:
+          "AI trading bot that watches social media, makes trade recommendations 24/7, and lets you approve them from your phone.",
       }),
     ],
     links: [
+      {
+        rel: "preconnect",
+        href: "https://fonts.googleapis.com",
+      },
+      {
+        rel: "preconnect",
+        href: "https://fonts.gstatic.com",
+        crossOrigin: "anonymous",
+      },
+      {
+        rel: "stylesheet",
+        href: "https://fonts.googleapis.com/css2?family=Oxanium:wght@200..800&family=Source+Code+Pro:ital,wght@0,200..900;1,200..900&display=swap",
+      },
       { rel: "stylesheet", href: appCss },
       {
         rel: "apple-touch-icon",
@@ -47,7 +60,14 @@ export const Route = createRootRouteWithContext<{
   errorComponent: (props) => {
     return (
       <RootDocument>
-        <DefaultCatchBoundary {...props} />
+        <ThemeProvider
+          attribute="class"
+          defaultTheme="system"
+          enableSystem
+          disableTransitionOnChange={false}
+        >
+          <DefaultCatchBoundary {...props} />
+        </ThemeProvider>
       </RootDocument>
     );
   },

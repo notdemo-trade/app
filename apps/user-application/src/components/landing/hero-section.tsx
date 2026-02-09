@@ -1,6 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Github, Sparkles, Zap, Shield } from "lucide-react";
+import { Sparkles, Zap, Shield, LogIn } from "lucide-react";
 
 export function HeroSection() {
   return (
@@ -9,43 +9,35 @@ export function HeroSection() {
         <div className="mb-8 flex flex-wrap justify-center gap-2">
           <Badge variant="secondary" className="mb-4">
             <Sparkles className="mr-1 h-3 w-3" />
-            Production-Ready
+            AI-Powered
           </Badge>
           <Badge variant="secondary" className="mb-4">
             <Zap className="mr-1 h-3 w-3" />
-            Edge-Optimized
+            24/7 Monitoring
           </Badge>
           <Badge variant="secondary" className="mb-4">
             <Shield className="mr-1 h-3 w-3" />
-            Type-Safe
+            BYOK
           </Badge>
         </div>
 
         <h1 className="text-4xl font-bold tracking-tight text-foreground sm:text-6xl lg:text-7xl">
-          Modern SaaS
-          <span className="block text-primary">Starter Kit</span>
+          notdemo
+          <span className="block text-primary">.trade</span>
         </h1>
 
         <p className="mt-6 text-lg leading-8 text-muted-foreground max-w-2xl mx-auto">
-          Ship your SaaS faster with pre-configured authentication, database,
-          and payments. Built on TanStack Start with React 19, TypeScript, and
-          edge-ready infrastructure. Everything you need to launch your next
-          project.
+          AI trading bot that watches social media, makes trade recommendations
+          24/7, and lets you approve them from your phone. Bring your own broker
+          account and customize the strategy.
         </p>
 
-        <div className="mt-10 flex flex-col sm:flex-row items-center justify-center gap-4">
-
-          <Button variant="outline" size="lg" asChild>
-            <a
-              href="https://github.com/auditmos/saas-on-cf"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-flex items-center"
-            >
-              <Github className="mr-2 h-4 w-4" />
-              View on GitHub
-            </a>
+        <div className="mt-10 flex flex-col items-center justify-center gap-2">
+          <Button size="lg" disabled className="gap-2">
+            <LogIn className="h-4 w-4" />
+            Get Started
           </Button>
+          <span className="text-sm text-muted-foreground">soon..</span>
         </div>
       </div>
 

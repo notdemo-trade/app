@@ -26,10 +26,10 @@ src/
 
 | Purpose | Suffix | Example |
 |---------|--------|---------|
-| Domain model | `Schema` | `UserSchema` |
-| Request | `RequestSchema` | `UserCreateRequestSchema` |
-| Response | `ResponseSchema` | `UserListResponseSchema` |
-| Type export | no suffix | `User`, `UserCreateInput` |
+| Domain model | `Schema` | `OrderSchema` |
+| Request | `RequestSchema` | `OrderCreateRequestSchema` |
+| Response | `ResponseSchema` | `OrderListResponseSchema` |
+| Type export | no suffix | `Order`, `OrderCreateInput` |
 
 ## Workflows
 

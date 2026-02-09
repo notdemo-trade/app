@@ -2,6 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { NavigationBar } from "@/components/navigation";
 import { HeroSection } from "@/components/landing/hero-section";
 import { FeaturesSection } from "@/components/landing/features-section";
+import { FaqSection } from "@/components/landing/faq-section";
 import { Footer } from "@/components/landing/footer";
 
 export const Route = createFileRoute("/")({
@@ -15,6 +16,7 @@ function LandingPage() {
       <main>
         <HeroSection />
         <FeaturesSection />
+        <FaqSection />
       </main>
       <Footer />
     </div>

@@ -39,7 +39,7 @@ export function DefaultCatchBoundary({ error }: ErrorComponentProps) {
     const body = encodeURIComponent(
       `An error occurred in the application:\n\nError: ${errorMessage}\n\nStack Trace:\n${errorStack}\n\nPlease describe what you were doing when this error occurred:`,
     );
-    window.location.href = `mailto:support@example.com?subject=${subject}&body=${body}`;
+    window.location.href = `mailto:support@notdemo.trade?subject=${subject}&body=${body}`;
   };
 
   return (

@@ -33,17 +33,6 @@ Business logic layer.
 
 ##### Endpoints
 
-**Users** `/users`
-| Method | Path | Auth | Description |
-|--------|------|------|-------------|
-| GET | `/users` | - | List (`?limit=10&offset=0`) |
-| GET | `/users/:id` | - | Get |
-| POST | `/users` | 🔒 | Create |
-| PUT | `/users/:id` | 🔒 | Update |
-| DELETE | `/users/:id` | 🔒 | Delete |
-
-🔒 = `Authorization: Bearer <API_TOKEN>`
-
 **Webhooks** `/webhooks`
 | Method | Path | Auth | Description |
 |--------|------|------|-------------|
