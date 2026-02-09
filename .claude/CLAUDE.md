@@ -52,7 +52,8 @@ Rules auto-load from `.claude/rules/`:
     ├── tanstack.md
     ├── react.md
     ├── ui.md
-    └── auth.md
+    ├── auth.md
+    └── i18n.md
 ```
 
 Rules with `paths:` frontmatter apply only when working with matching files.
