@@ -15,6 +15,21 @@ export interface FaqCategory {
   items: FaqItem[]
 }
 
+interface TranslationFn {
+  (key: string): string
+}
+
+interface CategoryConfig {
+  id: FaqCategoryId
+  questionCount: number
+}
+
+const CATEGORY_CONFIGS: CategoryConfig[] = [
+  { id: "beginner", questionCount: 1 },
+  { id: "trader", questionCount: 1 },
+  { id: "developer", questionCount: 1 },
+]
+
 function slugify(text: string): string {
   return text
     .toLowerCase()
@@ -22,85 +37,21 @@ function slugify(text: string): string {
     .replace(/(^-|-$)/g, "")
 }
 
-function faq(question: string, answer: string): FaqItem {
-  return { id: slugify(question), question, answer: answer.trim() }
+export function buildFaqCategories(t: TranslationFn): FaqCategory[] {
+  return CATEGORY_CONFIGS.map((config) => {
+    const items: FaqItem[] = []
+    for (let i = 1; i <= config.questionCount; i++) {
+      const question = t(`faq.${config.id}.q${i}`)
+      const answer = t(`faq.${config.id}.a${i}`)
+      items.push({ id: slugify(question), question, answer })
+    }
+
+    return {
+      id: config.id,
+      label: t(`faq.${config.id}.label`),
+      description: t(`faq.${config.id}.description`),
+      route: `/faq/${config.id}`,
+      items,
+    }
+  })
 }
-
-const beginnerItems: FaqItem[] = [
-  faq("What is notdemo.trade?", `It's a platform that runs an AI trading assistant for you. Think of it like having a robot that watches the market 24/7, suggests trades based on social media buzz and technical analysis, and can execute them with your approval or automatically.`),
-]
-
-const traderItems: FaqItem[] = [
-  faq("I already do my own TA. Why would I need this?", `Three reasons:
-1. **24/7 monitoring**: You can't watch 50 stocks across multiple timeframes constantly. The agent does.
-2. **Signal aggregation**: Combines social sentiment (often leading indicator) with your TA in real-time. Catches momentum before it shows up on charts.
-3. **Systematic execution**: Removes emotional trading. Your rules + AI analysis + automatic execution = discipline.
-
-Think of it as your trading strategy, systematized and scaled.`),
-]
-
-const developerItems: FaqItem[] = [
-  faq("What's the high-level architecture?", `**Three-tier edge-native stack**:
-
-\`\`\`
-┌─────────────────────────────────────────────────────────┐
-│  User Application (TanStack Start SSR)                  │
-│  ├─ React + TanStack Router                             │
-│  ├─ Server functions (createServerFn)                   │
-│  └─ Deployed: Cloudflare Workers                        │
-└─────────────────────────────────────────────────────────┘
-                          ↓ HTTP/WebSocket
-┌─────────────────────────────────────────────────────────┐
-│  Data Service (Hono REST API)                           │
-│  ├─ Handlers → Services → Queries pattern               │
-│  ├─ Zod validation, error handling                      │
-│  └─ Deployed: Cloudflare Workers                        │
-└─────────────────────────────────────────────────────────┘
-                          ↓ RPC/WebSocket
-┌─────────────────────────────────────────────────────────┐
-│  Trading Agent (Cloudflare Agents SDK)                  │
-│  ├─ Durable Object per user                             │
-│  ├─ Scheduled loops (signal gathering, analysis)        │
-│  ├─ WebSocket for real-time state sync                  │
-│  └─ SQLite for per-agent logs + config                  │
-└─────────────────────────────────────────────────────────┘
-                          ↓
-┌─────────────────────────────────────────────────────────┐
-│  Data Layer (data-ops package)                          │
-│  ├─ Drizzle ORM → Neon Postgres                         │
-│  ├─ Zod schemas for validation                          │
-│  ├─ Type-safe queries + Better Auth integration         │
-│  └─ Shared across all services                          │
-└─────────────────────────────────────────────────────────┘
-\`\`\`
-
-**Key characteristics**:
-- **Edge-first**: Everything runs on Cloudflare's edge network (low latency globally)
-- **Monorepo**: Shared types and logic across frontend/backend/agents
-- **Serverless**: No VMs to manage, infinite scaling
-- **Multi-tenant**: Per-user isolation via Durable Objects`),
-]
-
-export const FAQ_CATEGORIES: FaqCategory[] = [
-  {
-    id: "beginner",
-    label: "Beginners",
-    description: "New to trading? Start here.",
-    route: "/faq/beginner",
-    items: beginnerItems,
-  },
-  {
-    id: "trader",
-    label: "Experienced Traders",
-    description: "For traders familiar with TA and systematic trading.",
-    route: "/faq/trader",
-    items: traderItems,
-  },
-  {
-    id: "developer",
-    label: "Developers",
-    description: "Technical deep-dive into architecture and stack.",
-    route: "/faq/developer",
-    items: developerItems,
-  },
-]

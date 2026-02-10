@@ -1,6 +1,7 @@
 import * as React from "react";
 import { Link } from "@tanstack/react-router";
 import { Menu, ExternalLink, Github } from "lucide-react";
+import { useTranslations } from "use-intl";
 import { Button } from "@/components/ui/button";
 import {
   Sheet,
@@ -12,25 +13,27 @@ import {
 } from "@/components/ui/sheet";
 import { cn } from "@/lib/utils";
 import { ThemeToggle } from "@/components/theme";
+import { LanguageToggle } from "@/components/i18n/language-toggle";
 import { authClient } from "@/lib/auth-client";
 import { AccountDialog } from "@/components/auth/account-dialog";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
 interface NavigationItem {
-  label: string;
+  labelKey: string;
   href: string;
   isExternal?: boolean;
 }
 
 const navigationItems: NavigationItem[] = [
-  { label: "Features", href: "/#features" },
-  { label: "FAQ", href: "/#faq" },
+  { labelKey: "nav.features", href: "/#features" },
+  { labelKey: "nav.faq", href: "/#faq" },
 ];
 
 export function NavigationBar() {
   const [isOpen, setIsOpen] = React.useState(false);
   const [isScrolled, setIsScrolled] = React.useState(false);
   const { data: session } = authClient.useSession();
+  const t = useTranslations();
 
   const user = session?.user;
   const fallbackText = user?.name
@@ -74,7 +77,7 @@ export function NavigationBar() {
           {/* Desktop Navigation */}
           <div className="hidden lg:flex items-center space-x-1">
             {navigationItems.map((item) => (
-              <div key={item.label} className="relative group">
+              <div key={item.labelKey} className="relative group">
                 {item.isExternal ? (
                   <a
                     href={item.href}
@@ -82,7 +85,7 @@ export function NavigationBar() {
                     rel="noopener noreferrer"
                     className="flex items-center space-x-2 px-4 py-2 rounded-lg text-sm font-medium text-muted-foreground hover:text-foreground transition-all duration-300 hover:bg-accent/50 group"
                   >
-                    <span>{item.label}</span>
+                    <span>{t(item.labelKey)}</span>
                     <ExternalLink className="h-4 w-4" />
                   </a>
                 ) : (
@@ -91,15 +94,16 @@ export function NavigationBar() {
                     onClick={closeMenu}
                     className="px-4 py-2 rounded-lg text-sm font-medium text-muted-foreground hover:text-foreground transition-all duration-300 hover:bg-accent/50 block"
                   >
-                    {item.label}
+                    {t(item.labelKey)}
                   </Link>
                 )}
                 <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 w-0 h-0.5 bg-gradient-to-r from-primary to-primary/80 transition-all duration-300 group-hover:w-3/4" />
               </div>
             ))}
 
-            {/* Theme Toggle & GitHub */}
+            {/* Language Toggle, Theme Toggle & GitHub */}
             <div className="ml-2 pl-2 border-l border-border/30 flex items-center">
+              <LanguageToggle variant="ghost" align="end" />
               <ThemeToggle variant="ghost" align="end" />
               <Button variant="ghost" size="icon" asChild>
                 <a
@@ -151,6 +155,7 @@ export function NavigationBar() {
                 <Github className="h-4 w-4 text-foreground" />
               </a>
             </Button>
+            <LanguageToggle variant="ghost" align="end" />
             <ThemeToggle variant="ghost" align="end" />
             <Sheet open={isOpen} onOpenChange={setIsOpen}>
               <SheetTrigger asChild>
@@ -169,16 +174,16 @@ export function NavigationBar() {
               >
                 <SheetHeader className="text-left space-y-1 pb-6">
                   <SheetTitle className="text-xl font-bold bg-gradient-to-r from-primary to-primary/80 bg-clip-text text-transparent">
-                    Navigation
+                    {t("nav.navigation")}
                   </SheetTitle>
                   <SheetDescription className="text-muted-foreground">
-                    Navigate
+                    {t("nav.navigate")}
                   </SheetDescription>
                 </SheetHeader>
 
                 <div className="flex flex-col space-y-2 pb-6">
                   {navigationItems.map((item) => (
-                    <div key={item.label} className="relative group">
+                    <div key={item.labelKey} className="relative group">
                       {item.isExternal ? (
                         <a
                           href={item.href}
@@ -187,7 +192,7 @@ export function NavigationBar() {
                           className="flex items-center justify-between w-full px-4 py-3 rounded-lg text-sm font-medium text-muted-foreground hover:text-foreground transition-all duration-300 hover:bg-accent/50"
                           onClick={() => setIsOpen(false)}
                         >
-                          <span>{item.label}</span>
+                          <span>{t(item.labelKey)}</span>
                           <ExternalLink className="h-4 w-4" />
                         </a>
                       ) : (
@@ -196,7 +201,7 @@ export function NavigationBar() {
                           onClick={closeMenu}
                           className="flex items-center w-full px-4 py-3 rounded-lg text-sm font-medium text-muted-foreground hover:text-foreground transition-all duration-300 hover:bg-accent/50 text-left"
                         >
-                          {item.label}
+                          {t(item.labelKey)}
                         </Link>
                       )}
                     </div>

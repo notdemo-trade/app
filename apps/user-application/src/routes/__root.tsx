@@ -7,18 +7,30 @@ import {
 } from "@tanstack/react-router";
 import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
 import { TanStackRouterDevtools } from "@tanstack/react-router-devtools";
+import { useSuspenseQuery } from "@tanstack/react-query";
+import { IntlProvider } from "use-intl";
 import * as React from "react";
 import type { QueryClient } from "@tanstack/react-query";
 import { DefaultCatchBoundary } from "@/components/default-catch-boundary";
 import { NotFound } from "@/components/not-found";
 import { ThemeProvider } from "@/components/theme";
+import { getCurrentLocale } from "@/i18n/get-locale";
+import { messagesQueryOptions } from "@/i18n/messages";
+import type { Locale } from "@/i18n/core/shared";
 import appCss from "@/styles.css?url";
 import { seo } from "@/utils/seo";
 
 export const Route = createRootRouteWithContext<{
   queryClient: QueryClient;
 }>()({
-  head: () => ({
+  beforeLoad: () => {
+    const locale = getCurrentLocale()
+    return { locale }
+  },
+  head: ({ match }) => {
+    const locale = match.context.locale as Locale
+    const isPl = locale === "pl"
+    return {
     meta: [
       {
         charSet: "utf-8",
@@ -28,9 +40,10 @@ export const Route = createRootRouteWithContext<{
         content: "width=device-width, initial-scale=1",
       },
       ...seo({
-        title: "notdemo.trade | AI Trading Bot",
-        description:
-          "AI trading bot that watches social media, makes trade recommendations 24/7, and lets you approve them from your phone.",
+        title: isPl ? "notdemo.trade - Bot Handlowy AI" : "notdemo.trade - AI Trading Bot",
+        description: isPl
+          ? "Bot handlowy AI, ktory monitoruje media spolecznosciowe, generuje rekomendacje 24/7 i pozwala zatwierdzac je z telefonu."
+          : "AI trading bot that watches social media, makes trade recommendations 24/7, and lets you approve them from your phone.",
       }),
     ],
     links: [
@@ -56,7 +69,7 @@ export const Route = createRootRouteWithContext<{
       { rel: "manifest", href: "/manifest.json" },
       { rel: "icon", href: "/favicon.ico" },
     ],
-  }),
+  }; },
   errorComponent: (props) => {
     return (
       <RootDocument>
@@ -76,23 +89,28 @@ export const Route = createRootRouteWithContext<{
 });
 
 function RootComponent() {
+  const { locale } = Route.useRouteContext();
+  const { data: messages } = useSuspenseQuery(messagesQueryOptions(locale));
+
   return (
-    <RootDocument>
-      <ThemeProvider
-        attribute="class"
-        defaultTheme="system"
-        enableSystem
-        disableTransitionOnChange={false}
-      >
-        <Outlet />
-      </ThemeProvider>
+    <RootDocument locale={locale}>
+      <IntlProvider locale={locale} messages={messages as Record<string, unknown>} timeZone="UTC">
+        <ThemeProvider
+          attribute="class"
+          defaultTheme="system"
+          enableSystem
+          disableTransitionOnChange={false}
+        >
+          <Outlet />
+        </ThemeProvider>
+      </IntlProvider>
     </RootDocument>
   );
 }
 
-function RootDocument({ children }: { children: React.ReactNode }) {
+function RootDocument({ children, locale = "en" }: { children: React.ReactNode; locale?: Locale }) {
   return (
-    <html>
+    <html lang={locale}>
       <head>
         <HeadContent />
       </head>

@@ -1,3 +1,4 @@
+import { useTranslations } from "use-intl";
 import { ExternalLink } from "lucide-react";
 
 const navigation = {
@@ -18,13 +19,15 @@ const navigation = {
 };
 
 export function Footer() {
+  const t = useTranslations();
+
   return (
     <footer className="border-t bg-background">
       <div className="mx-auto max-w-7xl px-6 py-12 md:flex md:items-center md:justify-between lg:px-8">
         <div className="flex flex-col md:flex-row md:items-center md:space-x-8 space-y-6 md:space-y-0">
           <div>
             <h3 className="text-sm font-semibold text-foreground">
-              LLM Providers
+              {t("footer.llm_providers")}
             </h3>
             <ul role="list" className="mt-2 space-y-1">
               {navigation.main.map((item) => (
@@ -45,7 +48,7 @@ export function Footer() {
 
           <div>
             <h3 className="text-sm font-semibold text-foreground">
-              Signal Sources
+              {t("footer.signal_sources")}
             </h3>
             <ul role="list" className="mt-2 space-y-1">
               {navigation.tools.map((item) => (
@@ -77,7 +80,7 @@ export function Footer() {
               rel="noopener noreferrer"
               className="text-xs text-muted-foreground hover:text-foreground transition-colors"
             >
-              Built by @tomkowalczyk
+              {t("footer.built_by")}
             </a>
             <p className="text-xs text-muted-foreground mt-1">
               &copy; {new Date().getFullYear()} notdemo.trade

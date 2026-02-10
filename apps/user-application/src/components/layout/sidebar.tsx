@@ -1,12 +1,13 @@
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { useTranslations } from "use-intl";
 import { Home, Menu } from "lucide-react";
 import { useNavigate, useRouterState } from "@tanstack/react-router";
 import { useState } from "react";
 
 interface NavigationItem {
-  name: string;
+  nameKey: string;
   icon: React.ComponentType<{ className?: string }>;
   href: string;
   badge?: string | number;
@@ -14,7 +15,7 @@ interface NavigationItem {
 
 const navigationItems: NavigationItem[] = [
   {
-    name: "Dashboard",
+    nameKey: "sidebar.dashboard",
     icon: Home,
     href: "/dashboard",
   },
@@ -29,6 +30,7 @@ export function Sidebar({ className }: SidebarProps) {
   const routerState = useRouterState();
   const currentPath = routerState.location.pathname;
   const [isCollapsed, setIsCollapsed] = useState(false);
+  const t = useTranslations();
 
   return (
     <>
@@ -44,7 +46,7 @@ export function Sidebar({ className }: SidebarProps) {
         <div className="flex h-16 items-center justify-between px-6 border-b border-border">
           {!isCollapsed && (
             <h1 className="text-xl font-semibold tracking-tight text-foreground">
-              Dashboard
+              {t("sidebar.dashboard")}
             </h1>
           )}
           <Button
@@ -60,12 +62,12 @@ export function Sidebar({ className }: SidebarProps) {
         <ScrollArea className="flex-1 px-3 py-4">
           <nav className="space-y-2">
             {navigationItems.map((item) => {
-              const isActive = currentPath === item.href || 
+              const isActive = currentPath === item.href ||
                 (item.href !== "/dashboard" && currentPath.startsWith(item.href));
-              
+
               return (
                 <Button
-                  key={item.name}
+                  key={item.nameKey}
                   variant={isActive ? "default" : "ghost"}
                   className={cn(
                     "w-full justify-start gap-3 h-10",
@@ -78,7 +80,7 @@ export function Sidebar({ className }: SidebarProps) {
                   <item.icon className="h-4 w-4 flex-shrink-0" />
                   {!isCollapsed && (
                     <>
-                      <span className="truncate">{item.name}</span>
+                      <span className="truncate">{t(item.nameKey)}</span>
                       {item.badge && (
                         <span className="ml-auto flex h-5 w-5 items-center justify-center rounded-full bg-primary text-xs font-medium text-primary-foreground">
                           {item.badge}

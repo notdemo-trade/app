@@ -3,9 +3,10 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { AccountDialog } from "@/components/auth/account-dialog";
-import { 
-  Bell, 
-  Search, 
+import { useTranslations } from "use-intl";
+import {
+  Bell,
+  Search,
   Menu
 } from "lucide-react";
 import { useState } from "react";
@@ -19,7 +20,8 @@ interface HeaderProps {
 export function Header({ className, onMobileMenuToggle }: HeaderProps) {
   const [searchQuery, setSearchQuery] = useState("");
   const { data: session } = authClient.useSession();
-  
+  const t = useTranslations();
+
   const user = session?.user;
   const fallbackText = user?.name
     ? user.name.charAt(0).toUpperCase()
@@ -46,7 +48,7 @@ export function Header({ className, onMobileMenuToggle }: HeaderProps) {
         <div className="relative">
           <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
           <Input
-            placeholder="Search..."
+            placeholder={t("header.search")}
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             className="w-64 pl-9 bg-muted/50 border-0 focus-visible:ring-1 focus-visible:ring-ring"
@@ -71,7 +73,7 @@ export function Header({ className, onMobileMenuToggle }: HeaderProps) {
             </Avatar>
             <div className="hidden sm:flex flex-col items-start">
               <span className="text-sm font-medium">{user?.name || "User"}</span>
-              <span className="text-xs text-muted-foreground">Online</span>
+              <span className="text-xs text-muted-foreground">{t("auth.online")}</span>
             </div>
           </Button>
         </AccountDialog>

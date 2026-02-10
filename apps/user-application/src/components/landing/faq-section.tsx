@@ -1,4 +1,5 @@
 import { Link } from "@tanstack/react-router"
+import { useTranslations } from "use-intl"
 import { BookOpen, TrendingUp, Code2, ArrowRight } from "lucide-react"
 import {
   Card,
@@ -7,7 +8,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card"
-import { FAQ_CATEGORIES } from "./faq-data"
+import { buildFaqCategories } from "./faq-data"
 
 const categoryIcons = {
   beginner: BookOpen,
@@ -16,20 +17,23 @@ const categoryIcons = {
 } as const
 
 export function FaqSection() {
+  const t = useTranslations()
+  const categories = buildFaqCategories(t)
+
   return (
     <section id="faq" className="pt-12 sm:pt-16 pb-24 sm:pb-32">
       <div className="mx-auto max-w-7xl px-6 lg:px-8">
         <div className="mx-auto max-w-2xl text-center">
           <h2 className="text-3xl font-bold tracking-tight text-foreground sm:text-4xl">
-            Frequently Asked Questions
+            {t("faq.title")}
           </h2>
           <p className="mt-4 text-lg text-muted-foreground">
-            Everything you need to know about notdemo.trade
+            {t("faq.subtitle")}
           </p>
         </div>
 
         <div className="mx-auto mt-16 grid max-w-2xl grid-cols-1 gap-6 sm:mt-20 lg:mx-0 lg:max-w-none lg:grid-cols-3">
-          {FAQ_CATEGORIES.map((cat) => {
+          {categories.map((cat) => {
             const Icon = categoryIcons[cat.id]
             return (
               <Link
@@ -50,10 +54,11 @@ export function FaqSection() {
                     </CardDescription>
                     <div className="flex items-center justify-between text-sm">
                       <span className="text-muted-foreground">
-                        <span className="text-secondary">{cat.items.length}</span> questions
+                        <span className="text-secondary">{cat.items.length}</span>{" "}
+                        {t("faq.count", { count: cat.items.length })}
                       </span>
                       <span className="flex items-center gap-1 text-accent group-hover:gap-2 transition-all">
-                        Browse
+                        {t("faq.browse")}
                         <ArrowRight className="h-4 w-4" />
                       </span>
                     </div>

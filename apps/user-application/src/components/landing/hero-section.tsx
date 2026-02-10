@@ -1,43 +1,44 @@
+import { useTranslations } from "use-intl";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Sparkles, Zap, Shield, LogIn } from "lucide-react";
 
 export function HeroSection() {
+  const t = useTranslations();
+
   return (
     <section className="relative px-6 lg:px-8 pt-24 sm:pt-32 pb-12 sm:pb-16">
       <div className="mx-auto max-w-4xl text-center">
         <div className="mb-8 flex flex-wrap justify-center gap-2">
           <Badge variant="secondary" className="mb-4">
             <Sparkles className="mr-1 h-3 w-3" />
-            AI-Powered
+            {t("hero.badge.ai")}
           </Badge>
           <Badge variant="secondary" className="mb-4">
             <Zap className="mr-1 h-3 w-3" />
-            24/7 Monitoring
+            {t("hero.badge.monitoring")}
           </Badge>
           <Badge variant="secondary" className="mb-4">
             <Shield className="mr-1 h-3 w-3" />
-            BYOK
+            {t("hero.badge.byok")}
           </Badge>
         </div>
 
         <h1 className="text-4xl font-bold tracking-tight text-foreground sm:text-6xl lg:text-7xl">
-          notdemo
-          <span className="block text-primary">.trade</span>
+          {t("hero.title.part1")}
+          <span className="block text-primary">{t("hero.title.part2")}</span>
         </h1>
 
         <p className="mt-6 text-lg leading-8 text-muted-foreground max-w-2xl mx-auto">
-          AI trading bot that watches social media, makes trade recommendations
-          24/7, and lets you approve them from your phone. Bring your own broker
-          account and customize the strategy.
+          {t("hero.description")}
         </p>
 
         <div className="mt-10 flex flex-col items-center justify-center gap-2">
           <Button size="lg" disabled className="gap-2">
             <LogIn className="h-4 w-4" />
-            Get Started
+            {t("hero.cta.label")}
           </Button>
-          <span className="text-sm text-muted-foreground">soon..</span>
+          <span className="text-sm text-muted-foreground">{t("hero.cta.soon")}</span>
         </div>
       </div>
 

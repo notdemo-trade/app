@@ -2,6 +2,7 @@ import * as React from "react"
 import ReactMarkdown from "react-markdown"
 import remarkGfm from "remark-gfm"
 import { Link } from "@tanstack/react-router"
+import { useTranslations } from "use-intl"
 import { Link2, ArrowLeft } from "lucide-react"
 import {
   Accordion,
@@ -40,6 +41,7 @@ function normalizeMarkdown(md: string): string {
 export function FaqPage({ category }: FaqPageProps) {
   const [openItems, setOpenItems] = React.useState<string[]>([])
   const [copiedId, setCopiedId] = React.useState<string | null>(null)
+  const t = useTranslations()
 
   React.useEffect(() => {
     const hash = window.location.hash.slice(1)
@@ -74,7 +76,7 @@ export function FaqPage({ category }: FaqPageProps) {
           className="inline-flex items-center gap-1.5 text-sm text-accent hover:text-accent/80 transition-colors mb-8"
         >
           <ArrowLeft className="h-4 w-4" />
-          Back
+          {t("faq.back")}
         </Link>
 
         <div className="mb-12">
@@ -85,7 +87,8 @@ export function FaqPage({ category }: FaqPageProps) {
             {category.description}
           </p>
           <p className="mt-2 text-sm text-muted-foreground">
-            <span className="text-secondary">{category.items.length}</span> questions
+            <span className="text-secondary">{category.items.length}</span>{" "}
+            {t("faq.count", { count: category.items.length })}
           </p>
         </div>
 

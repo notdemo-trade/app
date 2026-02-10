@@ -1,6 +1,7 @@
 import { createRouter } from '@tanstack/react-router'
 import { setupRouterSsrQueryIntegration } from '@tanstack/react-router-ssr-query'
 import * as TanstackQuery from './integrations/tanstack-query/root-provider'
+import { deLocalizeUrl, localizeUrl } from '@/i18n/core/client'
 
 // Import the generated route tree
 import { routeTree } from './routeTree.gen'
@@ -13,6 +14,10 @@ export const getRouter = () => {
     routeTree,
     context: { ...rqContext },
     defaultPreload: 'intent',
+    rewrite: {
+      input: deLocalizeUrl,
+      output: localizeUrl,
+    },
     Wrap: (props: { children: React.ReactNode }) => {
       return (
         <TanstackQuery.Provider {...rqContext}>

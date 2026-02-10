@@ -1,4 +1,5 @@
 import { Monitor, Moon, Sun, Check } from "lucide-react";
+import { useTranslations } from "use-intl";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -23,8 +24,8 @@ export function ThemeToggle({
   align = "end",
 }: ThemeToggleProps) {
   const { theme, setTheme, resolvedTheme } = useTheme();
+  const t = useTranslations();
 
-  // Animation variants for icons
   const iconVariants = {
     sun: "transition-all duration-500 ease-in-out",
     moon: "transition-all duration-500 ease-in-out",
@@ -36,24 +37,24 @@ export function ThemeToggle({
       return (
         <Monitor
           className={`h-4 w-4 text-foreground ${iconVariants.system} rotate-0 scale-100`}
-          aria-hidden="true" 
+          aria-hidden="true"
         />
       );
     }
-    
+
     if (resolvedTheme === "dark") {
       return (
         <Moon
           className={`h-4 w-4 text-foreground ${iconVariants.moon} rotate-0 scale-100`}
-          aria-hidden="true" 
+          aria-hidden="true"
         />
       );
     }
-    
+
     return (
       <Sun
         className={`h-4 w-4 text-foreground ${iconVariants.sun} rotate-0 scale-100`}
-        aria-hidden="true" 
+        aria-hidden="true"
       />
     );
   };
@@ -61,21 +62,21 @@ export function ThemeToggle({
   const themeOptions = [
     {
       value: "light",
-      label: "Light",
+      labelKey: "theme.light.label",
+      descriptionKey: "theme.light.description",
       icon: Sun,
-      description: "Use light theme",
     },
     {
-      value: "dark", 
-      label: "Dark",
+      value: "dark",
+      labelKey: "theme.dark.label",
+      descriptionKey: "theme.dark.description",
       icon: Moon,
-      description: "Use dark theme",
     },
     {
       value: "system",
-      label: "System",
+      labelKey: "theme.system.label",
+      descriptionKey: "theme.system.description",
       icon: Monitor,
-      description: "Use system theme",
     },
   ] as const;
 
@@ -95,31 +96,31 @@ export function ThemeToggle({
             focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2
             ${showLabel ? "gap-2" : "aspect-square"}
           `}
-          aria-label="Toggle theme"
+          aria-label={t("theme.toggle")}
         >
           <div className="relative flex items-center justify-center">
             {getCurrentIcon()}
           </div>
           {showLabel && (
             <span className="text-sm font-medium">
-              {themeOptions.find(option => option.value === theme)?.label}
+              {t(themeOptions.find(option => option.value === theme)?.labelKey ?? "theme.system.label")}
             </span>
           )}
           <span className="sr-only">
-            Current theme: {theme === "system" ? `System (${resolvedTheme})` : theme}
+            {t("theme.current", { theme: theme === "system" ? `${t("theme.system.label")} (${resolvedTheme})` : t(`theme.${theme}.label` as "theme.light.label" | "theme.dark.label") })}
           </span>
         </Button>
       </DropdownMenuTrigger>
-      
-      <DropdownMenuContent 
-        align={align} 
+
+      <DropdownMenuContent
+        align={align}
         className="w-56 p-2 bg-popover/95 backdrop-blur-sm border border-border/50 shadow-lg"
       >
         <div className="grid gap-1">
           {themeOptions.map((option) => {
             const Icon = option.icon;
             const isSelected = theme === option.value;
-            
+
             return (
               <DropdownMenuItem
                 key={option.value}
@@ -133,7 +134,7 @@ export function ThemeToggle({
                 `}
               >
                 <div className="flex items-center justify-center w-5 h-5">
-                  <Icon 
+                  <Icon
                     className={`
                       h-4 w-4 transition-all duration-200
                       ${isSelected ? 'text-accent-foreground scale-110' : 'text-muted-foreground'}
@@ -141,19 +142,19 @@ export function ThemeToggle({
                     `}
                   />
                 </div>
-                
+
                 <div className="flex flex-col flex-1 min-w-0">
                   <span className={`
                     text-sm font-medium leading-none
                     ${isSelected ? 'text-accent-foreground' : 'text-foreground'}
                   `}>
-                    {option.label}
+                    {t(option.labelKey)}
                   </span>
                   <span className="text-xs text-muted-foreground mt-0.5 leading-none">
-                    {option.description}
+                    {t(option.descriptionKey)}
                   </span>
                 </div>
-                
+
                 {isSelected && (
                   <Check className="h-4 w-4 text-accent-foreground animate-in fade-in-0 zoom-in-75 duration-150" />
                 )}
@@ -161,7 +162,7 @@ export function ThemeToggle({
             );
           })}
         </div>
-        
+
         {resolvedTheme && (
           <div className="border-t border-border/50 mt-2 pt-2">
             <div className="flex items-center gap-2 px-3 py-1.5 text-xs text-muted-foreground">
@@ -169,7 +170,7 @@ export function ThemeToggle({
                 w-2 h-2 rounded-full transition-colors duration-200
                 ${resolvedTheme === 'dark' ? 'bg-accent' : 'bg-primary'}
               `} />
-              Currently using {resolvedTheme} theme
+              {t("theme.current", { theme: resolvedTheme })}
             </div>
           </div>
         )}

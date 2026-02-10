@@ -1,7 +1,8 @@
 import { createFileRoute, notFound } from "@tanstack/react-router"
+import { useTranslations } from "use-intl"
 import { NavigationBar } from "@/components/navigation"
 import { FaqPage } from "@/components/faq/faq-page"
-import { FAQ_CATEGORIES, FAQ_CATEGORY_IDS } from "@/components/landing/faq-data"
+import { buildFaqCategories, FAQ_CATEGORY_IDS } from "@/components/landing/faq-data"
 import type { FaqCategoryId } from "@/components/landing/faq-data"
 
 export const Route = createFileRoute("/faq/$categoryId")({
@@ -19,7 +20,9 @@ export const Route = createFileRoute("/faq/$categoryId")({
 
 function FaqCategoryPage() {
   const { categoryId } = Route.useParams()
-  const category = FAQ_CATEGORIES.find((c) => c.id === categoryId)!
+  const t = useTranslations()
+  const categories = buildFaqCategories(t)
+  const category = categories.find((c) => c.id === categoryId)!
   return (
     <>
       <NavigationBar />

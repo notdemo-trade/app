@@ -1,0 +1,138 @@
+{
+  "lang": {
+    "en": "English",
+    "pl": "Polski",
+    "select": "Select language"
+  },
+  "test": {
+    "hello": "Hello"
+  },
+  "nav": {
+    "features": "Features",
+    "faq": "FAQ",
+    "navigation": "Navigation",
+    "navigate": "Navigate"
+  },
+  "hero": {
+    "badge": {
+      "ai": "AI-Powered",
+      "monitoring": "24/7 Monitoring",
+      "byok": "BYOK"
+    },
+    "title": {
+      "part1": "notdemo",
+      "part2": ".trade"
+    },
+    "description": "AI trading bot that watches social media, makes trade recommendations 24/7, and lets you approve them from your phone.",
+    "cta": {
+      "label": "Get Started",
+      "soon": "soon.."
+    }
+  },
+  "features": {
+    "title": "Your AI Trading Agent",
+    "subtitle": "Institutional-grade infrastructure for retail algorithmic traders",
+    "ai": {
+      "title": "AI Analysis",
+      "description": "LLM-powered trade recommendations using OpenAI, Anthropic, Google, xAI, or DeepSeek.",
+      "badge": "Core"
+    },
+    "multiasset": {
+      "title": "Multi-Asset",
+      "description": "Trade stocks, crypto (24/7), and options with delta targeting strategies.",
+      "badge": "Trading"
+    },
+    "signals": {
+      "title": "Signal Aggregation",
+      "description": "Monitors StockTwits, Reddit, Twitter, and SEC filings for sentiment and momentum.",
+      "badge": "Signals"
+    },
+    "telegram": {
+      "title": "Telegram Approvals",
+      "description": "Approve or reject trades from your phone via Telegram, or enable autonomous mode.",
+      "badge": "Mobile"
+    },
+    "risk": {
+      "title": "Risk Guardrails",
+      "description": "Kill switches, position limits, daily loss caps, and staleness detection built in.",
+      "badge": "Safety"
+    },
+    "journal": {
+      "title": "Trade Journal",
+      "description": "Track outcomes for learning and pattern extraction across all your trades.",
+      "badge": "Analytics"
+    },
+    "byok": {
+      "title": "Bring Your Own Keys",
+      "description": "Use your own broker (Alpaca) and LLM API keys. Your capital, your control.",
+      "badge": "BYOK"
+    },
+    "templates": {
+      "title": "Strategy Templates",
+      "description": "Shareable templates for custom prompt engineering approaches. Publish and fork strategies.",
+      "badge": "Community"
+    }
+  },
+  "footer": {
+    "llm_providers": "LLM Providers",
+    "signal_sources": "Signal Sources",
+    "built_by": "Built by @tomkowalczyk"
+  },
+  "faq": {
+    "title": "Frequently Asked Questions",
+    "subtitle": "Everything you need to know about notdemo.trade",
+    "count": "{count, plural, one {question} other {questions}}",
+    "browse": "Browse",
+    "back": "Back",
+    "beginner": {
+      "label": "Beginners",
+      "description": "New to trading? Start here.",
+      "q1": "What is notdemo.trade?",
+      "a1": "It's a platform that runs an AI trading assistant for you. Think of it like having a robot that watches the market 24/7, suggests trades based on social media buzz and technical analysis, and can execute them with your approval or automatically."
+    },
+    "trader": {
+      "label": "Experienced Traders",
+      "description": "For traders familiar with TA and systematic trading.",
+      "q1": "I already do my own TA. Why would I need this?",
+      "a1": "Three reasons:\n1. **24/7 monitoring**: You can't watch 50 stocks across multiple timeframes constantly. The agent does.\n2. **Signal aggregation**: Combines social sentiment (often leading indicator) with your TA in real-time. Catches momentum before it shows up on charts.\n3. **Systematic execution**: Removes emotional trading. Your rules + AI analysis + automatic execution = discipline.\n\nThink of it as your trading strategy, systematized and scaled."
+    },
+    "developer": {
+      "label": "Developers",
+      "description": "Technical deep-dive into architecture and stack.",
+      "q1": "What's the high-level architecture?",
+      "a1": "**Three-tier edge-native stack**:\n\n```\n┌─────────────────────────────────────────────────────────┐\n│  User Application (TanStack Start SSR)                  │\n│  ├─ React + TanStack Router                             │\n│  ├─ Server functions (createServerFn)                   │\n│  └─ Deployed: Cloudflare Workers                        │\n└─────────────────────────────────────────────────────────┘\n                          ↓ HTTP/WebSocket\n┌─────────────────────────────────────────────────────────┐\n│  Data Service (Hono REST API)                           │\n│  ├─ Handlers → Services → Queries pattern               │\n│  ├─ Zod validation, error handling                      │\n│  └─ Deployed: Cloudflare Workers                        │\n└─────────────────────────────────────────────────────────┘\n                          ↓ RPC/WebSocket\n┌─────────────────────────────────────────────────────────┐\n│  Trading Agent (Cloudflare Agents SDK)                  │\n│  ├─ Durable Object per user                             │\n│  ├─ Scheduled loops (signal gathering, analysis)        │\n│  ├─ WebSocket for real-time state sync                  │\n│  └─ SQLite for per-agent logs + config                  │\n└─────────────────────────────────────────────────────────┘\n                          ↓\n┌─────────────────────────────────────────────────────────┐\n│  Data Layer (data-ops package)                          │\n│  ├─ Drizzle ORM → Neon Postgres                         │\n│  ├─ Zod schemas for validation                          │\n│  ├─ Type-safe queries + Better Auth integration         │\n│  └─ Shared across all services                          │\n└─────────────────────────────────────────────────────────┘\n```\n\n**Key characteristics**:\n- **Edge-first**: Everything runs on Cloudflare's edge network (low latency globally)\n- **Monorepo**: Shared types and logic across frontend/backend/agents\n- **Serverless**: No VMs to manage, infinite scaling\n- **Multi-tenant**: Per-user isolation via Durable Objects"
+    }
+  },
+  "meta": {
+    "title": "notdemo.trade - AI Trading Bot",
+    "description": "AI trading bot that watches social media, makes trade recommendations 24/7, and lets you approve them from your phone."
+  },
+  "theme": {
+    "light": {
+      "label": "Light",
+      "description": "Use light theme"
+    },
+    "dark": {
+      "label": "Dark",
+      "description": "Use dark theme"
+    },
+    "system": {
+      "label": "System",
+      "description": "Use system theme"
+    },
+    "toggle": "Toggle theme",
+    "current": "Currently using {theme} theme",
+    "label": "Theme"
+  },
+  "header": {
+    "search": "Search..."
+  },
+  "sidebar": {
+    "dashboard": "Dashboard"
+  },
+  "auth": {
+    "online": "Online",
+    "account": "Account",
+    "signout": "Sign Out"
+  }
+}
