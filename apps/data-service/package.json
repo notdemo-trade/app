@@ -6,7 +6,6 @@
     "deploy:staging": "wrangler deploy --env staging",
     "deploy:production": "wrangler deploy --env production",
     "dev": "wrangler dev --env dev --port 8788",
-    "test": "vitest",
     "cf-typegen": "wrangler types --env-interface BaseEnv --env dev"
   },
   "devDependencies": {
