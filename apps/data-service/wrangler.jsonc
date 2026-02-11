@@ -1,6 +1,6 @@
 {
   "$schema": "./node_modules/wrangler/config-schema.json",
-  "name": "saas-on-cf-ds",
+  "name": "notdemo-trade-ds",
   "main": "./src/index.ts",
   "compatibility_date": "2025-04-01",
   "compatibility_flags": [
@@ -19,7 +19,7 @@
 		* Local / Development environment
 		*/
     "dev": {
-      "name": "saas-on-cf-ds-dev",
+      "name": "notdemo-trade-ds-dev",
       // "kv_namespaces": [
       //   {
       //     "binding": "CACHE",
@@ -49,13 +49,13 @@
 		* Remote / Staging environment
 		*/
     "staging": {
-      // "routes": [
-      //   {
-      //     "zone_name": "YOUR_DOMAIN.COM",
-      //     "pattern": "staging.YOUR_DOMAIN.COM/api/*"
-      //   }
-      // ],
-      "name": "saas-on-cf-ds-staging",
+      "routes": [
+        {
+          "pattern": "api-staging.notdemo.trade",
+          "custom_domain": true
+        }
+      ],
+      "name": "notdemo-trade-ds-staging",
       // "kv_namespaces": [
       //   {
       //     "binding": "CACHE",
@@ -85,13 +85,13 @@
 		* Remote / Production environment
 		*/
     "production": {
-      // "routes": [
-      //   {
-      //     "zone_name": "YOUR_DOMAIN.COM",
-      //     "pattern": "YOUR_DOMAIN.COM/api/*"
-      //   }
-      // ],
-      "name": "saas-on-cf-ds-production",
+      "routes": [
+        {
+          "pattern": "api.notdemo.trade",
+          "custom_domain": true
+        }
+      ],
+      "name": "notdemo-trade-ds-production",
       // "kv_namespaces": [
       //   {
       //     "binding": "CACHE",

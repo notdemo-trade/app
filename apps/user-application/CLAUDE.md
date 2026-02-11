@@ -23,7 +23,8 @@ src/
 │   └── api/                  # API handlers (Better Auth)
 ├── lib/
 │   ├── utils.ts              # Shared utilities
-│   └── auth-client.ts        # Better Auth client
+│   ├── auth-client.ts        # Better Auth client
+│   └── data-service.ts       # Service binding client (DATA_SERVICE)
 └── components/               # React components
     ├── landing/              # Landing page sections
     ├── faq/                  # FAQ page component
@@ -53,9 +54,25 @@ pnpm run deploy:prod      # deploy to production
 - `VITE_DATA_SERVICE_URL` - public API URL
 - `VITE_API_TOKEN` - client-side API auth
 
+## Service Binding (DATA_SERVICE)
+
+Use `fetchDataService()` from `lib/data-service.ts` for server-side calls to data-service via Worker service binding. Never call the public API URL from server code.
+
+```ts
+import { fetchDataService } from "@/lib/data-service";
+
+const response = await fetchDataService("/health/live");
+const data = await response.json();
+```
+
+- Server-only — uses `env` from `cloudflare:workers`
+- No HTTP/DNS overhead — internal Worker-to-Worker RPC
+- Health check: `GET /api/health` verifies binding, DB, and env
+
 ## Don't
 
 - Import `env` from 'cloudflare:workers' in client code (server only)
+- Call data-service via public URL from server code — use `fetchDataService()` instead
 - Put DB queries here - add to `@repo/data-ops/queries`
 - Skip `enabled: !!id` on detail queries (prevents empty ID fetches)
 - Use useState for URL-driven state - use `validateSearch` + `useNavigate`

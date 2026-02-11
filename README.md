@@ -28,11 +28,11 @@ Built on **Cloudflare Workers** with global edge deployment.
 
 ### Monorepo Structure
 
-| Package | Technology | Purpose |
-|---------|-----------|---------|
-| `packages/data-ops` | Drizzle + Zod | DB schemas, queries, validation |
-| `apps/data-service` | Hono | REST API on CF Workers |
-| `apps/user-application` | TanStack Start | SSR frontend on CF Workers |
+| Package | Technology | Purpose | Production |
+|---------|-----------|---------|------------|
+| `packages/data-ops` | Drizzle + Zod | DB schemas, queries, validation | — |
+| `apps/data-service` | Hono | REST API on CF Workers | `api.notdemo.trade` |
+| `apps/user-application` | TanStack Start | SSR frontend on CF Workers | `notdemo.trade` |
 
 ### Infrastructure
 - **State Management**: Durable Objects (per-user agent state)

@@ -12,6 +12,7 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as AuthRouteRouteImport } from './routes/_auth/route'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as FaqCategoryIdRouteImport } from './routes/faq/$categoryId'
+import { Route as ApiHealthRouteImport } from './routes/api/health'
 import { Route as AuthAppIndexRouteImport } from './routes/_auth/app/index'
 import { Route as ApiAuthSplatRouteImport } from './routes/api/auth.$'
 
@@ -29,6 +30,11 @@ const FaqCategoryIdRoute = FaqCategoryIdRouteImport.update({
   path: '/faq/$categoryId',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiHealthRoute = ApiHealthRouteImport.update({
+  id: '/api/health',
+  path: '/api/health',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AuthAppIndexRoute = AuthAppIndexRouteImport.update({
   id: '/app/',
   path: '/app/',
@@ -42,12 +48,14 @@ const ApiAuthSplatRoute = ApiAuthSplatRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/api/health': typeof ApiHealthRoute
   '/faq/$categoryId': typeof FaqCategoryIdRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
   '/app/': typeof AuthAppIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/api/health': typeof ApiHealthRoute
   '/faq/$categoryId': typeof FaqCategoryIdRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
   '/app': typeof AuthAppIndexRoute
@@ -56,19 +64,21 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/_auth': typeof AuthRouteRouteWithChildren
+  '/api/health': typeof ApiHealthRoute
   '/faq/$categoryId': typeof FaqCategoryIdRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
   '/_auth/app/': typeof AuthAppIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/faq/$categoryId' | '/api/auth/$' | '/app/'
+  fullPaths: '/' | '/api/health' | '/faq/$categoryId' | '/api/auth/$' | '/app/'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/faq/$categoryId' | '/api/auth/$' | '/app'
+  to: '/' | '/api/health' | '/faq/$categoryId' | '/api/auth/$' | '/app'
   id:
     | '__root__'
     | '/'
     | '/_auth'
+    | '/api/health'
     | '/faq/$categoryId'
     | '/api/auth/$'
     | '/_auth/app/'
@@ -77,6 +87,7 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AuthRouteRoute: typeof AuthRouteRouteWithChildren
+  ApiHealthRoute: typeof ApiHealthRoute
   FaqCategoryIdRoute: typeof FaqCategoryIdRoute
   ApiAuthSplatRoute: typeof ApiAuthSplatRoute
 }
@@ -102,6 +113,13 @@ declare module '@tanstack/react-router' {
       path: '/faq/$categoryId'
       fullPath: '/faq/$categoryId'
       preLoaderRoute: typeof FaqCategoryIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/health': {
+      id: '/api/health'
+      path: '/api/health'
+      fullPath: '/api/health'
+      preLoaderRoute: typeof ApiHealthRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/_auth/app/': {
@@ -136,6 +154,7 @@ const AuthRouteRouteWithChildren = AuthRouteRoute._addFileChildren(
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AuthRouteRoute: AuthRouteRouteWithChildren,
+  ApiHealthRoute: ApiHealthRoute,
   FaqCategoryIdRoute: FaqCategoryIdRoute,
   ApiAuthSplatRoute: ApiAuthSplatRoute,
 }
