@@ -1,6 +1,6 @@
 # Cloudflare Agents SDK — Complete Feature Reference
 
-Trading app reference. Features marked **[USED]** are in Phase 12 design docs. Features marked **[NEW]** are not yet leveraged.
+Trading app reference. Multi-agent architecture: OrchestratorAgent, StockTwitsAgent, TwitterAgent, SecFilingsAgent, FredAgent, TechnicalAnalysisAgent, LLMAnalysisAgent. Features marked **[USED]** are in design docs. **[NEW]** = not yet leveraged.
 
 ---
 
@@ -303,33 +303,83 @@ Vector search + embeddings for retrieval-augmented generation.
 
 ---
 
-## Priority Matrix — NEW Features by Phase Impact
+## Priority Matrix — by Agent
 
-| Feature | Phase 12 (Agent) | Phase 10 (Approval) | Phase 11 (Telegram) | Phase 6 (LLM) | Phase 16 (Notif) |
-|---------|:-:|:-:|:-:|:-:|:-:|
-| Queue Tasks | HIGH | - | - | - | MED |
-| Retry APIs | HIGH | - | MED | MED | HIGH |
-| Workflows | HIGH | HIGH | HIGH | - | - |
-| HITL (waitForApproval) | HIGH | HIGH | HIGH | - | - |
-| validateStateChange | HIGH | - | - | - | - |
-| onBeforeConnect/Request | HIGH | - | - | - | - |
-| Observability | MED | - | - | - | HIGH |
-| MCP Support | MED | - | - | HIGH | - |
-| Readonly Connections | LOW | - | - | - | - |
-| RAG / Vectorize | - | - | - | HIGH | - |
-| AI Gateway | - | - | - | MED | - |
-| Web Browsing | - | - | - | LOW | - |
-| agentFetch | - | - | MED | - | MED |
-| getSchedulePrompt | LOW | - | - | - | - |
-| onEmail | - | - | LOW | - | LOW |
+| Feature | Orchestrator | StockTwits | Twitter | SEC Filings | FRED | TA Agent | LLM Agent |
+|---------|:-:|:-:|:-:|:-:|:-:|:-:|:-:|
+| `Agent<Env,State>` | USED | USED | USED | USED | USED | USED | USED |
+| `@callable()` | USED | USED | USED | USED | USED | USED | USED |
+| `getAgentByName()` | **CRITICAL** | - | - | - | - | - | - |
+| `scheduleEvery()` | USED | USED | USED | USED | USED | USED | - |
+| `this.sql` | USED | USED | USED | USED | USED | USED | USED |
+| `this.retry()` | HIGH | HIGH | HIGH | HIGH | HIGH | HIGH | HIGH |
+| Queue Tasks | HIGH | MED | MED | - | - | - | - |
+| `hibernate: true` | HIGH | HIGH | HIGH | **HIGH** | **HIGH** | **HIGH** | HIGH |
+| `validateStateChange` | HIGH | MED | MED | - | - | MED | MED |
+| `onBeforeConnect` | HIGH | - | - | - | - | - | - |
+| Workflows + HITL | HIGH | - | - | - | - | - | - |
+| Observability | HIGH | MED | MED | MED | MED | MED | MED |
+| Readonly Connections | MED | MED | MED | MED | MED | MED | - |
+| `streaming: true` | - | - | - | - | - | - | USED |
+| MCP Support | MED | - | - | - | - | - | HIGH |
+| RAG / Vectorize | - | - | - | - | - | - | MED |
+| AI Gateway | - | - | - | - | - | - | MED |
+
+**Shared agents** (SEC, FRED): `hibernate: true` critical — many instances, most idle.
+**Per-user agents** (StockTwits, Twitter, TA, LLM): hibernate saves cost when user disables.
+
+---
+
+## Multi-Agent Architecture Impact
+
+### Agent Topology
+
+```
+OrchestratorAgent (per-user, instance={userId})
+  ├── StockTwitsAgent (per-user, instance={userId})
+  ├── TwitterAgent (per-user, instance={userId})
+  ├── SecFilingsAgent (shared, instance={ticker})
+  ├── FredAgent (shared, instance={seriesId})
+  ├── TechnicalAnalysisAgent (per-user, instance={userId}:{symbol})
+  └── LLMAnalysisAgent (per-user, instance={userId})
+```
+
+### Inter-Agent Communication
+
+`getAgentByName()` is the backbone. OrchestratorAgent pulls signals from all sub-agents via typed RPC:
+
+```ts
+const ta = await getAgentByName<TechnicalAnalysisAgent>(env.TechnicalAnalysisAgent, `${userId}:AAPL`)
+const signals = await ta.getSignals(since)
+```
+
+Each sub-agent is independently schedulable, retryable, and hibernatable. Failure in one agent doesn't cascade.
+
+### SDK Feature Mapping
+
+| SDK Feature | Multi-Agent Use Case |
+|-------------|---------------------|
+| `getAgentByName()` | Orchestrator → sub-agent RPC |
+| `scheduleEvery()` | Each agent owns its poll interval |
+| `this.retry()` | Each agent retries its own external API |
+| `hibernate: true` | Cost savings for idle shared agents (SEC per-ticker, FRED per-series) |
+| Queue Tasks | Signal agents queue ingestion batches |
+| Observability | Per-agent event streams for dashboard |
+| `validateStateChange` | Prevent client state injection per-agent |
+| `onBeforeConnect` | Auth on orchestrator WS (sub-agents use server-side RPC only) |
+| Workflows + HITL | Trade approval flow in orchestrator |
+| Readonly Connections | Dashboard viewers see agent state w/o control |
 
 ---
 
 ## Top Recommendations
 
-1. **Adopt `this.retry()`** — wrap `executeOrder()`, `gatherSignals()`, Telegram API calls. Zero-effort resilience
-2. **Add `onBeforeConnect`** — Phase 12 WS connections currently unauthenticated
-3. **Add `validateStateChange`** — prevent client-side state injection
-4. **Evaluate Workflows + HITL** — replaces custom approval timeout mechanism (60s polling + SQLite `approval_timeouts`). Cleaner, built-in timeout, native approve/reject API
-5. **Queue trade executions** — sequential processing, built-in retry, prevents position sizing races
-6. **Set `static options = { hibernate: true }`** — cost savings for idle agents
+1. **`getAgentByName()` as inter-agent RPC** — backbone of multi-agent coordination
+2. **`hibernate: true` on ALL agents** — critical for shared agents (hundreds of SEC/FRED instances)
+3. **`this.retry()` per agent** — each agent wraps its own API calls (StockTwits, X, FRED, Alpaca, LLM)
+4. **`onBeforeConnect` on orchestrator** — WS auth before UI access
+5. **`validateStateChange` per agent** — reject invalid client state
+6. **Queue trade executions** — sequential processing in orchestrator, retry on Alpaca failure
+7. **Workflows + HITL for approvals** — replaces custom timeout mechanism
+8. **Observability per agent** — unified activity stream across all agents
+9. **`static options = { retry: { maxAttempts: 5 } }`** — class-level defaults per agent type

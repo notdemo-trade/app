@@ -61,6 +61,8 @@ Rules with `paths:` frontmatter apply only when working with matching files.
 ## Design Docs
 
 - `/docs` is the single source of truth for business requirements
+- `/docs/design-docs/` — MVP active (001-003, 005, 006, 012) with full 6-part specs
+- `/docs/roadmap/` — future phases with brief summaries, full specs in subfolders
 - When reviewing, auditing, or analyzing a feature—apply all changes (notes, status updates, findings) directly in the corresponding design doc
 - Never create separate md files for reviews/audits/analyses unless explicitly asked
 - Implementation must align with the spec in `/docs`; flag deviations inline in the doc

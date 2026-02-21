@@ -6,22 +6,6 @@
 
 **notdemo.trade** is a multi-tenant SaaS platform on Cloudflare infrastructure. Each user gets their own AI-powered trading agent that operates independently using their own API keys and capital.
 
-## Core Trading Loop
-
-The platform continuously monitors multiple signal sources:
-- **Social Media**: StockTwits, Reddit, Twitter (optional)
-- **Official Sources**: SEC filings
-- **Analysis**: Aggregates sentiment and momentum indicators
-
-Uses LLM analysis (OpenAI, Anthropic, Google, xAI, DeepSeek) to generate trade recommendations. Users can:
-- **Manual Mode**: Approve trades via Telegram
-- **Autonomous Mode**: Enable auto-execution with configurable risk limits
-
-### Supported Assets
-- **Stocks**: Traditional equities
-- **Crypto**: 24/7 trading (BTC, ETH, SOL)
-- **Options**: Strategies with delta targeting
-
 ## Architecture
 
 Built on **Cloudflare Workers** with global edge deployment.
@@ -35,34 +19,49 @@ Built on **Cloudflare Workers** with global edge deployment.
 | `apps/user-application` | TanStack Start | SSR frontend on CF Workers | `notdemo.trade` |
 
 ### Infrastructure
-- **State Management**: Durable Objects (per-user agent state)
 - **Database**: Neon Postgres
 - **Auth**: Better Auth (multi-tenancy)
 - **Deployment**: Independent component deployment to Cloudflare edge
 
-## Unique Features
+## MVP — Trading Agent Foundation
 
-### Strategy Templates
-Shareable templates for custom prompt engineering approaches. Users can publish/fork signal analysis strategies.
+Current implementation: recommendation engine (no trade execution yet).
 
-### Anonymous Leaderboards
-Two-tier system with asset class breakdown:
-- **Tier 1**: Funded accounts
-- **Tier 2**: Paper traders
-- **Breakdown**: Stocks, crypto, options
+### Technical Analysis Agent (Phase 005)
+Per-user per-symbol agent computing SMA/EMA/RSI/MACD/BB/ATR indicators via Durable Objects with scheduled execution.
 
-### Trade Journal
-Tracks outcomes for learning and pattern extraction.
+### LLM Analysis Agent (Phase 006)
+Per-user on-demand LLM reasoning across multiple providers (OpenAI, Anthropic, Google, xAI, DeepSeek). Consumes TA signals.
 
-### Safety Guardrails
-- Kill switches
-- Position limits
-- Daily loss caps
-- Staleness detection
+### Orchestrator Agent (Phase 012)
+Coordinates TA + LLM into trade recommendations. Approval-only mode — stores recommendations in Postgres + agent-local SQLite.
 
-### BYOK (Bring Your Own Keys)
+### Supported Assets
+- **Stocks**: Traditional equities
+- **Crypto**: 24/7 trading (BTC, ETH, SOL)
+- **Options**: Strategies with delta targeting
+
+### Approval Modes
+- **Manual Mode**: Approve trades via Telegram
+- **Autonomous Mode**: Auto-execution with configurable risk limits
+
+## Roadmap
+
+Features planned but not yet implemented:
+
+- **Signal Gathering** (Phase 004): StockTwits, Twitter, SEC filings
+- **Trade Execution**: Broker integration (Alpaca) for order placement
+- **Strategy Templates** (Phase 012): Shareable prompt engineering approaches
+- **Trade Journal** (Phase 013): Outcome tracking and pattern extraction
+- **Leaderboards** (Phase 014): Two-tier (funded/paper) with asset class breakdown
+- **Safety Guardrails**: Kill switches, position limits, daily loss caps, staleness detection
+
+Full specs in `/docs/roadmap/`.
+
+## BYOK (Bring Your Own Keys)
+
 Users provide their own:
-- **Trading API**: Alpaca
+- **Trading API**: Alpaca (planned)
 - **LLM API**: Choice of provider
 - **Capital**: Own broker account
 

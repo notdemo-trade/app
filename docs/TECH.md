@@ -36,13 +36,13 @@ Core database definitions using Drizzle ORM.
 #### [`src/queries/`](./packages/data-ops/src/queries/)
 Reusable database operations exported as functions.
 
-Example: `user.ts` exports `getUser()`
+Example: `health.ts` exports `getHealth()`
 
 **Usage**: Import and call from apps - handles DB connection internally via `getDb()`.
 
 ```ts
-import { getUser } from "data-ops/queries/user";
-const user = await getUser(userId);
+import { getHealth } from "data-ops/queries/health";
+const status = await getHealth();
 ```
 
 #### [`src/zod-schema/`](./packages/data-ops/src/zod-schema/)
@@ -62,7 +62,7 @@ Validation schemas using Zod.
 
 **Purpose**: Type-safe contracts between frontend/backend. Validates data shape at runtime.
 
-Example: `user.ts` exports `UserSchema` schema.
+Example: `health.ts` exports `HealthResponseSchema` schema.
 
 #### [`src/database/`](./packages/data-ops/src/database/)
 - **`setup.ts`** - DB client initialization (`getDb()` function)
@@ -72,6 +72,9 @@ Example: `user.ts` exports `UserSchema` schema.
 Better Auth configuration.
 - **`setup.ts`** - Auth config (providers, plugins)
 - **`server.ts`** - Auth server instance
+
+#### [`config/`](./packages/data-ops/config/)
+- **`auth.ts`** - Better Auth runtime config
 
 ### Workflow for New DB Features
 
@@ -119,11 +122,11 @@ Config files in `packages/data-ops/`:
 - `.env.staging` - Staging
 - `.env.production` - Production
 
-Replace dev` with `staging` or `production`. 
-
-Migrations stored in `src/drizzle/migrations/{env}/`.
+Replace `dev` with `staging` or `production`.
 
 Sample `.env` file with minimum number of values available - [.env.example](./packages/data-ops/.env.example)
+
+**Note**: `user-application` uses `.env` / `.env.staging` / `.env.production`. `data-service` uses Wrangler-style `.dev.vars` / `.staging.vars` / `.production.vars`.
 
 **Required secrets**:
 - `APPROVAL_SECRET` - HMAC key for signing approval tokens (Phase 10). Generate: `openssl rand -hex 32`. Required in all environments.
