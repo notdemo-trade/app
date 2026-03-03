@@ -29,6 +29,17 @@ pnpm run seed:staging
 pnpm run seed:production
 ```
 
+## Linting
+
+```bash
+pnpm run lint          # check
+pnpm run lint:fix      # autofix
+```
+
+- Biome v2 — config in `biome.json`
+- Max file size 500 lines (soft target)
+- GritQL plugins in `.biome-plugins/` enforce no-raw-throw, no-then-chains, no-ts-ignore, no-as-any, no-todo-comments
+
 ## Rules Structure
 
 Rules auto-load from `.claude/rules/`:
@@ -36,6 +47,7 @@ Rules auto-load from `.claude/rules/`:
 ```
 .claude/rules/
 ├── general.md              # Universal TypeScript
+├── error-handling.md       # Result<T>, AppError patterns
 ├── data-ops/               # DB/validation layer
 │   ├── drizzle.md
 │   ├── zod.md
@@ -44,6 +56,7 @@ Rules auto-load from `.claude/rules/`:
 ├── data-service/           # Backend API
 │   ├── hono.md
 │   ├── agent-sdk.md
+│   ├── agent-workflows.md
 │   ├── cloudflare-workers.md
 │   ├── queues-workflows.md
 │   ├── durable-objects.md
@@ -53,7 +66,9 @@ Rules auto-load from `.claude/rules/`:
     ├── react.md
     ├── ui.md
     ├── auth.md
-    └── i18n.md
+    ├── i18n.md
+    ├── form-patterns.md
+    └── vite.md
 ```
 
 Rules with `paths:` frontmatter apply only when working with matching files.

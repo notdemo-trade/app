@@ -1,8 +1,8 @@
-import { Hono } from "hono";
-import { requestId } from "./middleware/request-id";
-import { createCorsMiddleware } from "./middleware/cors";
-import { onErrorHandler } from "./middleware/error-handler";
-import health from "./handlers/health-handlers";
+import { Hono } from 'hono';
+import health from './handlers/health-handlers';
+import { createCorsMiddleware } from './middleware/cors';
+import { onErrorHandler } from './middleware/error-handler';
+import { requestId } from './middleware/request-id';
 
 export const App = new Hono<{ Bindings: Env }>();
 

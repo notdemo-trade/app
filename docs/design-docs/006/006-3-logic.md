@@ -11,7 +11,7 @@ import { createLLMProvider } from "@repo/data-ops/providers/llm/factory"
 import { estimateCost } from "@repo/data-ops/providers/llm/pricing"
 import { TRADE_RECOMMENDATION_PROMPT, RESEARCH_REPORT_PROMPT, EVENT_CLASSIFICATION_PROMPT } from "@repo/data-ops/providers/llm/prompts"
 import { initDatabase, getDb } from "@repo/data-ops/db"
-import { getCredentials } from "@repo/data-ops/queries/credentials"
+import { getCredentials } from "@repo/data-ops/credentials"
 import { decrypt } from "@repo/data-ops/utils/crypto"
 
 export class LLMAnalysisAgent extends Agent<Env, LLMAgentState> implements LLMAgentRPC {

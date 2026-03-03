@@ -1,0 +1,10 @@
+language js
+
+pattern no_as_any() {
+  `$expr as any` => . where {
+    register_diagnostic(
+      severity = "error",
+      message = "Never cast to any. Use unknown and narrow with type guards."
+    )
+  }
+}

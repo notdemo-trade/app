@@ -1,0 +1,10 @@
+language js
+
+pattern no_todo_comments() {
+  `// TODO$rest` => . where {
+    register_diagnostic(
+      severity = "warning",
+      message = "Resolve TODOs before merging. Create an issue if deferring."
+    )
+  }
+}

@@ -1,6 +1,12 @@
-export { getCurrentLocale } from "./get-locale"
-export { messagesQueryOptions, getMessages } from "./messages"
-export { deLocalizeUrl, localizeUrl, getClientLocale, setServerLocale, getServerLocale } from "./core/client"
-export { handleLocaleMiddleware } from "./core/server"
-export type { Locale } from "./core/shared"
-export { SUPPORTED_LOCALES, DEFAULT_LOCALE, COOKIE_NAME, isValidLocale } from "./core/shared"
+export {
+	deLocalizeUrl,
+	getClientLocale,
+	getServerLocale,
+	localizeUrl,
+	setServerLocale,
+} from './core/client';
+export { handleLocaleMiddleware } from './core/server';
+export type { Locale } from './core/shared';
+export { COOKIE_NAME, DEFAULT_LOCALE, isValidLocale, SUPPORTED_LOCALES } from './core/shared';
+export { getCurrentLocale } from './get-locale';
+export { getMessages, messagesQueryOptions } from './messages';

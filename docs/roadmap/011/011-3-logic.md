@@ -486,13 +486,13 @@ function isQuietHours(start: string | null, end: string | null): boolean {
 import { Hono } from "hono"
 import { zValidator } from "@hono/zod-validator"
 import { z } from "zod"
-import { TelegramWebhookUpdateSchema } from "@repo/data-ops/zod-schema/telegram"
+import { TelegramWebhookUpdateSchema } from "@repo/data-ops/telegram"
 import {
   getPendingApprovalById,
   updateApprovalStatus,
   getNotificationSettings,
-} from "@repo/data-ops/queries/telegram-approvals"
-import { getTelegramCredential, saveUserChatId } from "@repo/data-ops/queries/credentials"
+} from "@repo/data-ops/telegram-approvals"
+import { getTelegramCredential, saveUserChatId } from "@repo/data-ops/credentials"
 import { TelegramService } from "@repo/data-ops/services/telegram-service"
 import { buildApprovalUpdatedMessage } from "@repo/data-ops/services/telegram-messages"
 
@@ -665,7 +665,7 @@ Update TradingAgent (Agents SDK, see Phase 12) to use approval flow. Agent uses 
 ```ts
 // apps/data-service/src/agents/trading-agent.ts (additions)
 
-import { createPendingApproval, setTelegramMessageId, updateApprovalStatus, getPendingApprovalById } from "@repo/data-ops/queries/telegram-approvals"
+import { createPendingApproval, setTelegramMessageId, updateApprovalStatus, getPendingApprovalById } from "@repo/data-ops/telegram-approvals"
 import { dispatchNotification } from "@repo/data-ops/services/notification-dispatcher"
 import { buildApprovalMessage, buildTradeExecutedMessage } from "@repo/data-ops/services/telegram-messages"
 

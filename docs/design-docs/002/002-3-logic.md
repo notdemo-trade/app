@@ -402,10 +402,10 @@ Orchestrates encryption key injection, queries, and validation. Handlers call th
 ```ts
 // apps/data-service/src/hono/services/credential-service.ts
 
-import * as credentialQueries from "@repo/data-ops/queries/credentials"
+import * as credentialQueries from "@repo/data-ops/credentials"
 import { validateCredentialByProvider } from "@repo/data-ops/services/credential-validation"
 import { getDb } from "../database"
-import type { CredentialProvider } from "@repo/data-ops/zod-schema/credentials"
+import type { CredentialProvider } from "@repo/data-ops/credentials"
 
 interface SaveParams {
   userId: string

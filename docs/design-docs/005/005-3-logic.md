@@ -11,7 +11,7 @@ import { computeTechnicals } from "@repo/data-ops/providers/technicals/calculati
 import { detectSignals } from "@repo/data-ops/providers/technicals/signals"
 import { AlpacaMarketDataProvider } from "@repo/data-ops/providers/alpaca/market-data"
 import { getAlpacaClientForUser } from "@repo/data-ops/providers/alpaca/client"
-import { insertSignal } from "@repo/data-ops/queries/signals"
+import { insertSignal } from "@repo/data-ops/signals"
 import { initDatabase } from "@repo/data-ops/database/setup"
 
 export class TechnicalAnalysisAgent extends Agent<Env, TAAgentState> {

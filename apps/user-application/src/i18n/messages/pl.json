@@ -1,138 +1,138 @@
 {
-  "lang": {
-    "en": "English",
-    "pl": "Polski",
-    "select": "Wybierz język"
-  },
-  "test": {
-    "hello": "Cześć"
-  },
-  "nav": {
-    "features": "Funkcje",
-    "faq": "FAQ",
-    "navigation": "Nawigacja",
-    "navigate": "Nawiguj"
-  },
-  "hero": {
-    "badge": {
-      "ai": "AI",
-      "monitoring": "Monitoring 24/7",
-      "byok": "BYOK"
-    },
-    "title": {
-      "part1": "notdemo",
-      "part2": ".trade"
-    },
-    "description": "Agent handlowy oparty na sztucznej inteligencji, który, przez całą dobę monitoruje media społecznościowe i dane giełdowe. Przedstawia znalezione dane i umożliwia samodzielne podjęcie decyzji za pomocą telefonu.",
-    "cta": {
-      "label": "Rozpocznij",
-      "soon": "wkrótce.."
-    }
-  },
-  "features": {
-    "title": "Twoj Agent Handlowy AI",
-    "subtitle": "Profesjonalna infrastruktura dla detalicznych uczestników rynku giełdowego",
-    "ai": {
-      "title": "Analiza AI",
-      "description": "Informacje handlowe oparte na LLM z użyciem OpenAI, Anthropic, Google, xAI lub DeepSeek.",
-      "badge": "Core"
-    },
-    "multiasset": {
-      "title": "Wiele aktywow",
-      "description": "Handel akcjami, krypto (24/7) i opcjami.",
-      "badge": "Trading"
-    },
-    "signals": {
-      "title": "Agregacja sygnalow",
-      "description": "Monitoruje StockTwits, Reddit, Twitter i zgłoszenia SEC pod kątem sentymentu i momentum.",
-      "badge": "Signals"
-    },
-    "telegram": {
-      "title": "Zatwierdzanie przez Telegram",
-      "description": "Zatwierdzaj lub odrzucaj transakcje z telefonu przez Telegram, lub włącz tryb autonomiczny.",
-      "badge": "Mobile"
-    },
-    "risk": {
-      "title": "Zabezpieczenia ryzyka",
-      "description": "Wbudowane i gotowe do użycia: Kill switch, limity pozycji, dzienne limity strat.",
-      "badge": "Safety"
-    },
-    "journal": {
-      "title": "Dziennik transakcji",
-      "description": "Śledź wyniki w celu nauki i ekstrakcji wzorców ze wszystkich transakcji.",
-      "badge": "Analytics"
-    },
-    "byok": {
-      "title": "Własne klucze",
-      "description": "Użyj własnego brokera (Alpaca) i kluczy API LLM. Twój kapitał, Twoja kontrola.",
-      "badge": "BYOK"
-    },
-    "templates": {
-      "title": "Szablony strategii",
-      "description": "Udostępniane szablony do niestandardowych podejść prompt engineering. Publikuj i dziel się swoimi strategiami.",
-      "badge": "Community"
-    }
-  },
-  "footer": {
-    "llm_providers": "Dostawcy LLM",
-    "signal_sources": "Monitorowane źródła",
-    "built_by": "Stworzone przez @tomkowalczyk"
-  },
-  "faq": {
-    "title": "Często zadawane pytania",
-    "subtitle": "Wszystko co musisz wiedzieć o notdemo.trade",
-    "count": "{count, plural, one {pytanie} few {pytania} other {pytan}}",
-    "browse": "Przeglądaj",
-    "back": "Wstecz",
-    "beginner": {
-      "label": "Początkujący",
-      "description": "Nowy na giełdzie? Zacznij tutaj.",
-      "q1": "Czym jest notdemo.trade?",
-      "a1": "To platforma, która uruchamia dla Ciebie asystenta handlowego **AI**.\nPomyśl o tym jak o robocie, który obserwuje rynek **24/7**, przedstawia możliwości handlowe na podstawie mediów społecznościowych i analizy technicznej.\nMoże je realizować z Twoją zgodą lub automatycznie."
-    },
-    "trader": {
-      "label": "Doświadczeni gracze giełdowi",
-      "description": "Dla traderów znających AT i handel systematyczny.",
-      "q1": "Znam i używam AT. Po co mi to?",
-      "a1": "Trzy powody:\n1. **Monitoring 24/7**: Nie możesz obserwować 50 akcji na wielu interwałach czasowych jednocześnie. Agent to robi.\n2. **Agregacja sygnałów**: Łączy sentyment społecznościowy (często wskaźnik wyprzedzający) z Twoją AT w czasie rzeczywistym.\n3. **Systematyczna egzekucja**: Eliminuje handel kierowany emocjami. Twoje reguły + analiza AI + automatyczna egzekucja = dyscyplina.\n\nPomyśl o tym jako o Twojej strategii handlowej, usystematyzowanej i przeskalowanej."
-    },
-    "developer": {
-      "label": "Deweloperzy",
-      "description": "Architektura i technologia.",
-      "q1": "Jaka jest architektura tego projektu?",
-      "a1": "**Trzywarstwowy stos edge-native**:\n\n```\n┌─────────────────────────────────────────────────────────┐\n│  User Application (TanStack Start SSR)                  │\n│  ├─ React + TanStack Router                             │\n│  ├─ Server functions (createServerFn)                   │\n│  └─ Deploy: Cloudflare Workers                          │\n└─────────────────────────────────────────────────────────┘\n                          ↓ HTTP/WebSocket\n┌─────────────────────────────────────────────────────────┐\n│  Data Service (Hono REST API)                           │\n│  ├─ Handlers → Services → Queries                       │\n│  ├─ Zod - walidacja i obsługa błędów                    │\n│  └─ Deploy: Cloudflare Workers                          │\n└─────────────────────────────────────────────────────────┘\n                          ↓ RPC/WebSocket\n┌─────────────────────────────────────────────────────────┐\n│  Trading Agent (Cloudflare Agents SDK)                  │\n│  ├─ Durable Object per user                             │\n│  ├─ Scheduled jobs (zbieranie sygnałów, analiza)        │\n│  ├─ WebSocket do synchronizacji stanu                   │\n│  └─ SQLite do logow i konfiguracji agenta               │\n└─────────────────────────────────────────────────────────┘\n                          ↓\n┌─────────────────────────────────────────────────────────┐\n│  Warstwa danych (pakiet data-ops)                       │\n│  ├─ Drizzle ORM → Neon Postgres                         │\n│  ├─ Schematy Zod do walidacji                           │\n│  ├─ Type-safe queries + integracja Better Auth          │\n│  └─ Współdzielone między serwisami                      │\n└─────────────────────────────────────────────────────────┘\n```\n\n**Kluczowe cechy**:\n- **Edge-first**: Wszystko działa na sieci edge Cloudflare (niska latencja globalnie)\n- **Monorepo**: Współdzielone typy i logika\n- **Serverless**: Brak VM do zarządzania, nieskończone skalowanie\n- **Multi-tenant**: Izolacja per-user przez Durable Objects"
-    }
-  },
-  "meta": {
-    "title": "notdemo.trade - Agent Handlowy AI",
-    "description": "Agent handlowy oparty na sztucznej inteligencji, który, przez całą dobę monitoruje media społecznościowe i dane giełdowe. Przedstawia znalezione dane i umożliwia samodzielne podjęcie decyzji za pomocą telefonu."
-  },
-  "theme": {
-    "light": {
-      "label": "Jasny",
-      "description": "Uzyj jasnego motywu"
-    },
-    "dark": {
-      "label": "Ciemny",
-      "description": "Uzyj ciemnego motywu"
-    },
-    "system": {
-      "label": "Systemowy",
-      "description": "Uzyj motywu systemowego"
-    },
-    "toggle": "Zmien motyw",
-    "current": "Aktualnie uzywany motyw: {theme}",
-    "label": "Motyw"
-  },
-  "header": {
-    "search": "Szukaj..."
-  },
-  "sidebar": {
-    "dashboard": "Panel"
-  },
-  "auth": {
-    "online": "Online",
-    "account": "Konto",
-    "signout": "Wyloguj"
-  }
+	"lang": {
+		"en": "English",
+		"pl": "Polski",
+		"select": "Wybierz język"
+	},
+	"test": {
+		"hello": "Cześć"
+	},
+	"nav": {
+		"features": "Funkcje",
+		"faq": "FAQ",
+		"navigation": "Nawigacja",
+		"navigate": "Nawiguj"
+	},
+	"hero": {
+		"badge": {
+			"ai": "AI",
+			"monitoring": "Monitoring 24/7",
+			"byok": "BYOK"
+		},
+		"title": {
+			"part1": "notdemo",
+			"part2": ".trade"
+		},
+		"description": "Agent handlowy oparty na sztucznej inteligencji, który, przez całą dobę monitoruje media społecznościowe i dane giełdowe. Przedstawia znalezione dane i umożliwia samodzielne podjęcie decyzji za pomocą telefonu.",
+		"cta": {
+			"label": "Rozpocznij",
+			"soon": "wkrótce.."
+		}
+	},
+	"features": {
+		"title": "Twoj Agent Handlowy AI",
+		"subtitle": "Profesjonalna infrastruktura dla detalicznych uczestników rynku giełdowego",
+		"ai": {
+			"title": "Analiza AI",
+			"description": "Informacje handlowe oparte na LLM z użyciem OpenAI, Anthropic, Google, xAI lub DeepSeek.",
+			"badge": "Core"
+		},
+		"multiasset": {
+			"title": "Wiele aktywow",
+			"description": "Handel akcjami, krypto (24/7) i opcjami.",
+			"badge": "Trading"
+		},
+		"signals": {
+			"title": "Agregacja sygnalow",
+			"description": "Monitoruje StockTwits, Reddit, Twitter i zgłoszenia SEC pod kątem sentymentu i momentum.",
+			"badge": "Signals"
+		},
+		"telegram": {
+			"title": "Zatwierdzanie przez Telegram",
+			"description": "Zatwierdzaj lub odrzucaj transakcje z telefonu przez Telegram, lub włącz tryb autonomiczny.",
+			"badge": "Mobile"
+		},
+		"risk": {
+			"title": "Zabezpieczenia ryzyka",
+			"description": "Wbudowane i gotowe do użycia: Kill switch, limity pozycji, dzienne limity strat.",
+			"badge": "Safety"
+		},
+		"journal": {
+			"title": "Dziennik transakcji",
+			"description": "Śledź wyniki w celu nauki i ekstrakcji wzorców ze wszystkich transakcji.",
+			"badge": "Analytics"
+		},
+		"byok": {
+			"title": "Własne klucze",
+			"description": "Użyj własnego brokera (Alpaca) i kluczy API LLM. Twój kapitał, Twoja kontrola.",
+			"badge": "BYOK"
+		},
+		"templates": {
+			"title": "Szablony strategii",
+			"description": "Udostępniane szablony do niestandardowych podejść prompt engineering. Publikuj i dziel się swoimi strategiami.",
+			"badge": "Community"
+		}
+	},
+	"footer": {
+		"llm_providers": "Dostawcy LLM",
+		"signal_sources": "Monitorowane źródła",
+		"built_by": "Stworzone przez @tomkowalczyk"
+	},
+	"faq": {
+		"title": "Często zadawane pytania",
+		"subtitle": "Wszystko co musisz wiedzieć o notdemo.trade",
+		"count": "{count, plural, one {pytanie} few {pytania} other {pytan}}",
+		"browse": "Przeglądaj",
+		"back": "Wstecz",
+		"beginner": {
+			"label": "Początkujący",
+			"description": "Nowy na giełdzie? Zacznij tutaj.",
+			"q1": "Czym jest notdemo.trade?",
+			"a1": "To platforma, która uruchamia dla Ciebie asystenta handlowego **AI**.\nPomyśl o tym jak o robocie, który obserwuje rynek **24/7**, przedstawia możliwości handlowe na podstawie mediów społecznościowych i analizy technicznej.\nMoże je realizować z Twoją zgodą lub automatycznie."
+		},
+		"trader": {
+			"label": "Doświadczeni gracze giełdowi",
+			"description": "Dla traderów znających AT i handel systematyczny.",
+			"q1": "Znam i używam AT. Po co mi to?",
+			"a1": "Trzy powody:\n1. **Monitoring 24/7**: Nie możesz obserwować 50 akcji na wielu interwałach czasowych jednocześnie. Agent to robi.\n2. **Agregacja sygnałów**: Łączy sentyment społecznościowy (często wskaźnik wyprzedzający) z Twoją AT w czasie rzeczywistym.\n3. **Systematyczna egzekucja**: Eliminuje handel kierowany emocjami. Twoje reguły + analiza AI + automatyczna egzekucja = dyscyplina.\n\nPomyśl o tym jako o Twojej strategii handlowej, usystematyzowanej i przeskalowanej."
+		},
+		"developer": {
+			"label": "Deweloperzy",
+			"description": "Architektura i technologia.",
+			"q1": "Jaka jest architektura tego projektu?",
+			"a1": "**Trzywarstwowy stos edge-native**:\n\n```\n┌─────────────────────────────────────────────────────────┐\n│  User Application (TanStack Start SSR)                  │\n│  ├─ React + TanStack Router                             │\n│  ├─ Server functions (createServerFn)                   │\n│  └─ Deploy: Cloudflare Workers                          │\n└─────────────────────────────────────────────────────────┘\n                          ↓ HTTP/WebSocket\n┌─────────────────────────────────────────────────────────┐\n│  Data Service (Hono REST API)                           │\n│  ├─ Handlers → Services → Queries                       │\n│  ├─ Zod - walidacja i obsługa błędów                    │\n│  └─ Deploy: Cloudflare Workers                          │\n└─────────────────────────────────────────────────────────┘\n                          ↓ RPC/WebSocket\n┌─────────────────────────────────────────────────────────┐\n│  Trading Agent (Cloudflare Agents SDK)                  │\n│  ├─ Durable Object per user                             │\n│  ├─ Scheduled jobs (zbieranie sygnałów, analiza)        │\n│  ├─ WebSocket do synchronizacji stanu                   │\n│  └─ SQLite do logow i konfiguracji agenta               │\n└─────────────────────────────────────────────────────────┘\n                          ↓\n┌─────────────────────────────────────────────────────────┐\n│  Warstwa danych (pakiet data-ops)                       │\n│  ├─ Drizzle ORM → Neon Postgres                         │\n│  ├─ Schematy Zod do walidacji                           │\n│  ├─ Type-safe queries + integracja Better Auth          │\n│  └─ Współdzielone między serwisami                      │\n└─────────────────────────────────────────────────────────┘\n```\n\n**Kluczowe cechy**:\n- **Edge-first**: Wszystko działa na sieci edge Cloudflare (niska latencja globalnie)\n- **Monorepo**: Współdzielone typy i logika\n- **Serverless**: Brak VM do zarządzania, nieskończone skalowanie\n- **Multi-tenant**: Izolacja per-user przez Durable Objects"
+		}
+	},
+	"meta": {
+		"title": "notdemo.trade - Agent Handlowy AI",
+		"description": "Agent handlowy oparty na sztucznej inteligencji, który, przez całą dobę monitoruje media społecznościowe i dane giełdowe. Przedstawia znalezione dane i umożliwia samodzielne podjęcie decyzji za pomocą telefonu."
+	},
+	"theme": {
+		"light": {
+			"label": "Jasny",
+			"description": "Uzyj jasnego motywu"
+		},
+		"dark": {
+			"label": "Ciemny",
+			"description": "Uzyj ciemnego motywu"
+		},
+		"system": {
+			"label": "Systemowy",
+			"description": "Uzyj motywu systemowego"
+		},
+		"toggle": "Zmien motyw",
+		"current": "Aktualnie uzywany motyw: {theme}",
+		"label": "Motyw"
+	},
+	"header": {
+		"search": "Szukaj..."
+	},
+	"sidebar": {
+		"dashboard": "Panel"
+	},
+	"auth": {
+		"online": "Online",
+		"account": "Konto",
+		"signout": "Wyloguj"
+	}
 }

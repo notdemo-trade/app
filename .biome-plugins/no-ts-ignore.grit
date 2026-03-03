@@ -1,0 +1,10 @@
+language js
+
+pattern no_ts_ignore() {
+  `// @ts-ignore` => . where {
+    register_diagnostic(
+      severity = "error",
+      message = "Use @ts-expect-error with explanation instead of @ts-ignore."
+    )
+  }
+}

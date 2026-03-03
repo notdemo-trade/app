@@ -1,180 +1,190 @@
-import { Monitor, Moon, Sun, Check } from "lucide-react";
-import { useTranslations } from "use-intl";
+import { Check, Monitor, Moon, Sun } from 'lucide-react';
+import { useTranslations } from 'use-intl';
 
-import { Button } from "@/components/ui/button";
+import { Button } from '@/components/ui/button';
 import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import { useTheme } from "./theme-provider";
+	DropdownMenu,
+	DropdownMenuContent,
+	DropdownMenuItem,
+	DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
+import { useTheme } from './theme-provider';
 
 interface ThemeToggleProps {
-  variant?: "default" | "outline" | "ghost";
-  size?: "sm" | "default" | "lg";
-  showLabel?: boolean;
-  align?: "start" | "center" | "end";
+	variant?: 'default' | 'outline' | 'ghost';
+	size?: 'sm' | 'default' | 'lg';
+	showLabel?: boolean;
+	align?: 'start' | 'center' | 'end';
 }
 
 export function ThemeToggle({
-  variant = "ghost",
-  size = "default",
-  showLabel = false,
-  align = "end",
+	variant = 'ghost',
+	size = 'default',
+	showLabel = false,
+	align = 'end',
 }: ThemeToggleProps) {
-  const { theme, setTheme, resolvedTheme } = useTheme();
-  const t = useTranslations();
+	const { theme, setTheme, resolvedTheme } = useTheme();
+	const t = useTranslations();
 
-  const iconVariants = {
-    sun: "transition-all duration-500 ease-in-out",
-    moon: "transition-all duration-500 ease-in-out",
-    system: "transition-all duration-300 ease-in-out",
-  };
+	const iconVariants = {
+		sun: 'transition-all duration-500 ease-in-out',
+		moon: 'transition-all duration-500 ease-in-out',
+		system: 'transition-all duration-300 ease-in-out',
+	};
 
-  const getCurrentIcon = () => {
-    if (theme === "system") {
-      return (
-        <Monitor
-          className={`h-4 w-4 text-foreground ${iconVariants.system} rotate-0 scale-100`}
-          aria-hidden="true"
-        />
-      );
-    }
+	const getCurrentIcon = () => {
+		if (theme === 'system') {
+			return (
+				<Monitor
+					className={`h-4 w-4 text-foreground ${iconVariants.system} rotate-0 scale-100`}
+					aria-hidden="true"
+				/>
+			);
+		}
 
-    if (resolvedTheme === "dark") {
-      return (
-        <Moon
-          className={`h-4 w-4 text-foreground ${iconVariants.moon} rotate-0 scale-100`}
-          aria-hidden="true"
-        />
-      );
-    }
+		if (resolvedTheme === 'dark') {
+			return (
+				<Moon
+					className={`h-4 w-4 text-foreground ${iconVariants.moon} rotate-0 scale-100`}
+					aria-hidden="true"
+				/>
+			);
+		}
 
-    return (
-      <Sun
-        className={`h-4 w-4 text-foreground ${iconVariants.sun} rotate-0 scale-100`}
-        aria-hidden="true"
-      />
-    );
-  };
+		return (
+			<Sun
+				className={`h-4 w-4 text-foreground ${iconVariants.sun} rotate-0 scale-100`}
+				aria-hidden="true"
+			/>
+		);
+	};
 
-  const themeOptions = [
-    {
-      value: "light",
-      labelKey: "theme.light.label",
-      descriptionKey: "theme.light.description",
-      icon: Sun,
-    },
-    {
-      value: "dark",
-      labelKey: "theme.dark.label",
-      descriptionKey: "theme.dark.description",
-      icon: Moon,
-    },
-    {
-      value: "system",
-      labelKey: "theme.system.label",
-      descriptionKey: "theme.system.description",
-      icon: Monitor,
-    },
-  ] as const;
+	const themeOptions = [
+		{
+			value: 'light',
+			labelKey: 'theme.light.label',
+			descriptionKey: 'theme.light.description',
+			icon: Sun,
+		},
+		{
+			value: 'dark',
+			labelKey: 'theme.dark.label',
+			descriptionKey: 'theme.dark.description',
+			icon: Moon,
+		},
+		{
+			value: 'system',
+			labelKey: 'theme.system.label',
+			descriptionKey: 'theme.system.description',
+			icon: Monitor,
+		},
+	] as const;
 
-  const handleThemeSelect = (newTheme: typeof theme) => {
-    setTheme(newTheme);
-  };
+	const handleThemeSelect = (newTheme: typeof theme) => {
+		setTheme(newTheme);
+	};
 
-  return (
-    <DropdownMenu>
-      <DropdownMenuTrigger asChild>
-        <Button
-          variant={variant}
-          size={size}
-          className={`
+	return (
+		<DropdownMenu>
+			<DropdownMenuTrigger asChild>
+				<Button
+					variant={variant}
+					size={size}
+					className={`
             relative overflow-hidden transition-all duration-200 ease-in-out
             hover:scale-105 active:scale-95
             focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2
-            ${showLabel ? "gap-2" : "aspect-square"}
+            ${showLabel ? 'gap-2' : 'aspect-square'}
           `}
-          aria-label={t("theme.toggle")}
-        >
-          <div className="relative flex items-center justify-center">
-            {getCurrentIcon()}
-          </div>
-          {showLabel && (
-            <span className="text-sm font-medium">
-              {t(themeOptions.find(option => option.value === theme)?.labelKey ?? "theme.system.label")}
-            </span>
-          )}
-          <span className="sr-only">
-            {t("theme.current", { theme: theme === "system" ? `${t("theme.system.label")} (${resolvedTheme})` : t(`theme.${theme}.label` as "theme.light.label" | "theme.dark.label") })}
-          </span>
-        </Button>
-      </DropdownMenuTrigger>
+					aria-label={t('theme.toggle')}
+				>
+					<div className="relative flex items-center justify-center">{getCurrentIcon()}</div>
+					{showLabel && (
+						<span className="text-sm font-medium">
+							{t(
+								themeOptions.find((option) => option.value === theme)?.labelKey ??
+									'theme.system.label',
+							)}
+						</span>
+					)}
+					<span className="sr-only">
+						{t('theme.current', {
+							theme:
+								theme === 'system'
+									? `${t('theme.system.label')} (${resolvedTheme})`
+									: t(`theme.${theme}.label` as 'theme.light.label' | 'theme.dark.label'),
+						})}
+					</span>
+				</Button>
+			</DropdownMenuTrigger>
 
-      <DropdownMenuContent
-        align={align}
-        className="w-56 p-2 bg-popover/95 backdrop-blur-sm border border-border/50 shadow-lg"
-      >
-        <div className="grid gap-1">
-          {themeOptions.map((option) => {
-            const Icon = option.icon;
-            const isSelected = theme === option.value;
+			<DropdownMenuContent
+				align={align}
+				className="w-56 p-2 bg-popover/95 backdrop-blur-sm border border-border/50 shadow-lg"
+			>
+				<div className="grid gap-1">
+					{themeOptions.map((option) => {
+						const Icon = option.icon;
+						const isSelected = theme === option.value;
 
-            return (
-              <DropdownMenuItem
-                key={option.value}
-                onClick={() => handleThemeSelect(option.value)}
-                className={`
+						return (
+							<DropdownMenuItem
+								key={option.value}
+								onClick={() => handleThemeSelect(option.value)}
+								className={`
                   flex items-center gap-3 px-3 py-2.5 cursor-pointer
                   transition-all duration-200 ease-in-out
                   hover:bg-accent/80 focus:bg-transparent focus:text-inherit focus-visible:bg-accent/80 focus-visible:text-accent-foreground
                   rounded-md group
                   ${isSelected ? 'bg-accent/60 text-accent-foreground' : ''}
                 `}
-              >
-                <div className="flex items-center justify-center w-5 h-5">
-                  <Icon
-                    className={`
+							>
+								<div className="flex items-center justify-center w-5 h-5">
+									<Icon
+										className={`
                       h-4 w-4 transition-all duration-200
                       ${isSelected ? 'text-accent-foreground scale-110' : 'text-muted-foreground'}
                       group-hover:scale-105
                     `}
-                  />
-                </div>
+									/>
+								</div>
 
-                <div className="flex flex-col flex-1 min-w-0">
-                  <span className={`
+								<div className="flex flex-col flex-1 min-w-0">
+									<span
+										className={`
                     text-sm font-medium leading-none
                     ${isSelected ? 'text-accent-foreground' : 'text-foreground'}
-                  `}>
-                    {t(option.labelKey)}
-                  </span>
-                  <span className="text-xs text-muted-foreground mt-0.5 leading-none">
-                    {t(option.descriptionKey)}
-                  </span>
-                </div>
+                  `}
+									>
+										{t(option.labelKey)}
+									</span>
+									<span className="text-xs text-muted-foreground mt-0.5 leading-none">
+										{t(option.descriptionKey)}
+									</span>
+								</div>
 
-                {isSelected && (
-                  <Check className="h-4 w-4 text-accent-foreground animate-in fade-in-0 zoom-in-75 duration-150" />
-                )}
-              </DropdownMenuItem>
-            );
-          })}
-        </div>
+								{isSelected && (
+									<Check className="h-4 w-4 text-accent-foreground animate-in fade-in-0 zoom-in-75 duration-150" />
+								)}
+							</DropdownMenuItem>
+						);
+					})}
+				</div>
 
-        {resolvedTheme && (
-          <div className="border-t border-border/50 mt-2 pt-2">
-            <div className="flex items-center gap-2 px-3 py-1.5 text-xs text-muted-foreground">
-              <div className={`
+				{resolvedTheme && (
+					<div className="border-t border-border/50 mt-2 pt-2">
+						<div className="flex items-center gap-2 px-3 py-1.5 text-xs text-muted-foreground">
+							<div
+								className={`
                 w-2 h-2 rounded-full transition-colors duration-200
                 ${resolvedTheme === 'dark' ? 'bg-accent' : 'bg-primary'}
-              `} />
-              {t("theme.current", { theme: resolvedTheme })}
-            </div>
-          </div>
-        )}
-      </DropdownMenuContent>
-    </DropdownMenu>
-  );
+              `}
+							/>
+							{t('theme.current', { theme: resolvedTheme })}
+						</div>
+					</div>
+				)}
+			</DropdownMenuContent>
+		</DropdownMenu>
+	);
 }

@@ -23,35 +23,38 @@ Central shared package for all database operations. Both apps consume this packa
 
 **Purpose**: Single source of truth for database schemas, queries, validations, and auth config.
 
-### Directory Structure
+### Directory Structure (domain-barrel)
 
-#### [`src/drizzle/`](./packages/data-ops/src/drizzle/)
-Core database definitions using Drizzle ORM.
+Each domain gets its own directory with co-located table, schema, queries, and barrel export:
 
-- **`schema.ts`** - Main application tables
-- **`auth-schema.ts`** - Better Auth tables (auto-generated, don't edit manually)
-- **`relations.ts`** - Drizzle relational queries config (defines joins between tables)
-- **`migrations/{env}/`** - Migration history per environment (dev/staging/production)
-
-#### [`src/queries/`](./packages/data-ops/src/queries/)
-Reusable database operations exported as functions.
-
-Example: `health.ts` exports `getHealth()`
-
-**Usage**: Import and call from apps - handles DB connection internally via `getDb()`.
-
-```ts
-import { getHealth } from "data-ops/queries/health";
-const status = await getHealth();
+```
+src/
+├── {domain}/             # one dir per domain
+│   ├── table.ts          # Drizzle table definition
+│   ├── schema.ts         # Zod schemas + types
+│   ├── queries.ts        # DB operations
+│   └── index.ts          # barrel re-export
+├── drizzle/
+│   ├── schema.ts         # imports all domain tables
+│   ├── auth-schema.ts    # Better Auth tables (auto-generated, don't edit)
+│   ├── relations.ts      # Drizzle relational queries config
+│   └── migrations/{env}/ # Migration history per environment
+├── database/
+│   ├── setup.ts          # DB client initialization (getDb())
+│   └── seed/             # Data seeding utilities
+└── auth/
+    ├── setup.ts          # Auth config (providers, plugins)
+    └── server.ts         # Auth server instance
 ```
 
-#### [`src/zod-schema/`](./packages/data-ops/src/zod-schema/)
-Validation schemas using Zod.
-- API request/response
-- Forms
-- DTOs
+**Usage**: Import from domain barrel — queries, schemas, and types from a single path.
 
-**Naming conventions:**
+```ts
+import { checkDatabase } from "@repo/data-ops/health";
+import type { DatabaseStatus } from "@repo/data-ops/health";
+```
+
+**Zod naming conventions:**
 
 | Purpose      | Suffix         | Example                 |
 |--------------|----------------|-------------------------|
@@ -60,34 +63,31 @@ Validation schemas using Zod.
 | Response     | ResponseSchema | UserListResponseSchema  |
 | Type         | no suffix      | User, UserCreateInput   |
 
-**Purpose**: Type-safe contracts between frontend/backend. Validates data shape at runtime.
-
-Example: `health.ts` exports `HealthResponseSchema` schema.
-
-#### [`src/database/`](./packages/data-ops/src/database/)
-- **`setup.ts`** - DB client initialization (`getDb()` function)
-- **`seed/`** - Data seeding utilities
-
-#### [`src/auth/`](./packages/data-ops/src/auth/)
-Better Auth configuration.
-- **`setup.ts`** - Auth config (providers, plugins)
-- **`server.ts`** - Auth server instance
-
-#### [`config/`](./packages/data-ops/config/)
-- **`auth.ts`** - Better Auth runtime config
-
 ### Workflow for New DB Features
 
-1. **Add table** to `src/drizzle/schema.ts`
-2. **Add relations** to `src/drizzle/relations.ts` (if needed)
-3. **Generate migration**: `pnpm run drizzle:dev:generate`
-4. **Apply migration**: `pnpm run drizzle:dev:migrate`
-5. **Create queries** in `src/queries/{feature}.ts`
-6. **Create Zod schemas** in `src/zod-schema/{feature}.ts`
+1. **Create domain dir** `src/{domain}/` with `table.ts`, `schema.ts`, `queries.ts`, `index.ts`
+2. **Import table** into `src/drizzle/schema.ts`
+3. **Add relations** to `src/drizzle/relations.ts` (if needed)
+4. **Add export** to `package.json`: `"./{domain}": { "types": "./dist/{domain}/index.d.ts", "default": "./dist/{domain}/index.js" }`
+5. **Generate migration**: `pnpm run drizzle:dev:generate`
+6. **Apply migration**: `pnpm run drizzle:dev:migrate`
 7. **Rebuild package**: `pnpm run build:data-ops`
-8. **Import in apps**: Use queries/schemas from both apps:
-- [user-application](./apps/user-application/)
-- [data-service](./apps/data-service/)
+8. **Import in apps**: Use `@repo/data-ops/{domain}` from both apps
+
+## Error Handling
+
+**Backend (data-service)**: Services return `Result<T>` (never throw). Handlers unwrap via `resultToResponse()`. Error class: `AppError` from `types/result.ts`.
+
+**Frontend (user-application)**: `AppError` in `core/errors.ts`, thrown by `api-client.ts` on non-2xx responses. Display via `mutation.error.message`.
+
+## Linting
+
+```bash
+pnpm run lint          # check
+pnpm run lint:fix      # autofix
+```
+
+Uses [Biome](https://biomejs.dev/) v2 with GritQL plugins (`.biome-plugins/`).
 
 ## Setup
 

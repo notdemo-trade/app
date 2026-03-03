@@ -1,0 +1,11 @@
+language js
+
+pattern no_raw_throw() {
+  `throw new Error($msg)` => . where {
+    $msg <: not `""`,
+    register_diagnostic(
+      severity = "warning",
+      message = "Use typed error classes instead of raw Error. Create a class extending Error."
+    )
+  }
+}

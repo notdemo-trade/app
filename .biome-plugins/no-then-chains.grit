@@ -1,0 +1,10 @@
+language js
+
+pattern no_then_chains() {
+  `$promise.then($handler)` => . where {
+    register_diagnostic(
+      severity = "warning",
+      message = "Prefer async/await over .then() chains."
+    )
+  }
+}

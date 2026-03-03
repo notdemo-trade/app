@@ -215,11 +215,14 @@ export function createAlpacaTradingProvider(client: AlpacaClient): AlpacaTrading
 ```ts
 // apps/data-service/src/hono/services/portfolio-service.ts
 
-import { HTTPException } from "hono/http-exception"
-import { getCredential } from "@repo/data-ops/queries/credentials"
+import { AppError, ok, err } from "../types/result"
+import type { Result } from "../types/result"
+import { getCredential } from "@repo/data-ops/credentials"
 import { AlpacaClient, AlpacaApiError } from "@repo/data-ops/providers/alpaca/client"
 import { createAlpacaTradingProvider } from "@repo/data-ops/providers/alpaca/trading"
-import type { AlpacaCredential } from "@repo/data-ops/zod-schema/credentials"
+import type { AlpacaCredential } from "@repo/data-ops/credentials"
+import type { AlpacaTradingProvider } from "@repo/data-ops/providers/alpaca/trading"
+import type { Account, Position, Order, MarketClock, PortfolioHistory } from "@repo/data-ops/providers/alpaca/types"
 import type { Database } from "@repo/data-ops/database/setup"
 
 interface PortfolioServiceContext {
@@ -228,7 +231,7 @@ interface PortfolioServiceContext {
   masterKey: string
 }
 
-async function getAlpacaProvider(ctx: PortfolioServiceContext) {
+async function getAlpacaProvider(ctx: PortfolioServiceContext): Promise<Result<AlpacaTradingProvider>> {
   const cred = await getCredential<AlpacaCredential>(ctx.db, {
     userId: ctx.userId,
     provider: "alpaca",
@@ -236,9 +239,7 @@ async function getAlpacaProvider(ctx: PortfolioServiceContext) {
   })
 
   if (!cred) {
-    throw new HTTPException(400, {
-      message: "Alpaca credentials not configured. Add credentials in Settings.",
-    })
+    return err(new AppError("Alpaca credentials not configured. Add credentials in Settings.", 400))
   }
 
   const client = new AlpacaClient({
@@ -247,76 +248,75 @@ async function getAlpacaProvider(ctx: PortfolioServiceContext) {
     paper: cred.paper,
   })
 
-  return createAlpacaTradingProvider(client)
+  return ok(createAlpacaTradingProvider(client))
 }
 
-function handleAlpacaError(e: unknown): never {
+function handleAlpacaError(e: unknown): AppError {
   if (e instanceof AlpacaApiError) {
     if (e.statusCode === 401) {
-      throw new HTTPException(401, {
-        message: "Alpaca authentication failed. Check your API credentials.",
-      })
+      return new AppError("Alpaca authentication failed. Check your API credentials.", 401)
     }
     if (e.statusCode === 403) {
-      throw new HTTPException(403, {
-        message: "Alpaca access denied. Your account may be restricted.",
-      })
+      return new AppError("Alpaca access denied. Your account may be restricted.", 403)
     }
-    throw new HTTPException(502, {
-      message: `Alpaca API error: ${e.body}`,
-    })
+    return new AppError(`Alpaca API error: ${e.body}`, 502)
   }
-  throw e
+  return new AppError(e instanceof Error ? e.message : "Unknown error", 500)
 }
 
-export async function getAccount(ctx: PortfolioServiceContext) {
+export async function getAccount(ctx: PortfolioServiceContext): Promise<Result<Account>> {
+  const providerResult = await getAlpacaProvider(ctx)
+  if (!providerResult.ok) return providerResult
   try {
-    const provider = await getAlpacaProvider(ctx)
-    return await provider.getAccount()
+    return ok(await providerResult.data.getAccount())
   } catch (e) {
-    handleAlpacaError(e)
+    return err(handleAlpacaError(e))
   }
 }
 
-export async function getPositions(ctx: PortfolioServiceContext) {
+export async function getPositions(ctx: PortfolioServiceContext): Promise<Result<Position[]>> {
+  const providerResult = await getAlpacaProvider(ctx)
+  if (!providerResult.ok) return providerResult
   try {
-    const provider = await getAlpacaProvider(ctx)
-    return await provider.getPositions()
+    return ok(await providerResult.data.getPositions())
   } catch (e) {
-    handleAlpacaError(e)
+    return err(handleAlpacaError(e))
   }
 }
 
 export async function getOrders(
   ctx: PortfolioServiceContext,
   params: { status?: "open" | "closed" | "all"; limit?: number }
-) {
+): Promise<Result<Order[]>> {
+  const providerResult = await getAlpacaProvider(ctx)
+  if (!providerResult.ok) return providerResult
   try {
-    const provider = await getAlpacaProvider(ctx)
-    return await provider.listOrders(params)
+    return ok(await providerResult.data.listOrders(params))
   } catch (e) {
-    handleAlpacaError(e)
+    return err(handleAlpacaError(e))
   }
 }
 
-export async function getClock(ctx: PortfolioServiceContext) {
+export async function getClock(ctx: PortfolioServiceContext): Promise<Result<MarketClock>> {
+  const providerResult = await getAlpacaProvider(ctx)
+  if (!providerResult.ok) return providerResult
   try {
-    const provider = await getAlpacaProvider(ctx)
-    return await provider.getClock()
+    return ok(await providerResult.data.getClock())
   } catch (e) {
-    handleAlpacaError(e)
+    return err(handleAlpacaError(e))
   }
 }
 
 export async function getPortfolioHistory(
   ctx: PortfolioServiceContext,
   params: { period?: "1D" | "1W" | "1M" | "3M" | "1A" | "all"; timeframe?: "1Min" | "5Min" | "15Min" | "1H" | "1D" }
-) {
+): Promise<Result<PortfolioHistory>> {
+  const providerResult = await getAlpacaProvider(ctx)
+  if (!providerResult.ok) return providerResult
   try {
-    const provider = await getAlpacaProvider(ctx)
-    return await provider.getPortfolioHistory(params)
+    return ok(await providerResult.data.getPortfolioHistory(params))
   } catch (e) {
-    handleAlpacaError(e)
+    return err(handleAlpacaError(e))
   }
 }
 ```
