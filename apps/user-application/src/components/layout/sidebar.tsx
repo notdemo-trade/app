@@ -55,7 +55,7 @@ export function Sidebar({ className }: SidebarProps) {
 						onClick={() => setIsCollapsed(!isCollapsed)}
 						className="h-8 w-8"
 					>
-						<Menu className="h-4 w-4" />
+						<Menu className="h-4 w-4 text-foreground" />
 					</Button>
 				</div>
 
@@ -95,25 +95,7 @@ export function Sidebar({ className }: SidebarProps) {
 					</nav>
 				</ScrollArea>
 
-				<div className="border-t border-border p-4">
-					<div
-						className={cn(
-							'flex items-center gap-3 rounded-lg px-3 py-2 bg-muted/50',
-							isCollapsed && 'justify-center',
-						)}
-					>
-						<div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary text-primary-foreground text-sm font-medium">
-							U
-						</div>
-						{!isCollapsed && (
-							<div className="flex flex-col truncate">
-								<span className="text-sm font-medium text-foreground">User</span>
-								<span className="text-xs text-muted-foreground truncate">user@example.com</span>
-							</div>
-						)}
-					</div>
 				</div>
-			</div>
 
 			{/* Mobile Sidebar Overlay */}
 			<div className="lg:hidden">

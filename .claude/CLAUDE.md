@@ -1,4 +1,4 @@
-# saas-on-cf
+# notdemo-trade
 
 Monorepo: TanStack Start frontend + Hono API backend on Cloudflare Workers.
 

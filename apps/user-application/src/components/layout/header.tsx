@@ -33,7 +33,7 @@ export function Header({ className, onMobileMenuToggle }: HeaderProps) {
 			{/* Left side - Mobile menu button and search */}
 			<div className="flex items-center gap-4">
 				<Button variant="ghost" size="icon" className="lg:hidden" onClick={onMobileMenuToggle}>
-					<Menu className="h-5 w-5" />
+					<Menu className="h-5 w-5 text-foreground" />
 				</Button>
 
 				<div className="relative">
@@ -50,7 +50,7 @@ export function Header({ className, onMobileMenuToggle }: HeaderProps) {
 			{/* Right side - Notifications and user menu */}
 			<div className="flex items-center gap-2">
 				<Button variant="ghost" size="icon" className="relative">
-					<Bell className="h-5 w-5" />
+					<Bell className="h-5 w-5 text-foreground" />
 					<span className="absolute -top-1 -right-1 h-3 w-3 rounded-full bg-destructive"></span>
 				</Button>
 
@@ -63,7 +63,7 @@ export function Header({ className, onMobileMenuToggle }: HeaderProps) {
 							</AvatarFallback>
 						</Avatar>
 						<div className="hidden sm:flex flex-col items-start">
-							<span className="text-sm font-medium">{user?.name || 'User'}</span>
+							<span className="text-sm font-medium text-foreground">{user?.name || 'User'}</span>
 							<span className="text-xs text-muted-foreground">{t('auth.online')}</span>
 						</div>
 					</Button>

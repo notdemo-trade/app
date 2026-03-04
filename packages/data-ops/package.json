@@ -18,6 +18,10 @@
 		"./health": {
 			"types": "./dist/health/index.d.ts",
 			"default": "./dist/health/index.js"
+		},
+		"./api-token": {
+			"types": "./dist/api-token/index.d.ts",
+			"default": "./dist/api-token/index.js"
 		}
 	},
 	"scripts": {

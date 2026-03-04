@@ -131,7 +131,11 @@ export function NavigationBar() {
 									</span>
 								</Button>
 							</AccountDialog>
-						) : null}
+						) : (
+							<Button asChild>
+								<Link to="/app">{t('nav.signIn')}</Link>
+							</Button>
+						)}
 					</div>
 
 					{/* Mobile Menu Button + Theme Toggle */}
@@ -214,7 +218,11 @@ export function NavigationBar() {
 												<p className="text-xs text-muted-foreground">{user?.email}</p>
 											</div>
 										</div>
-									) : null}
+									) : (
+										<Button asChild className="w-full" onClick={closeMenu}>
+											<Link to="/app">{t('nav.signIn')}</Link>
+										</Button>
+									)}
 								</div>
 							</SheetContent>
 						</Sheet>

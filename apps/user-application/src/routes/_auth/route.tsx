@@ -1,6 +1,6 @@
 import { createFileRoute, Outlet } from '@tanstack/react-router';
 import { useState } from 'react';
-import { GoogleLogin } from '@/components/auth/google-login';
+import { EmailLogin } from '@/components/auth/email-login';
 import { Header } from '@/components/layout/header';
 import { Sidebar } from '@/components/layout/sidebar';
 import { authClient } from '@/lib/auth-client';
@@ -34,7 +34,7 @@ function RouteComponent() {
 					</div>
 				</div>
 			) : (
-				<GoogleLogin />
+				<EmailLogin />
 			)}
 		</>
 	);

@@ -11,7 +11,8 @@ export const createBetterAuth = (config: {
 		baseURL: config.baseURL,
 		secret: config.secret,
 		emailAndPassword: {
-			enabled: false,
+			enabled: true,
+			requireEmailVerification: false,
 		},
 		socialProviders: config.socialProviders,
 		user: {

@@ -13,8 +13,10 @@ import { Route as AuthRouteRouteImport } from './routes/_auth/route'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as FaqCategoryIdRouteImport } from './routes/faq/$categoryId'
 import { Route as ApiHealthRouteImport } from './routes/api/health'
+import { Route as AuthProfileIndexRouteImport } from './routes/_auth/profile/index'
 import { Route as AuthAppIndexRouteImport } from './routes/_auth/app/index'
 import { Route as ApiAuthSplatRouteImport } from './routes/api/auth.$'
+import { Route as AuthSettingsTokensRouteImport } from './routes/_auth/settings/tokens'
 
 const AuthRouteRoute = AuthRouteRouteImport.update({
   id: '/_auth',
@@ -35,6 +37,11 @@ const ApiHealthRoute = ApiHealthRouteImport.update({
   path: '/api/health',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AuthProfileIndexRoute = AuthProfileIndexRouteImport.update({
+  id: '/profile/',
+  path: '/profile/',
+  getParentRoute: () => AuthRouteRoute,
+} as any)
 const AuthAppIndexRoute = AuthAppIndexRouteImport.update({
   id: '/app/',
   path: '/app/',
@@ -45,20 +52,29 @@ const ApiAuthSplatRoute = ApiAuthSplatRouteImport.update({
   path: '/api/auth/$',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AuthSettingsTokensRoute = AuthSettingsTokensRouteImport.update({
+  id: '/settings/tokens',
+  path: '/settings/tokens',
+  getParentRoute: () => AuthRouteRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/api/health': typeof ApiHealthRoute
   '/faq/$categoryId': typeof FaqCategoryIdRoute
+  '/settings/tokens': typeof AuthSettingsTokensRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
   '/app/': typeof AuthAppIndexRoute
+  '/profile/': typeof AuthProfileIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/api/health': typeof ApiHealthRoute
   '/faq/$categoryId': typeof FaqCategoryIdRoute
+  '/settings/tokens': typeof AuthSettingsTokensRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
   '/app': typeof AuthAppIndexRoute
+  '/profile': typeof AuthProfileIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -66,22 +82,40 @@ export interface FileRoutesById {
   '/_auth': typeof AuthRouteRouteWithChildren
   '/api/health': typeof ApiHealthRoute
   '/faq/$categoryId': typeof FaqCategoryIdRoute
+  '/_auth/settings/tokens': typeof AuthSettingsTokensRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
   '/_auth/app/': typeof AuthAppIndexRoute
+  '/_auth/profile/': typeof AuthProfileIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/api/health' | '/faq/$categoryId' | '/api/auth/$' | '/app/'
+  fullPaths:
+    | '/'
+    | '/api/health'
+    | '/faq/$categoryId'
+    | '/settings/tokens'
+    | '/api/auth/$'
+    | '/app/'
+    | '/profile/'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/api/health' | '/faq/$categoryId' | '/api/auth/$' | '/app'
+  to:
+    | '/'
+    | '/api/health'
+    | '/faq/$categoryId'
+    | '/settings/tokens'
+    | '/api/auth/$'
+    | '/app'
+    | '/profile'
   id:
     | '__root__'
     | '/'
     | '/_auth'
     | '/api/health'
     | '/faq/$categoryId'
+    | '/_auth/settings/tokens'
     | '/api/auth/$'
     | '/_auth/app/'
+    | '/_auth/profile/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -122,6 +156,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiHealthRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/_auth/profile/': {
+      id: '/_auth/profile/'
+      path: '/profile'
+      fullPath: '/profile/'
+      preLoaderRoute: typeof AuthProfileIndexRouteImport
+      parentRoute: typeof AuthRouteRoute
+    }
     '/_auth/app/': {
       id: '/_auth/app/'
       path: '/app'
@@ -136,15 +177,26 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiAuthSplatRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/_auth/settings/tokens': {
+      id: '/_auth/settings/tokens'
+      path: '/settings/tokens'
+      fullPath: '/settings/tokens'
+      preLoaderRoute: typeof AuthSettingsTokensRouteImport
+      parentRoute: typeof AuthRouteRoute
+    }
   }
 }
 
 interface AuthRouteRouteChildren {
+  AuthSettingsTokensRoute: typeof AuthSettingsTokensRoute
   AuthAppIndexRoute: typeof AuthAppIndexRoute
+  AuthProfileIndexRoute: typeof AuthProfileIndexRoute
 }
 
 const AuthRouteRouteChildren: AuthRouteRouteChildren = {
+  AuthSettingsTokensRoute: AuthSettingsTokensRoute,
   AuthAppIndexRoute: AuthAppIndexRoute,
+  AuthProfileIndexRoute: AuthProfileIndexRoute,
 }
 
 const AuthRouteRouteWithChildren = AuthRouteRoute._addFileChildren(
