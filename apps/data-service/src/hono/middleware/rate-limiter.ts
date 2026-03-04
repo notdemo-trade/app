@@ -1,8 +1,9 @@
-import type { MiddlewareHandler } from 'hono';
+import type { Context, MiddlewareHandler } from 'hono';
 
 interface RateLimitConfig {
 	windowMs: number;
 	maxRequests: number;
+	keyGenerator?: (c: Context) => string;
 }
 
 const requestCounts = new Map<string, { count: number; resetTime: number }>();
@@ -15,17 +16,23 @@ function cleanupExpired(now: number) {
 	}
 }
 
+function defaultKeyGenerator(c: Context): string {
+	return c.req.header('cf-connecting-ip') || c.req.header('x-forwarded-for') || 'unknown';
+}
+
 export const rateLimiter = (config: RateLimitConfig): MiddlewareHandler => {
+	const getKey = config.keyGenerator ?? defaultKeyGenerator;
+
 	return async (c, next) => {
-		const ip = c.req.header('cf-connecting-ip') || c.req.header('x-forwarded-for') || 'unknown';
+		const key = getKey(c);
 		const now = Date.now();
 
 		if (++requestCounter % CLEANUP_INTERVAL === 0) cleanupExpired(now);
 
-		const record = requestCounts.get(ip);
+		const record = requestCounts.get(key);
 
 		if (!record || now > record.resetTime) {
-			requestCounts.set(ip, { count: 1, resetTime: now + config.windowMs });
+			requestCounts.set(key, { count: 1, resetTime: now + config.windowMs });
 			return next();
 		}
 
