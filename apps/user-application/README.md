@@ -515,7 +515,7 @@ React components organized by feature.
 Authentication UI components.
 
 - **`account-dialog.tsx`** - User account management dialog
-- **`google-login.tsx`** - Google OAuth login button
+- **`email-login.tsx`** - Email/password login form
 
 
 ##### [`src/components/ui/`](./src/components/ui/)

@@ -3,7 +3,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { createFileRoute } from '@tanstack/react-router';
 import { Copy, Key, RefreshCw, Trash2 } from 'lucide-react';
 import { z } from 'zod';
-import { Alert } from '@/components/ui/alert';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -75,22 +75,28 @@ function TokensPage() {
 			)}
 
 			{newToken && (
-				<Alert className="mb-4">
-					<div className="flex items-center justify-between gap-2">
-						<div className="min-w-0">
-							<p className="font-medium text-foreground">Token created -- copy it now</p>
-							<code className="text-sm break-all text-muted-foreground">{newToken}</code>
+				<Alert variant="success" className="mb-4">
+					<Key className="h-4 w-4" />
+					<AlertTitle>Token created — copy it now</AlertTitle>
+					<AlertDescription>
+						<p className="text-muted-foreground mb-2">
+							This is the only time you'll see the full token.
+						</p>
+						<div className="flex items-center gap-2">
+							<code className="flex-1 rounded bg-muted px-3 py-2 font-mono text-sm text-foreground break-all select-all">
+								{newToken}
+							</code>
+							<Button
+								variant="outline"
+								size="sm"
+								onClick={() => handleCopy(newToken)}
+								className="shrink-0"
+							>
+								<Copy className="h-4 w-4 mr-1" />
+								Copy
+							</Button>
 						</div>
-						<Button
-							variant="outline"
-							size="sm"
-							onClick={() => handleCopy(newToken)}
-							className="shrink-0"
-						>
-							<Copy className="h-4 w-4 mr-1" />
-							Copy
-						</Button>
-					</div>
+					</AlertDescription>
 				</Alert>
 			)}
 
