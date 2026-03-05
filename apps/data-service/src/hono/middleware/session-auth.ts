@@ -10,6 +10,13 @@ export const sessionAuthMiddleware = createMiddleware<{
 	Bindings: Env;
 	Variables: SessionVariables;
 }>(async (c, next) => {
+	// Trust X-Internal-User-Id from service bindings (not reachable from internet)
+	const internalUserId = c.req.header('X-Internal-User-Id');
+	if (internalUserId) {
+		c.set('userId', internalUserId);
+		return next();
+	}
+
 	const auth = getAuth();
 	const session = await auth.api.getSession({ headers: c.req.raw.headers });
 

@@ -38,6 +38,22 @@
 		"./portfolio": {
 			"types": "./dist/portfolio/index.d.ts",
 			"default": "./dist/portfolio/index.js"
+		},
+		"./signal": {
+			"types": "./dist/signal/index.d.ts",
+			"default": "./dist/signal/index.js"
+		},
+		"./analysis": {
+			"types": "./dist/analysis/index.d.ts",
+			"default": "./dist/analysis/index.js"
+		},
+		"./agents/*": {
+			"types": "./dist/agents/*.d.ts",
+			"default": "./dist/agents/*.js"
+		},
+		"./providers/technicals": {
+			"types": "./dist/providers/technicals/index.d.ts",
+			"default": "./dist/providers/technicals/index.js"
 		}
 	},
 	"scripts": {

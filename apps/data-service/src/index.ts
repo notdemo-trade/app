@@ -5,6 +5,8 @@ import { App } from '@/hono/app';
 import { handleQueue } from './queues';
 import { handleScheduled } from './scheduled';
 
+export { TechnicalAnalysisAgent } from './agents/technical-analysis-agent';
+
 export default class DataService extends WorkerEntrypoint<Env> {
 	constructor(ctx: ExecutionContext, env: Env) {
 		super(ctx, env);

@@ -20,6 +20,7 @@ import { Route as ApiAuthSplatRouteImport } from './routes/api/auth.$'
 import { Route as AuthSettingsTradingRouteImport } from './routes/_auth/settings/trading'
 import { Route as AuthSettingsTokensRouteImport } from './routes/_auth/settings/tokens'
 import { Route as AuthSettingsCredentialsRouteImport } from './routes/_auth/settings/credentials'
+import { Route as AuthAnalysisSymbolRouteImport } from './routes/_auth/analysis/$symbol'
 
 const AuthRouteRoute = AuthRouteRouteImport.update({
   id: '/_auth',
@@ -75,11 +76,17 @@ const AuthSettingsCredentialsRoute = AuthSettingsCredentialsRouteImport.update({
   path: '/settings/credentials',
   getParentRoute: () => AuthRouteRoute,
 } as any)
+const AuthAnalysisSymbolRoute = AuthAnalysisSymbolRouteImport.update({
+  id: '/analysis/$symbol',
+  path: '/analysis/$symbol',
+  getParentRoute: () => AuthRouteRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/api/health': typeof ApiHealthRoute
   '/faq/$categoryId': typeof FaqCategoryIdRoute
+  '/analysis/$symbol': typeof AuthAnalysisSymbolRoute
   '/settings/credentials': typeof AuthSettingsCredentialsRoute
   '/settings/tokens': typeof AuthSettingsTokensRoute
   '/settings/trading': typeof AuthSettingsTradingRoute
@@ -92,6 +99,7 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/api/health': typeof ApiHealthRoute
   '/faq/$categoryId': typeof FaqCategoryIdRoute
+  '/analysis/$symbol': typeof AuthAnalysisSymbolRoute
   '/settings/credentials': typeof AuthSettingsCredentialsRoute
   '/settings/tokens': typeof AuthSettingsTokensRoute
   '/settings/trading': typeof AuthSettingsTradingRoute
@@ -106,6 +114,7 @@ export interface FileRoutesById {
   '/_auth': typeof AuthRouteRouteWithChildren
   '/api/health': typeof ApiHealthRoute
   '/faq/$categoryId': typeof FaqCategoryIdRoute
+  '/_auth/analysis/$symbol': typeof AuthAnalysisSymbolRoute
   '/_auth/settings/credentials': typeof AuthSettingsCredentialsRoute
   '/_auth/settings/tokens': typeof AuthSettingsTokensRoute
   '/_auth/settings/trading': typeof AuthSettingsTradingRoute
@@ -120,6 +129,7 @@ export interface FileRouteTypes {
     | '/'
     | '/api/health'
     | '/faq/$categoryId'
+    | '/analysis/$symbol'
     | '/settings/credentials'
     | '/settings/tokens'
     | '/settings/trading'
@@ -132,6 +142,7 @@ export interface FileRouteTypes {
     | '/'
     | '/api/health'
     | '/faq/$categoryId'
+    | '/analysis/$symbol'
     | '/settings/credentials'
     | '/settings/tokens'
     | '/settings/trading'
@@ -145,6 +156,7 @@ export interface FileRouteTypes {
     | '/_auth'
     | '/api/health'
     | '/faq/$categoryId'
+    | '/_auth/analysis/$symbol'
     | '/_auth/settings/credentials'
     | '/_auth/settings/tokens'
     | '/_auth/settings/trading'
@@ -241,10 +253,18 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthSettingsCredentialsRouteImport
       parentRoute: typeof AuthRouteRoute
     }
+    '/_auth/analysis/$symbol': {
+      id: '/_auth/analysis/$symbol'
+      path: '/analysis/$symbol'
+      fullPath: '/analysis/$symbol'
+      preLoaderRoute: typeof AuthAnalysisSymbolRouteImport
+      parentRoute: typeof AuthRouteRoute
+    }
   }
 }
 
 interface AuthRouteRouteChildren {
+  AuthAnalysisSymbolRoute: typeof AuthAnalysisSymbolRoute
   AuthSettingsCredentialsRoute: typeof AuthSettingsCredentialsRoute
   AuthSettingsTokensRoute: typeof AuthSettingsTokensRoute
   AuthSettingsTradingRoute: typeof AuthSettingsTradingRoute
@@ -254,6 +274,7 @@ interface AuthRouteRouteChildren {
 }
 
 const AuthRouteRouteChildren: AuthRouteRouteChildren = {
+  AuthAnalysisSymbolRoute: AuthAnalysisSymbolRoute,
   AuthSettingsCredentialsRoute: AuthSettingsCredentialsRoute,
   AuthSettingsTokensRoute: AuthSettingsTokensRoute,
   AuthSettingsTradingRoute: AuthSettingsTradingRoute,

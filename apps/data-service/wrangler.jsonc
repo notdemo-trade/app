@@ -9,6 +9,14 @@
   "observability": {
     "enabled": true,
   },
+  "durable_objects": {
+    "bindings": [
+      { "name": "TechnicalAnalysisAgent", "class_name": "TechnicalAnalysisAgent" }
+    ]
+  },
+  "migrations": [
+    { "tag": "v1", "new_sqlite_classes": ["TechnicalAnalysisAgent"] }
+  ],
   // "triggers": {
   //   "crons": [
   //     "0 * * * *"
@@ -20,6 +28,11 @@
 		*/
     "dev": {
       "name": "notdemo-trade-ds-dev",
+      "durable_objects": {
+        "bindings": [
+          { "name": "TechnicalAnalysisAgent", "class_name": "TechnicalAnalysisAgent" }
+        ]
+      },
       // "kv_namespaces": [
       //   {
       //     "binding": "CACHE",
@@ -56,6 +69,11 @@
         }
       ],
       "name": "notdemo-trade-ds-staging",
+      "durable_objects": {
+        "bindings": [
+          { "name": "TechnicalAnalysisAgent", "class_name": "TechnicalAnalysisAgent" }
+        ]
+      },
       // "kv_namespaces": [
       //   {
       //     "binding": "CACHE",
@@ -92,6 +110,11 @@
         }
       ],
       "name": "notdemo-trade-ds-production",
+      "durable_objects": {
+        "bindings": [
+          { "name": "TechnicalAnalysisAgent", "class_name": "TechnicalAnalysisAgent" }
+        ]
+      },
       // "kv_namespaces": [
       //   {
       //     "binding": "CACHE",

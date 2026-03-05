@@ -69,7 +69,10 @@ function CredentialsPage() {
 	return (
 		<div className="max-w-2xl mx-auto space-y-8">
 			<div>
-				<Link to="/dashboard" className="inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground mb-4">
+				<Link
+					to="/dashboard"
+					className="inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground mb-4"
+				>
 					<ArrowLeft className="h-4 w-4" />
 					Back to Dashboard
 				</Link>
@@ -238,7 +241,11 @@ function AlpacaCredentialForm({ existing }: AlpacaCredentialFormProps) {
 													className="absolute right-1 top-1/2 -translate-y-1/2 h-7 w-7 p-0"
 													onClick={() => setShowSecret(!showSecret)}
 												>
-													{showSecret ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+													{showSecret ? (
+														<EyeOff className="h-4 w-4" />
+													) : (
+														<Eye className="h-4 w-4" />
+													)}
 												</Button>
 											</div>
 										</div>

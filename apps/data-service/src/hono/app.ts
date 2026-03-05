@@ -1,4 +1,5 @@
 import { Hono } from 'hono';
+import { analysisRouter } from './handlers/analysis-handlers';
 import credentials from './handlers/credential-handlers';
 import health from './handlers/health-handlers';
 import portfolio from './handlers/portfolio-handlers';
@@ -21,3 +22,4 @@ App.route('/api/tokens', tokens);
 App.route('/api/credentials', credentials);
 App.route('/api/trading-config', tradingConfig);
 App.route('/api/portfolio', portfolio);
+App.route('/api/analysis', analysisRouter);
