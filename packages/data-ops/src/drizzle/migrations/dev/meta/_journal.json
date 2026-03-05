@@ -36,6 +36,13 @@
       "when": 1772719882456,
       "tag": "0004_nappy_deadpool",
       "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1772733789949,
+      "tag": "0005_lethal_karen_page",
+      "breakpoints": true
     }
   ]
 }

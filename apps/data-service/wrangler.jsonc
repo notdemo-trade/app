@@ -11,11 +11,13 @@
   },
   "durable_objects": {
     "bindings": [
-      { "name": "TechnicalAnalysisAgent", "class_name": "TechnicalAnalysisAgent" }
+      { "name": "TechnicalAnalysisAgent", "class_name": "TechnicalAnalysisAgent" },
+      { "name": "LLMAnalysisAgent", "class_name": "LLMAnalysisAgent" }
     ]
   },
   "migrations": [
-    { "tag": "v1", "new_sqlite_classes": ["TechnicalAnalysisAgent"] }
+    { "tag": "v1", "new_sqlite_classes": ["TechnicalAnalysisAgent"] },
+    { "tag": "v2", "new_sqlite_classes": ["LLMAnalysisAgent"] }
   ],
   // "triggers": {
   //   "crons": [
@@ -30,7 +32,8 @@
       "name": "notdemo-trade-ds-dev",
       "durable_objects": {
         "bindings": [
-          { "name": "TechnicalAnalysisAgent", "class_name": "TechnicalAnalysisAgent" }
+          { "name": "TechnicalAnalysisAgent", "class_name": "TechnicalAnalysisAgent" },
+          { "name": "LLMAnalysisAgent", "class_name": "LLMAnalysisAgent" }
         ]
       },
       // "kv_namespaces": [
@@ -71,7 +74,8 @@
       "name": "notdemo-trade-ds-staging",
       "durable_objects": {
         "bindings": [
-          { "name": "TechnicalAnalysisAgent", "class_name": "TechnicalAnalysisAgent" }
+          { "name": "TechnicalAnalysisAgent", "class_name": "TechnicalAnalysisAgent" },
+          { "name": "LLMAnalysisAgent", "class_name": "LLMAnalysisAgent" }
         ]
       },
       // "kv_namespaces": [
@@ -112,7 +116,8 @@
       "name": "notdemo-trade-ds-production",
       "durable_objects": {
         "bindings": [
-          { "name": "TechnicalAnalysisAgent", "class_name": "TechnicalAnalysisAgent" }
+          { "name": "TechnicalAnalysisAgent", "class_name": "TechnicalAnalysisAgent" },
+          { "name": "LLMAnalysisAgent", "class_name": "LLMAnalysisAgent" }
         ]
       },
       // "kv_namespaces": [
