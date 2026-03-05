@@ -1,6 +1,6 @@
 {
-	"id": "6ddcabdf-129e-43d2-9c75-4f2024acec0d",
-	"prevId": "6f498366-ca62-4e70-933c-9db99d1ca3c4",
+	"id": "65f1aca1-d025-441f-9fe3-57af464b9213",
+	"prevId": "754905bb-777f-419b-8ad2-b0a4d34380f1",
 	"version": "7",
 	"dialect": "postgresql",
 	"tables": {
@@ -361,7 +361,60 @@
 					"notNull": false
 				}
 			},
-			"indexes": {},
+			"indexes": {
+				"idx_api_tokens_user_id": {
+					"name": "idx_api_tokens_user_id",
+					"columns": [
+						{
+							"expression": "user_id",
+							"isExpression": false,
+							"asc": true,
+							"nulls": "last"
+						}
+					],
+					"isUnique": false,
+					"concurrently": false,
+					"method": "btree",
+					"with": {}
+				},
+				"idx_api_tokens_token_hash": {
+					"name": "idx_api_tokens_token_hash",
+					"columns": [
+						{
+							"expression": "token_hash",
+							"isExpression": false,
+							"asc": true,
+							"nulls": "last"
+						}
+					],
+					"isUnique": false,
+					"concurrently": false,
+					"method": "btree",
+					"with": {}
+				},
+				"idx_api_tokens_unique_active": {
+					"name": "idx_api_tokens_unique_active",
+					"columns": [
+						{
+							"expression": "user_id",
+							"isExpression": false,
+							"asc": true,
+							"nulls": "last"
+						},
+						{
+							"expression": "type",
+							"isExpression": false,
+							"asc": true,
+							"nulls": "last"
+						}
+					],
+					"isUnique": true,
+					"where": "\"api_tokens\".\"revoked_at\" is null",
+					"concurrently": false,
+					"method": "btree",
+					"with": {}
+				}
+			},
 			"foreignKeys": {
 				"api_tokens_user_id_auth_user_id_fk": {
 					"name": "api_tokens_user_id_auth_user_id_fk",
@@ -378,9 +431,305 @@
 			"policies": {},
 			"checkConstraints": {},
 			"isRLSEnabled": false
+		},
+		"public.user_credentials": {
+			"name": "user_credentials",
+			"schema": "",
+			"columns": {
+				"id": {
+					"name": "id",
+					"type": "uuid",
+					"primaryKey": true,
+					"notNull": true,
+					"default": "gen_random_uuid()"
+				},
+				"user_id": {
+					"name": "user_id",
+					"type": "text",
+					"primaryKey": false,
+					"notNull": true
+				},
+				"provider": {
+					"name": "provider",
+					"type": "credential_provider",
+					"typeSchema": "public",
+					"primaryKey": false,
+					"notNull": true
+				},
+				"encrypted_data": {
+					"name": "encrypted_data",
+					"type": "text",
+					"primaryKey": false,
+					"notNull": true
+				},
+				"paper_mode": {
+					"name": "paper_mode",
+					"type": "boolean",
+					"primaryKey": false,
+					"notNull": false
+				},
+				"iv": {
+					"name": "iv",
+					"type": "text",
+					"primaryKey": false,
+					"notNull": true
+				},
+				"salt": {
+					"name": "salt",
+					"type": "text",
+					"primaryKey": false,
+					"notNull": true
+				},
+				"last_validated_at": {
+					"name": "last_validated_at",
+					"type": "timestamp",
+					"primaryKey": false,
+					"notNull": false
+				},
+				"validation_error": {
+					"name": "validation_error",
+					"type": "text",
+					"primaryKey": false,
+					"notNull": false
+				},
+				"created_at": {
+					"name": "created_at",
+					"type": "timestamp",
+					"primaryKey": false,
+					"notNull": true,
+					"default": "now()"
+				},
+				"updated_at": {
+					"name": "updated_at",
+					"type": "timestamp",
+					"primaryKey": false,
+					"notNull": true,
+					"default": "now()"
+				}
+			},
+			"indexes": {
+				"idx_user_credentials_user_id": {
+					"name": "idx_user_credentials_user_id",
+					"columns": [
+						{
+							"expression": "user_id",
+							"isExpression": false,
+							"asc": true,
+							"nulls": "last"
+						}
+					],
+					"isUnique": false,
+					"concurrently": false,
+					"method": "btree",
+					"with": {}
+				}
+			},
+			"foreignKeys": {
+				"user_credentials_user_id_auth_user_id_fk": {
+					"name": "user_credentials_user_id_auth_user_id_fk",
+					"tableFrom": "user_credentials",
+					"tableTo": "auth_user",
+					"columnsFrom": ["user_id"],
+					"columnsTo": ["id"],
+					"onDelete": "cascade",
+					"onUpdate": "no action"
+				}
+			},
+			"compositePrimaryKeys": {},
+			"uniqueConstraints": {
+				"uq_user_credentials_user_provider": {
+					"name": "uq_user_credentials_user_provider",
+					"nullsNotDistinct": false,
+					"columns": ["user_id", "provider"]
+				}
+			},
+			"policies": {},
+			"checkConstraints": {},
+			"isRLSEnabled": false
+		},
+		"public.user_trading_config": {
+			"name": "user_trading_config",
+			"schema": "",
+			"columns": {
+				"id": {
+					"name": "id",
+					"type": "uuid",
+					"primaryKey": true,
+					"notNull": true,
+					"default": "gen_random_uuid()"
+				},
+				"user_id": {
+					"name": "user_id",
+					"type": "text",
+					"primaryKey": false,
+					"notNull": true
+				},
+				"max_position_value": {
+					"name": "max_position_value",
+					"type": "integer",
+					"primaryKey": false,
+					"notNull": true,
+					"default": 5000
+				},
+				"max_positions": {
+					"name": "max_positions",
+					"type": "integer",
+					"primaryKey": false,
+					"notNull": true,
+					"default": 10
+				},
+				"max_notional_per_trade": {
+					"name": "max_notional_per_trade",
+					"type": "integer",
+					"primaryKey": false,
+					"notNull": true,
+					"default": 5000
+				},
+				"max_daily_loss_pct": {
+					"name": "max_daily_loss_pct",
+					"type": "real",
+					"primaryKey": false,
+					"notNull": true,
+					"default": 0.02
+				},
+				"take_profit_pct": {
+					"name": "take_profit_pct",
+					"type": "real",
+					"primaryKey": false,
+					"notNull": true,
+					"default": 0.15
+				},
+				"stop_loss_pct": {
+					"name": "stop_loss_pct",
+					"type": "real",
+					"primaryKey": false,
+					"notNull": true,
+					"default": 0.08
+				},
+				"position_size_pct_of_cash": {
+					"name": "position_size_pct_of_cash",
+					"type": "real",
+					"primaryKey": false,
+					"notNull": true,
+					"default": 0.1
+				},
+				"cooldown_minutes_after_loss": {
+					"name": "cooldown_minutes_after_loss",
+					"type": "integer",
+					"primaryKey": false,
+					"notNull": true,
+					"default": 30
+				},
+				"research_model": {
+					"name": "research_model",
+					"type": "text",
+					"primaryKey": false,
+					"notNull": false,
+					"default": "'openai/gpt-4o-mini'"
+				},
+				"analyst_model": {
+					"name": "analyst_model",
+					"type": "text",
+					"primaryKey": false,
+					"notNull": false,
+					"default": "'openai/gpt-4o'"
+				},
+				"trading_hours_only": {
+					"name": "trading_hours_only",
+					"type": "boolean",
+					"primaryKey": false,
+					"notNull": true,
+					"default": true
+				},
+				"extended_hours_allowed": {
+					"name": "extended_hours_allowed",
+					"type": "boolean",
+					"primaryKey": false,
+					"notNull": true,
+					"default": false
+				},
+				"allow_short_selling": {
+					"name": "allow_short_selling",
+					"type": "boolean",
+					"primaryKey": false,
+					"notNull": true,
+					"default": false
+				},
+				"ticker_blacklist": {
+					"name": "ticker_blacklist",
+					"type": "text[]",
+					"primaryKey": false,
+					"notNull": false,
+					"default": "'{}'"
+				},
+				"ticker_allowlist": {
+					"name": "ticker_allowlist",
+					"type": "text[]",
+					"primaryKey": false,
+					"notNull": false
+				},
+				"created_at": {
+					"name": "created_at",
+					"type": "timestamp",
+					"primaryKey": false,
+					"notNull": true,
+					"default": "now()"
+				},
+				"updated_at": {
+					"name": "updated_at",
+					"type": "timestamp",
+					"primaryKey": false,
+					"notNull": true,
+					"default": "now()"
+				}
+			},
+			"indexes": {
+				"idx_user_trading_config_user_id": {
+					"name": "idx_user_trading_config_user_id",
+					"columns": [
+						{
+							"expression": "user_id",
+							"isExpression": false,
+							"asc": true,
+							"nulls": "last"
+						}
+					],
+					"isUnique": false,
+					"concurrently": false,
+					"method": "btree",
+					"with": {}
+				}
+			},
+			"foreignKeys": {
+				"user_trading_config_user_id_auth_user_id_fk": {
+					"name": "user_trading_config_user_id_auth_user_id_fk",
+					"tableFrom": "user_trading_config",
+					"tableTo": "auth_user",
+					"columnsFrom": ["user_id"],
+					"columnsTo": ["id"],
+					"onDelete": "cascade",
+					"onUpdate": "no action"
+				}
+			},
+			"compositePrimaryKeys": {},
+			"uniqueConstraints": {
+				"user_trading_config_user_id_unique": {
+					"name": "user_trading_config_user_id_unique",
+					"nullsNotDistinct": false,
+					"columns": ["user_id"]
+				}
+			},
+			"policies": {},
+			"checkConstraints": {},
+			"isRLSEnabled": false
 		}
 	},
 	"enums": {
+		"public.credential_provider": {
+			"name": "credential_provider",
+			"schema": "public",
+			"values": ["alpaca", "openai", "anthropic", "google", "xai", "deepseek"]
+		},
 		"public.token_type": {
 			"name": "token_type",
 			"schema": "public",

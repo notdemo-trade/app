@@ -94,8 +94,7 @@ export function Sidebar({ className }: SidebarProps) {
 						})}
 					</nav>
 				</ScrollArea>
-
-				</div>
+			</div>
 
 			{/* Mobile Sidebar Overlay */}
 			<div className="lg:hidden">

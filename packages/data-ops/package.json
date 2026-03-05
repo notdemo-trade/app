@@ -22,6 +22,14 @@
 		"./api-token": {
 			"types": "./dist/api-token/index.d.ts",
 			"default": "./dist/api-token/index.js"
+		},
+		"./credential": {
+			"types": "./dist/credential/index.d.ts",
+			"default": "./dist/credential/index.js"
+		},
+		"./trading-config": {
+			"types": "./dist/trading-config/index.d.ts",
+			"default": "./dist/trading-config/index.js"
 		}
 	},
 	"scripts": {
