@@ -14,6 +14,7 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as FaqCategoryIdRouteImport } from './routes/faq/$categoryId'
 import { Route as ApiHealthRouteImport } from './routes/api/health'
 import { Route as AuthProfileIndexRouteImport } from './routes/_auth/profile/index'
+import { Route as AuthOrchestratorIndexRouteImport } from './routes/_auth/orchestrator/index'
 import { Route as AuthDashboardIndexRouteImport } from './routes/_auth/dashboard/index'
 import { Route as AuthAppIndexRouteImport } from './routes/_auth/app/index'
 import { Route as ApiAuthSplatRouteImport } from './routes/api/auth.$'
@@ -44,6 +45,11 @@ const ApiHealthRoute = ApiHealthRouteImport.update({
 const AuthProfileIndexRoute = AuthProfileIndexRouteImport.update({
   id: '/profile/',
   path: '/profile/',
+  getParentRoute: () => AuthRouteRoute,
+} as any)
+const AuthOrchestratorIndexRoute = AuthOrchestratorIndexRouteImport.update({
+  id: '/orchestrator/',
+  path: '/orchestrator/',
   getParentRoute: () => AuthRouteRoute,
 } as any)
 const AuthDashboardIndexRoute = AuthDashboardIndexRouteImport.update({
@@ -93,6 +99,7 @@ export interface FileRoutesByFullPath {
   '/api/auth/$': typeof ApiAuthSplatRoute
   '/app/': typeof AuthAppIndexRoute
   '/dashboard/': typeof AuthDashboardIndexRoute
+  '/orchestrator/': typeof AuthOrchestratorIndexRoute
   '/profile/': typeof AuthProfileIndexRoute
 }
 export interface FileRoutesByTo {
@@ -106,6 +113,7 @@ export interface FileRoutesByTo {
   '/api/auth/$': typeof ApiAuthSplatRoute
   '/app': typeof AuthAppIndexRoute
   '/dashboard': typeof AuthDashboardIndexRoute
+  '/orchestrator': typeof AuthOrchestratorIndexRoute
   '/profile': typeof AuthProfileIndexRoute
 }
 export interface FileRoutesById {
@@ -121,6 +129,7 @@ export interface FileRoutesById {
   '/api/auth/$': typeof ApiAuthSplatRoute
   '/_auth/app/': typeof AuthAppIndexRoute
   '/_auth/dashboard/': typeof AuthDashboardIndexRoute
+  '/_auth/orchestrator/': typeof AuthOrchestratorIndexRoute
   '/_auth/profile/': typeof AuthProfileIndexRoute
 }
 export interface FileRouteTypes {
@@ -136,6 +145,7 @@ export interface FileRouteTypes {
     | '/api/auth/$'
     | '/app/'
     | '/dashboard/'
+    | '/orchestrator/'
     | '/profile/'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -149,6 +159,7 @@ export interface FileRouteTypes {
     | '/api/auth/$'
     | '/app'
     | '/dashboard'
+    | '/orchestrator'
     | '/profile'
   id:
     | '__root__'
@@ -163,6 +174,7 @@ export interface FileRouteTypes {
     | '/api/auth/$'
     | '/_auth/app/'
     | '/_auth/dashboard/'
+    | '/_auth/orchestrator/'
     | '/_auth/profile/'
   fileRoutesById: FileRoutesById
 }
@@ -209,6 +221,13 @@ declare module '@tanstack/react-router' {
       path: '/profile'
       fullPath: '/profile/'
       preLoaderRoute: typeof AuthProfileIndexRouteImport
+      parentRoute: typeof AuthRouteRoute
+    }
+    '/_auth/orchestrator/': {
+      id: '/_auth/orchestrator/'
+      path: '/orchestrator'
+      fullPath: '/orchestrator/'
+      preLoaderRoute: typeof AuthOrchestratorIndexRouteImport
       parentRoute: typeof AuthRouteRoute
     }
     '/_auth/dashboard/': {
@@ -270,6 +289,7 @@ interface AuthRouteRouteChildren {
   AuthSettingsTradingRoute: typeof AuthSettingsTradingRoute
   AuthAppIndexRoute: typeof AuthAppIndexRoute
   AuthDashboardIndexRoute: typeof AuthDashboardIndexRoute
+  AuthOrchestratorIndexRoute: typeof AuthOrchestratorIndexRoute
   AuthProfileIndexRoute: typeof AuthProfileIndexRoute
 }
 
@@ -280,6 +300,7 @@ const AuthRouteRouteChildren: AuthRouteRouteChildren = {
   AuthSettingsTradingRoute: AuthSettingsTradingRoute,
   AuthAppIndexRoute: AuthAppIndexRoute,
   AuthDashboardIndexRoute: AuthDashboardIndexRoute,
+  AuthOrchestratorIndexRoute: AuthOrchestratorIndexRoute,
   AuthProfileIndexRoute: AuthProfileIndexRoute,
 }
 

@@ -1,8 +1,9 @@
 import { Hono } from 'hono';
 import { analysisRouter } from './handlers/analysis-handlers';
-import { llmRouter } from './handlers/llm-analysis-handlers';
 import credentials from './handlers/credential-handlers';
 import health from './handlers/health-handlers';
+import { llmRouter } from './handlers/llm-analysis-handlers';
+import { orchestratorRouter } from './handlers/orchestrator-handlers';
 import portfolio from './handlers/portfolio-handlers';
 import status from './handlers/status-handlers';
 import tokens from './handlers/token-handlers';
@@ -25,3 +26,4 @@ App.route('/api/trading-config', tradingConfig);
 App.route('/api/portfolio', portfolio);
 App.route('/api/analysis', analysisRouter);
 App.route('/api/llm', llmRouter);
+App.route('/api/orchestrator', orchestratorRouter);

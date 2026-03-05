@@ -129,7 +129,13 @@
 	},
 	"sidebar": {
 		"dashboard": "Panel",
-		"credentials": "Poświadczenia"
+		"orchestrator": "Orkiestrator AI",
+		"analysis": "Analiza",
+		"settingsGroup": "Ustawienia",
+		"credentials": "Poświadczenia",
+		"tokens": "Tokeny API",
+		"trading": "Konfiguracja",
+		"profile": "Profil"
 	},
 	"auth": {
 		"online": "Online",

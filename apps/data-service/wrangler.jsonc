@@ -12,12 +12,14 @@
   "durable_objects": {
     "bindings": [
       { "name": "TechnicalAnalysisAgent", "class_name": "TechnicalAnalysisAgent" },
-      { "name": "LLMAnalysisAgent", "class_name": "LLMAnalysisAgent" }
+      { "name": "LLMAnalysisAgent", "class_name": "LLMAnalysisAgent" },
+      { "name": "OrchestratorAgent", "class_name": "OrchestratorAgent" }
     ]
   },
   "migrations": [
     { "tag": "v1", "new_sqlite_classes": ["TechnicalAnalysisAgent"] },
-    { "tag": "v2", "new_sqlite_classes": ["LLMAnalysisAgent"] }
+    { "tag": "v2", "new_sqlite_classes": ["LLMAnalysisAgent"] },
+    { "tag": "v3", "new_sqlite_classes": ["OrchestratorAgent"] }
   ],
   // "triggers": {
   //   "crons": [
@@ -33,7 +35,8 @@
       "durable_objects": {
         "bindings": [
           { "name": "TechnicalAnalysisAgent", "class_name": "TechnicalAnalysisAgent" },
-          { "name": "LLMAnalysisAgent", "class_name": "LLMAnalysisAgent" }
+          { "name": "LLMAnalysisAgent", "class_name": "LLMAnalysisAgent" },
+          { "name": "OrchestratorAgent", "class_name": "OrchestratorAgent" }
         ]
       },
       // "kv_namespaces": [
@@ -75,7 +78,8 @@
       "durable_objects": {
         "bindings": [
           { "name": "TechnicalAnalysisAgent", "class_name": "TechnicalAnalysisAgent" },
-          { "name": "LLMAnalysisAgent", "class_name": "LLMAnalysisAgent" }
+          { "name": "LLMAnalysisAgent", "class_name": "LLMAnalysisAgent" },
+          { "name": "OrchestratorAgent", "class_name": "OrchestratorAgent" }
         ]
       },
       // "kv_namespaces": [
@@ -117,7 +121,8 @@
       "durable_objects": {
         "bindings": [
           { "name": "TechnicalAnalysisAgent", "class_name": "TechnicalAnalysisAgent" },
-          { "name": "LLMAnalysisAgent", "class_name": "LLMAnalysisAgent" }
+          { "name": "LLMAnalysisAgent", "class_name": "LLMAnalysisAgent" },
+          { "name": "OrchestratorAgent", "class_name": "OrchestratorAgent" }
         ]
       },
       // "kv_namespaces": [

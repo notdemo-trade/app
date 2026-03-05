@@ -34,7 +34,23 @@ interface AlpacaBar {
 	vw: number;
 }
 
-const CRYPTO_BASES = ['BTC', 'ETH', 'SOL', 'DOGE', 'SHIB', 'AVAX', 'DOT', 'MATIC', 'LINK', 'UNI', 'AAVE', 'LTC', 'XRP', 'ADA', 'ALGO'];
+const CRYPTO_BASES = [
+	'BTC',
+	'ETH',
+	'SOL',
+	'DOGE',
+	'SHIB',
+	'AVAX',
+	'DOT',
+	'MATIC',
+	'LINK',
+	'UNI',
+	'AAVE',
+	'LTC',
+	'XRP',
+	'ADA',
+	'ALGO',
+];
 const CRYPTO_QUOTES = ['USD', 'USDT', 'USDC', 'BTC', 'EUR'];
 const CRYPTO_REGEX = new RegExp(`^(${CRYPTO_BASES.join('|')})(${CRYPTO_QUOTES.join('|')})$`, 'i');
 

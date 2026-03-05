@@ -1,11 +1,13 @@
 import { WorkerEntrypoint } from 'cloudflare:workers';
 import { setAuth } from '@repo/data-ops/auth/server';
 import { getDb, initDatabase } from '@repo/data-ops/database/setup';
+import { routeAgentRequest } from 'agents';
 import { App } from '@/hono/app';
 import { handleQueue } from './queues';
 import { handleScheduled } from './scheduled';
 
 export { LLMAnalysisAgent } from './agents/llm-analysis-agent';
+export { OrchestratorAgent } from './agents/orchestrator-agent';
 export { TechnicalAnalysisAgent } from './agents/technical-analysis-agent';
 
 export default class DataService extends WorkerEntrypoint<Env> {
@@ -22,7 +24,9 @@ export default class DataService extends WorkerEntrypoint<Env> {
 			adapter: { drizzleDb: getDb(), provider: 'pg' },
 		});
 	}
-	fetch(request: Request) {
+	async fetch(request: Request) {
+		const agentResponse = await routeAgentRequest(request, this.env);
+		if (agentResponse) return agentResponse;
 		return App.fetch(request, this.env, this.ctx);
 	}
 

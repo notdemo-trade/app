@@ -1,5 +1,5 @@
 import { useNavigate, useRouterState } from '@tanstack/react-router';
-import { Home, KeyRound, Menu } from 'lucide-react';
+import { Bot, ChartCandlestick, Coins, Home, KeyRound, Menu, Shield, User } from 'lucide-react';
 import { useState } from 'react';
 import { useTranslations } from 'use-intl';
 import { Button } from '@/components/ui/button';
@@ -13,16 +13,55 @@ interface NavigationItem {
 	badge?: string | number;
 }
 
-const navigationItems: NavigationItem[] = [
+interface NavigationGroup {
+	labelKey?: string;
+	items: NavigationItem[];
+}
+
+const navigationGroups: NavigationGroup[] = [
 	{
-		nameKey: 'sidebar.dashboard',
-		icon: Home,
-		href: '/dashboard',
+		items: [
+			{
+				nameKey: 'sidebar.dashboard',
+				icon: Home,
+				href: '/dashboard',
+			},
+			{
+				nameKey: 'sidebar.orchestrator',
+				icon: Bot,
+				href: '/orchestrator',
+			},
+			{
+				nameKey: 'sidebar.analysis',
+				icon: ChartCandlestick,
+				href: '/analysis/AAPL',
+			},
+		],
 	},
 	{
-		nameKey: 'sidebar.credentials',
-		icon: KeyRound,
-		href: '/settings/credentials',
+		labelKey: 'sidebar.settingsGroup',
+		items: [
+			{
+				nameKey: 'sidebar.credentials',
+				icon: KeyRound,
+				href: '/settings/credentials',
+			},
+			{
+				nameKey: 'sidebar.tokens',
+				icon: Shield,
+				href: '/settings/tokens',
+			},
+			{
+				nameKey: 'sidebar.trading',
+				icon: Coins,
+				href: '/settings/trading',
+			},
+			{
+				nameKey: 'sidebar.profile',
+				icon: User,
+				href: '/profile',
+			},
+		],
 	},
 ];
 
@@ -50,9 +89,7 @@ export function Sidebar({ className }: SidebarProps) {
 			>
 				<div className="flex h-16 items-center justify-between px-6 border-b border-border">
 					{!isCollapsed && (
-						<h1 className="text-xl font-semibold tracking-tight text-foreground">
-							{t('sidebar.dashboard')}
-						</h1>
+						<h1 className="text-xl font-semibold tracking-tight text-foreground">notdemo.trade</h1>
 					)}
 					<Button
 						variant="ghost"
@@ -65,38 +102,49 @@ export function Sidebar({ className }: SidebarProps) {
 				</div>
 
 				<ScrollArea className="flex-1 px-3 py-4">
-					<nav className="space-y-2">
-						{navigationItems.map((item) => {
-							const isActive =
-								currentPath === item.href ||
-								(item.href !== '/dashboard' && currentPath.startsWith(item.href));
+					<nav className="space-y-6">
+						{navigationGroups.map((group) => (
+							<div key={group.labelKey ?? 'main'} className="space-y-1">
+								{group.labelKey && !isCollapsed && (
+									<p className="px-3 pb-1 text-xs font-medium uppercase tracking-wider text-muted-foreground/70">
+										{t(group.labelKey)}
+									</p>
+								)}
+								{group.items.map((item) => {
+									const isActive =
+										currentPath === item.href ||
+										(item.href.startsWith('/analysis') && currentPath.startsWith('/analysis')) ||
+										(item.href.startsWith('/orchestrator') &&
+											currentPath.startsWith('/orchestrator'));
 
-							return (
-								<Button
-									key={item.nameKey}
-									variant={isActive ? 'default' : 'ghost'}
-									className={cn(
-										'w-full justify-start gap-3 h-10',
-										isCollapsed && 'px-2 justify-center',
-										isActive && 'bg-primary text-primary-foreground shadow-sm',
-										!isActive && 'text-muted-foreground hover:text-foreground hover:bg-accent',
-									)}
-									onClick={() => navigate({ to: item.href })}
-								>
-									<item.icon className="h-4 w-4 flex-shrink-0" />
-									{!isCollapsed && (
-										<>
-											<span className="truncate">{t(item.nameKey)}</span>
-											{item.badge && (
-												<span className="ml-auto flex h-5 w-5 items-center justify-center rounded-full bg-primary text-xs font-medium text-primary-foreground">
-													{item.badge}
-												</span>
+									return (
+										<Button
+											key={item.nameKey}
+											variant={isActive ? 'default' : 'ghost'}
+											className={cn(
+												'w-full justify-start gap-3 h-10',
+												isCollapsed && 'px-2 justify-center',
+												isActive && 'bg-primary text-primary-foreground shadow-sm',
+												!isActive && 'text-muted-foreground hover:text-foreground hover:bg-accent',
 											)}
-										</>
-									)}
-								</Button>
-							);
-						})}
+											onClick={() => navigate({ to: item.href })}
+										>
+											<item.icon className="h-4 w-4 flex-shrink-0" />
+											{!isCollapsed && (
+												<>
+													<span className="truncate">{t(item.nameKey)}</span>
+													{item.badge && (
+														<span className="ml-auto flex h-5 w-5 items-center justify-center rounded-full bg-primary text-xs font-medium text-primary-foreground">
+															{item.badge}
+														</span>
+													)}
+												</>
+											)}
+										</Button>
+									);
+								})}
+							</div>
+						))}
 					</nav>
 				</ScrollArea>
 			</div>

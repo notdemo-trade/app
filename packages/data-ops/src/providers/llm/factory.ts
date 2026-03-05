@@ -50,14 +50,31 @@ export function createLLMProvider(config: LLMProviderConfig): LLMClient {
 
 	return {
 		async complete(params: CompletionParams): Promise<CompletionResult> {
+			const wantJson = params.response_format?.type === 'json_object';
+			const messages = params.messages.map((m) => ({
+				role: m.role,
+				content:
+					wantJson && m.role === 'system'
+						? `${m.content}\n\nYou MUST respond with valid JSON only. No markdown, no code fences.`
+						: m.content,
+			}));
+
 			const result = await generateText({
 				model,
-				messages: params.messages.map((m) => ({
-					role: m.role,
-					content: m.content,
-				})),
+				messages,
 				temperature: params.temperature,
 				maxOutputTokens: params.max_tokens,
+				...(wantJson
+					? {
+							providerOptions: {
+								openai: { response_format: { type: 'json_object' } },
+								anthropic: { response_format: { type: 'json_object' } },
+								google: { response_format: { type: 'json_object' } },
+								xai: { response_format: { type: 'json_object' } },
+								deepseek: { response_format: { type: 'json_object' } },
+							},
+						}
+					: {}),
 			});
 
 			const inputTokens = result.usage.inputTokens ?? 0;

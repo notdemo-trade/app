@@ -33,6 +33,7 @@
 		"@tanstack/react-router-ssr-query": "^1.159.4",
 		"@tanstack/react-start": "^1.159.4",
 		"@tanstack/react-store": "^0.8.0",
+		"agents": "^0.7.4",
 		"better-auth": "^1.4.18",
 		"class-variance-authority": "^0.7.1",
 		"clsx": "^2.1.1",

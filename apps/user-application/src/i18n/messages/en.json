@@ -129,7 +129,13 @@
 	},
 	"sidebar": {
 		"dashboard": "Dashboard",
-		"credentials": "Credentials"
+		"orchestrator": "AI Orchestrator",
+		"analysis": "Analysis",
+		"settingsGroup": "Settings",
+		"credentials": "Credentials",
+		"tokens": "API Tokens",
+		"trading": "Trading Config",
+		"profile": "Profile"
 	},
 	"auth": {
 		"online": "Online",
