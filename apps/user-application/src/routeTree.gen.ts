@@ -9,14 +9,17 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
-import { Route as AuthAppIndexRouteImport } from './routes/_auth/app/index'
-import { Route as AuthProfileIndexRouteImport } from './routes/_auth/profile/index'
 import { Route as AuthRouteRouteImport } from './routes/_auth/route'
-import { Route as AuthSettingsTokensRouteImport } from './routes/_auth/settings/tokens'
-import { Route as ApiAuthSplatRouteImport } from './routes/api/auth.$'
-import { Route as ApiHealthRouteImport } from './routes/api/health'
-import { Route as FaqCategoryIdRouteImport } from './routes/faq/$categoryId'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as FaqCategoryIdRouteImport } from './routes/faq/$categoryId'
+import { Route as ApiHealthRouteImport } from './routes/api/health'
+import { Route as AuthProfileIndexRouteImport } from './routes/_auth/profile/index'
+import { Route as AuthDashboardIndexRouteImport } from './routes/_auth/dashboard/index'
+import { Route as AuthAppIndexRouteImport } from './routes/_auth/app/index'
+import { Route as ApiAuthSplatRouteImport } from './routes/api/auth.$'
+import { Route as AuthSettingsTradingRouteImport } from './routes/_auth/settings/trading'
+import { Route as AuthSettingsTokensRouteImport } from './routes/_auth/settings/tokens'
+import { Route as AuthSettingsCredentialsRouteImport } from './routes/_auth/settings/credentials'
 
 const AuthRouteRoute = AuthRouteRouteImport.update({
   id: '/_auth',
@@ -42,6 +45,11 @@ const AuthProfileIndexRoute = AuthProfileIndexRouteImport.update({
   path: '/profile/',
   getParentRoute: () => AuthRouteRoute,
 } as any)
+const AuthDashboardIndexRoute = AuthDashboardIndexRouteImport.update({
+  id: '/dashboard/',
+  path: '/dashboard/',
+  getParentRoute: () => AuthRouteRoute,
+} as any)
 const AuthAppIndexRoute = AuthAppIndexRouteImport.update({
   id: '/app/',
   path: '/app/',
@@ -52,9 +60,19 @@ const ApiAuthSplatRoute = ApiAuthSplatRouteImport.update({
   path: '/api/auth/$',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AuthSettingsTradingRoute = AuthSettingsTradingRouteImport.update({
+  id: '/settings/trading',
+  path: '/settings/trading',
+  getParentRoute: () => AuthRouteRoute,
+} as any)
 const AuthSettingsTokensRoute = AuthSettingsTokensRouteImport.update({
   id: '/settings/tokens',
   path: '/settings/tokens',
+  getParentRoute: () => AuthRouteRoute,
+} as any)
+const AuthSettingsCredentialsRoute = AuthSettingsCredentialsRouteImport.update({
+  id: '/settings/credentials',
+  path: '/settings/credentials',
   getParentRoute: () => AuthRouteRoute,
 } as any)
 
@@ -62,18 +80,24 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/api/health': typeof ApiHealthRoute
   '/faq/$categoryId': typeof FaqCategoryIdRoute
+  '/settings/credentials': typeof AuthSettingsCredentialsRoute
   '/settings/tokens': typeof AuthSettingsTokensRoute
+  '/settings/trading': typeof AuthSettingsTradingRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
   '/app/': typeof AuthAppIndexRoute
+  '/dashboard/': typeof AuthDashboardIndexRoute
   '/profile/': typeof AuthProfileIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/api/health': typeof ApiHealthRoute
   '/faq/$categoryId': typeof FaqCategoryIdRoute
+  '/settings/credentials': typeof AuthSettingsCredentialsRoute
   '/settings/tokens': typeof AuthSettingsTokensRoute
+  '/settings/trading': typeof AuthSettingsTradingRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
   '/app': typeof AuthAppIndexRoute
+  '/dashboard': typeof AuthDashboardIndexRoute
   '/profile': typeof AuthProfileIndexRoute
 }
 export interface FileRoutesById {
@@ -82,9 +106,12 @@ export interface FileRoutesById {
   '/_auth': typeof AuthRouteRouteWithChildren
   '/api/health': typeof ApiHealthRoute
   '/faq/$categoryId': typeof FaqCategoryIdRoute
+  '/_auth/settings/credentials': typeof AuthSettingsCredentialsRoute
   '/_auth/settings/tokens': typeof AuthSettingsTokensRoute
+  '/_auth/settings/trading': typeof AuthSettingsTradingRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
   '/_auth/app/': typeof AuthAppIndexRoute
+  '/_auth/dashboard/': typeof AuthDashboardIndexRoute
   '/_auth/profile/': typeof AuthProfileIndexRoute
 }
 export interface FileRouteTypes {
@@ -93,18 +120,24 @@ export interface FileRouteTypes {
     | '/'
     | '/api/health'
     | '/faq/$categoryId'
+    | '/settings/credentials'
     | '/settings/tokens'
+    | '/settings/trading'
     | '/api/auth/$'
     | '/app/'
+    | '/dashboard/'
     | '/profile/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
     | '/api/health'
     | '/faq/$categoryId'
+    | '/settings/credentials'
     | '/settings/tokens'
+    | '/settings/trading'
     | '/api/auth/$'
     | '/app'
+    | '/dashboard'
     | '/profile'
   id:
     | '__root__'
@@ -112,9 +145,12 @@ export interface FileRouteTypes {
     | '/_auth'
     | '/api/health'
     | '/faq/$categoryId'
+    | '/_auth/settings/credentials'
     | '/_auth/settings/tokens'
+    | '/_auth/settings/trading'
     | '/api/auth/$'
     | '/_auth/app/'
+    | '/_auth/dashboard/'
     | '/_auth/profile/'
   fileRoutesById: FileRoutesById
 }
@@ -163,6 +199,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthProfileIndexRouteImport
       parentRoute: typeof AuthRouteRoute
     }
+    '/_auth/dashboard/': {
+      id: '/_auth/dashboard/'
+      path: '/dashboard'
+      fullPath: '/dashboard/'
+      preLoaderRoute: typeof AuthDashboardIndexRouteImport
+      parentRoute: typeof AuthRouteRoute
+    }
     '/_auth/app/': {
       id: '/_auth/app/'
       path: '/app'
@@ -177,6 +220,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiAuthSplatRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/_auth/settings/trading': {
+      id: '/_auth/settings/trading'
+      path: '/settings/trading'
+      fullPath: '/settings/trading'
+      preLoaderRoute: typeof AuthSettingsTradingRouteImport
+      parentRoute: typeof AuthRouteRoute
+    }
     '/_auth/settings/tokens': {
       id: '/_auth/settings/tokens'
       path: '/settings/tokens'
@@ -184,18 +234,31 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthSettingsTokensRouteImport
       parentRoute: typeof AuthRouteRoute
     }
+    '/_auth/settings/credentials': {
+      id: '/_auth/settings/credentials'
+      path: '/settings/credentials'
+      fullPath: '/settings/credentials'
+      preLoaderRoute: typeof AuthSettingsCredentialsRouteImport
+      parentRoute: typeof AuthRouteRoute
+    }
   }
 }
 
 interface AuthRouteRouteChildren {
+  AuthSettingsCredentialsRoute: typeof AuthSettingsCredentialsRoute
   AuthSettingsTokensRoute: typeof AuthSettingsTokensRoute
+  AuthSettingsTradingRoute: typeof AuthSettingsTradingRoute
   AuthAppIndexRoute: typeof AuthAppIndexRoute
+  AuthDashboardIndexRoute: typeof AuthDashboardIndexRoute
   AuthProfileIndexRoute: typeof AuthProfileIndexRoute
 }
 
 const AuthRouteRouteChildren: AuthRouteRouteChildren = {
+  AuthSettingsCredentialsRoute: AuthSettingsCredentialsRoute,
   AuthSettingsTokensRoute: AuthSettingsTokensRoute,
+  AuthSettingsTradingRoute: AuthSettingsTradingRoute,
   AuthAppIndexRoute: AuthAppIndexRoute,
+  AuthDashboardIndexRoute: AuthDashboardIndexRoute,
   AuthProfileIndexRoute: AuthProfileIndexRoute,
 }
 
@@ -216,7 +279,6 @@ export const routeTree = rootRouteImport
 
 import type { getRouter } from './router.tsx'
 import type { startInstance } from './start.tsx'
-
 declare module '@tanstack/react-start' {
   interface Register {
     ssr: true

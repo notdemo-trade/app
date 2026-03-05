@@ -1,3 +1,4 @@
+import { Link } from '@tanstack/react-router';
 import { LogIn, Shield, Sparkles, Zap } from 'lucide-react';
 import { useTranslations } from 'use-intl';
 import { Badge } from '@/components/ui/badge';
@@ -33,12 +34,13 @@ export function HeroSection() {
 					{t('hero.description')}
 				</p>
 
-				<div className="mt-10 flex flex-col items-center justify-center gap-2">
-					<Button size="lg" disabled className="gap-2">
-						<LogIn className="h-4 w-4" />
-						{t('hero.cta.label')}
+				<div className="mt-10 flex items-center justify-center">
+					<Button size="lg" asChild className="gap-2">
+						<Link to="/dashboard">
+							<LogIn className="h-4 w-4" />
+							{t('hero.cta.label')}
+						</Link>
 					</Button>
-					<span className="text-sm text-muted-foreground">{t('hero.cta.soon')}</span>
 				</div>
 			</div>
 

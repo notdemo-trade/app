@@ -52,7 +52,7 @@ export async function validateLLMCredential(
 ): Promise<ValidationResult> {
 	const endpoints: Record<string, LLMEndpointConfig> = {
 		openai: { url: 'https://api.openai.com/v1/models', header: 'Authorization' },
-		anthropic: { url: 'https://api.anthropic.com/v1/messages', header: 'x-api-key' },
+		anthropic: { url: 'https://api.anthropic.com/v1/models', header: 'x-api-key' },
 		google: {
 			url: 'https://generativelanguage.googleapis.com/v1beta/models',
 			header: 'x-goog-api-key',
@@ -72,26 +72,8 @@ export async function validateLLMCredential(
 			headers[config.header] = cred.apiKey;
 		}
 
-		// Anthropic requires POST
 		if (provider === 'anthropic') {
 			headers['anthropic-version'] = '2023-06-01';
-			headers['content-type'] = 'application/json';
-
-			const res = await fetch(config.url, {
-				method: 'POST',
-				headers,
-				body: JSON.stringify({
-					model: 'claude-3-5-haiku-latest',
-					max_tokens: 1,
-					messages: [{ role: 'user', content: 'hi' }],
-				}),
-			});
-
-			if (res.status === 401) return { success: false, error: 'Invalid API key' };
-			if (!res.ok && res.status !== 400) {
-				return { success: false, error: `API error: ${res.status}` };
-			}
-			return { success: true };
 		}
 
 		const res = await fetch(config.url, { headers });

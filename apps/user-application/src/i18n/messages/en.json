@@ -26,8 +26,7 @@
 		},
 		"description": "AI trading bot that watches social media, makes trade recommendations 24/7, and lets you approve them from your phone.",
 		"cta": {
-			"label": "Get Started",
-			"soon": "soon.."
+			"label": "Get Started"
 		}
 	},
 	"features": {
@@ -129,7 +128,8 @@
 		"search": "Search..."
 	},
 	"sidebar": {
-		"dashboard": "Dashboard"
+		"dashboard": "Dashboard",
+		"credentials": "Credentials"
 	},
 	"auth": {
 		"online": "Online",

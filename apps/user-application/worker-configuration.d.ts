@@ -3,7 +3,7 @@
 // Runtime types generated with workerd@1.20260210.0 2025-09-02 nodejs_compat
 declare namespace Cloudflare {
 	interface GlobalProps {
-		mainModule: typeof import("./src/server");
+		mainModule: typeof import('./src/server');
 	}
 	interface Env {
 		CLOUDFLARE_ENV: string;
@@ -13,7 +13,10 @@ declare namespace Cloudflare {
 		BETTER_AUTH_SECRET: string;
 		VITE_DATA_SERVICE_URL: string;
 		CREDENTIALS_ENCRYPTION_KEY: string;
-		DATA_SERVICE?: Fetcher /* notdemo-trade-ds-dev */ | Fetcher /* notdemo-trade-ds-staging */ | Fetcher /* notdemo-trade-ds-production */;
+		DATA_SERVICE?:
+			| Fetcher /* notdemo-trade-ds-dev */
+			| Fetcher /* notdemo-trade-ds-staging */
+			| Fetcher /* notdemo-trade-ds-production */;
 	}
 }
 interface Env extends Cloudflare.Env {}
@@ -21,7 +24,19 @@ type StringifyValues<EnvType extends Record<string, unknown>> = {
 	[Binding in keyof EnvType]: EnvType[Binding] extends string ? EnvType[Binding] : string;
 };
 declare namespace NodeJS {
-	interface ProcessEnv extends StringifyValues<Pick<Cloudflare.Env, "CLOUDFLARE_ENV" | "DATABASE_HOST" | "DATABASE_USERNAME" | "DATABASE_PASSWORD" | "BETTER_AUTH_SECRET" | "VITE_DATA_SERVICE_URL" | "CREDENTIALS_ENCRYPTION_KEY">> {}
+	interface ProcessEnv
+		extends StringifyValues<
+			Pick<
+				Cloudflare.Env,
+				| 'CLOUDFLARE_ENV'
+				| 'DATABASE_HOST'
+				| 'DATABASE_USERNAME'
+				| 'DATABASE_PASSWORD'
+				| 'BETTER_AUTH_SECRET'
+				| 'VITE_DATA_SERVICE_URL'
+				| 'CREDENTIALS_ENCRYPTION_KEY'
+			>
+		> {}
 }
 
 // Begin runtime types

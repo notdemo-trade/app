@@ -26,8 +26,7 @@
 		},
 		"description": "Agent handlowy oparty na sztucznej inteligencji, który, przez całą dobę monitoruje media społecznościowe i dane giełdowe. Przedstawia znalezione dane i umożliwia samodzielne podjęcie decyzji za pomocą telefonu.",
 		"cta": {
-			"label": "Rozpocznij",
-			"soon": "wkrótce.."
+			"label": "Rozpocznij"
 		}
 	},
 	"features": {
@@ -129,7 +128,8 @@
 		"search": "Szukaj..."
 	},
 	"sidebar": {
-		"dashboard": "Panel"
+		"dashboard": "Panel",
+		"credentials": "Poświadczenia"
 	},
 	"auth": {
 		"online": "Online",

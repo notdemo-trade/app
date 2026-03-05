@@ -30,6 +30,14 @@
 		"./trading-config": {
 			"types": "./dist/trading-config/index.d.ts",
 			"default": "./dist/trading-config/index.js"
+		},
+		"./providers/alpaca": {
+			"types": "./dist/providers/alpaca/index.d.ts",
+			"default": "./dist/providers/alpaca/index.js"
+		},
+		"./portfolio": {
+			"types": "./dist/portfolio/index.d.ts",
+			"default": "./dist/portfolio/index.js"
 		}
 	},
 	"scripts": {

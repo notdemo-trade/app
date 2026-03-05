@@ -1,5 +1,5 @@
 import { useNavigate, useRouterState } from '@tanstack/react-router';
-import { Home, Menu } from 'lucide-react';
+import { Home, KeyRound, Menu } from 'lucide-react';
 import { useState } from 'react';
 import { useTranslations } from 'use-intl';
 import { Button } from '@/components/ui/button';
@@ -18,6 +18,11 @@ const navigationItems: NavigationItem[] = [
 		nameKey: 'sidebar.dashboard',
 		icon: Home,
 		href: '/dashboard',
+	},
+	{
+		nameKey: 'sidebar.credentials',
+		icon: KeyRound,
+		href: '/settings/credentials',
 	},
 ];
 

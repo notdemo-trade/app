@@ -1,10 +1,10 @@
 import type { CredentialInfo, CredentialProvider } from '@repo/data-ops/credential';
 import { useForm } from '@tanstack/react-form';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { createFileRoute } from '@tanstack/react-router';
-import { Eye, EyeOff, Key, Shield, Trash2 } from 'lucide-react';
+import { createFileRoute, Link } from '@tanstack/react-router';
+import { ArrowLeft, Eye, EyeOff, Key, Shield, Trash2 } from 'lucide-react';
 import { useState } from 'react';
-import { Alert } from '@/components/ui/alert';
+import { Alert, AlertTitle } from '@/components/ui/alert';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -69,6 +69,10 @@ function CredentialsPage() {
 	return (
 		<div className="max-w-2xl mx-auto space-y-8">
 			<div>
+				<Link to="/dashboard" className="inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground mb-4">
+					<ArrowLeft className="h-4 w-4" />
+					Back to Dashboard
+				</Link>
 				<h1 className="text-2xl font-bold text-foreground">API Credentials</h1>
 				<p className="text-muted-foreground text-sm mt-1">
 					Manage API keys for trading and AI providers. Keys are encrypted at rest.
@@ -111,6 +115,7 @@ interface AlpacaCredentialFormProps {
 }
 
 function AlpacaCredentialForm({ existing }: AlpacaCredentialFormProps) {
+	const [isEditing, setIsEditing] = useState(false);
 	const [showSecret, setShowSecret] = useState(false);
 	const queryClient = useQueryClient();
 
@@ -121,6 +126,7 @@ function AlpacaCredentialForm({ existing }: AlpacaCredentialFormProps) {
 			}),
 		onSuccess: () => {
 			queryClient.invalidateQueries({ queryKey: CREDENTIALS_QUERY_KEY });
+			setIsEditing(false);
 		},
 	});
 
@@ -144,121 +150,133 @@ function AlpacaCredentialForm({ existing }: AlpacaCredentialFormProps) {
 	return (
 		<Card>
 			<CardContent className="pt-6">
-				{existing && (
-					<div className="flex items-center gap-2 mb-4">
-						<Badge variant={existing.validationError ? 'destructive' : 'success'}>
-							{existing.validationError ? 'Invalid' : 'Connected'}
-						</Badge>
-						{existing.paperMode !== null && (
-							<Badge variant="outline">{existing.paperMode ? 'Paper' : 'Live'}</Badge>
-						)}
+				{existing && !isEditing ? (
+					<div className="space-y-3">
+						<div className="flex items-center gap-2">
+							<Badge variant={existing.validationError ? 'destructive' : 'success'}>
+								{existing.validationError ? 'Invalid' : 'Connected'}
+							</Badge>
+							{existing.paperMode !== null && (
+								<Badge variant="outline">{existing.paperMode ? 'Paper' : 'Live'}</Badge>
+							)}
+						</div>
 						{existing.lastValidatedAt && (
-							<span className="text-xs text-muted-foreground">
+							<p className="text-xs text-muted-foreground">
 								Verified {new Date(existing.lastValidatedAt).toLocaleDateString()}
-							</span>
+							</p>
 						)}
 						{existing.validationError && (
-							<span className="text-xs text-destructive">{existing.validationError}</span>
+							<p className="text-xs text-destructive">{existing.validationError}</p>
 						)}
-					</div>
-				)}
-
-				{saveMutation.isError && (
-					<Alert variant="destructive" className="mb-4">
-						{saveMutation.error.message}
-					</Alert>
-				)}
-
-				{saveMutation.isSuccess &&
-					saveMutation.data &&
-					'success' in saveMutation.data &&
-					saveMutation.data.success && (
-						<Alert variant="success" className="mb-4">
-							Credentials saved and validated successfully.
-						</Alert>
-					)}
-
-				<form
-					onSubmit={(e) => {
-						e.preventDefault();
-						form.handleSubmit();
-					}}
-				>
-					<div className="space-y-4">
-						<form.Field name="apiKey">
-							{(field) => (
-								<div className="space-y-2">
-									<Label htmlFor="alpaca-key">API Key</Label>
-									<Input
-										id="alpaca-key"
-										type="text"
-										placeholder="PK..."
-										value={field.state.value}
-										onChange={(e) => field.handleChange(e.target.value)}
-										onBlur={field.handleBlur}
-									/>
-								</div>
-							)}
-						</form.Field>
-
-						<form.Field name="apiSecret">
-							{(field) => (
-								<div className="space-y-2">
-									<Label htmlFor="alpaca-secret">API Secret</Label>
-									<div className="relative">
-										<Input
-											id="alpaca-secret"
-											type={showSecret ? 'text' : 'password'}
-											placeholder="Enter secret..."
-											value={field.state.value}
-											onChange={(e) => field.handleChange(e.target.value)}
-											onBlur={field.handleBlur}
-										/>
-										<Button
-											type="button"
-											variant="ghost"
-											size="sm"
-											className="absolute right-1 top-1/2 -translate-y-1/2 h-7 w-7 p-0"
-											onClick={() => setShowSecret(!showSecret)}
-										>
-											{showSecret ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-										</Button>
-									</div>
-								</div>
-							)}
-						</form.Field>
-
-						<form.Field name="paper">
-							{(field) => (
-								<div className="flex items-center gap-2">
-									<Switch
-										id="alpaca-paper"
-										checked={field.state.value}
-										onCheckedChange={field.handleChange}
-									/>
-									<Label htmlFor="alpaca-paper">Paper Trading (recommended)</Label>
-								</div>
-							)}
-						</form.Field>
-					</div>
-
-					<div className="flex gap-2 mt-6">
-						<form.Subscribe selector={(s) => s.canSubmit}>
-							{(canSubmit) => (
-								<Button type="submit" disabled={!canSubmit || saveMutation.isPending}>
-									<Shield className="h-4 w-4 mr-1" />
-									{saveMutation.isPending ? 'Validating...' : 'Save & Validate'}
-								</Button>
-							)}
-						</form.Subscribe>
-						{existing && (
-							<Button type="button" variant="destructive" onClick={() => setDeleteOpen(true)}>
+						<div className="flex gap-2">
+							<Button variant="outline" size="sm" onClick={() => setIsEditing(true)}>
+								Update Credentials
+							</Button>
+							<Button variant="destructive" size="sm" onClick={() => setDeleteOpen(true)}>
 								<Trash2 className="h-4 w-4 mr-1" />
 								Remove
 							</Button>
-						)}
+						</div>
 					</div>
-				</form>
+				) : (
+					<div>
+						{saveMutation.isError && (
+							<Alert variant="destructive" className="mb-4">
+								<AlertTitle>{saveMutation.error.message}</AlertTitle>
+							</Alert>
+						)}
+
+						{saveMutation.isSuccess &&
+							saveMutation.data &&
+							'success' in saveMutation.data &&
+							saveMutation.data.success && (
+								<Alert variant="success" className="mb-4">
+									<AlertTitle>Credentials saved and validated successfully.</AlertTitle>
+								</Alert>
+							)}
+
+						<form
+							onSubmit={(e) => {
+								e.preventDefault();
+								form.handleSubmit();
+							}}
+						>
+							<div className="space-y-4">
+								<form.Field name="apiKey">
+									{(field) => (
+										<div className="space-y-2">
+											<Label htmlFor="alpaca-key">API Key</Label>
+											<Input
+												id="alpaca-key"
+												type="text"
+												placeholder="PK..."
+												value={field.state.value}
+												onChange={(e) => field.handleChange(e.target.value)}
+												onBlur={field.handleBlur}
+											/>
+										</div>
+									)}
+								</form.Field>
+
+								<form.Field name="apiSecret">
+									{(field) => (
+										<div className="space-y-2">
+											<Label htmlFor="alpaca-secret">API Secret</Label>
+											<div className="relative">
+												<Input
+													id="alpaca-secret"
+													type={showSecret ? 'text' : 'password'}
+													placeholder="Enter secret..."
+													value={field.state.value}
+													onChange={(e) => field.handleChange(e.target.value)}
+													onBlur={field.handleBlur}
+												/>
+												<Button
+													type="button"
+													variant="ghost"
+													size="sm"
+													className="absolute right-1 top-1/2 -translate-y-1/2 h-7 w-7 p-0"
+													onClick={() => setShowSecret(!showSecret)}
+												>
+													{showSecret ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+												</Button>
+											</div>
+										</div>
+									)}
+								</form.Field>
+
+								<form.Field name="paper">
+									{(field) => (
+										<div className="flex items-center gap-2">
+											<Switch
+												id="alpaca-paper"
+												checked={field.state.value}
+												onCheckedChange={field.handleChange}
+											/>
+											<Label htmlFor="alpaca-paper">Paper Trading (recommended)</Label>
+										</div>
+									)}
+								</form.Field>
+							</div>
+
+							<div className="flex gap-2 mt-6">
+								<form.Subscribe selector={(s) => s.canSubmit}>
+									{(canSubmit) => (
+										<Button type="submit" disabled={!canSubmit || saveMutation.isPending}>
+											<Shield className="h-4 w-4 mr-1" />
+											{saveMutation.isPending ? 'Validating...' : 'Save & Validate'}
+										</Button>
+									)}
+								</form.Subscribe>
+								{isEditing && (
+									<Button type="button" variant="outline" onClick={() => setIsEditing(false)}>
+										Cancel
+									</Button>
+								)}
+							</div>
+						</form>
+					</div>
+				)}
 			</CardContent>
 
 			<Dialog open={deleteOpen} onOpenChange={setDeleteOpen}>
@@ -374,7 +392,7 @@ function LLMCredentialCard({ provider, existing }: LLMCredentialCardProps) {
 					<div>
 						{saveMutation.isError && (
 							<Alert variant="destructive" className="mb-3">
-								{saveMutation.error.message}
+								<AlertTitle>{saveMutation.error.message}</AlertTitle>
 							</Alert>
 						)}
 						<form

@@ -1,4 +1,4 @@
-import { Bell, Menu, Search } from 'lucide-react';
+import { Menu, Search } from 'lucide-react';
 import { useState } from 'react';
 import { useTranslations } from 'use-intl';
 import { AccountDialog } from '@/components/auth/account-dialog';
@@ -49,11 +49,6 @@ export function Header({ className, onMobileMenuToggle }: HeaderProps) {
 
 			{/* Right side - Notifications and user menu */}
 			<div className="flex items-center gap-2">
-				<Button variant="ghost" size="icon" className="relative">
-					<Bell className="h-5 w-5 text-foreground" />
-					<span className="absolute -top-1 -right-1 h-3 w-3 rounded-full bg-destructive"></span>
-				</Button>
-
 				<AccountDialog>
 					<Button variant="ghost" className="flex items-center gap-2 px-3">
 						<Avatar className="h-8 w-8">
