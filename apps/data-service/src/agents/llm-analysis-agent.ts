@@ -23,7 +23,14 @@ import {
 } from '@repo/data-ops/providers/llm';
 import { Agent, callable } from 'agents';
 
-const LLM_PROVIDERS: LLMProviderName[] = ['openai', 'anthropic', 'google', 'xai', 'deepseek'];
+const LLM_PROVIDERS: LLMProviderName[] = [
+	'openai',
+	'anthropic',
+	'google',
+	'xai',
+	'deepseek',
+	'workers-ai',
+];
 
 const DEFAULT_MODELS: Record<LLMProviderName, string> = {
 	openai: 'gpt-4o',
@@ -31,6 +38,7 @@ const DEFAULT_MODELS: Record<LLMProviderName, string> = {
 	google: 'gemini-2.0-flash',
 	xai: 'grok-2',
 	deepseek: 'deepseek-chat',
+	'workers-ai': '@cf/meta/llama-3.3-70b-instruct-fp8-fast',
 };
 
 export class LLMAnalysisAgent extends Agent<Env, LLMAgentState> {
@@ -220,6 +228,15 @@ export class LLMAnalysisAgent extends Agent<Env, LLMAgentState> {
 		const cached = this.sql<{ data: string }>`SELECT data FROM provider_config WHERE key = 'main'`;
 		if (cached[0]) {
 			const config = JSON.parse(cached[0].data) as LLMProviderConfig;
+
+			if (config.provider === 'workers-ai') {
+				return {
+					provider: 'workers-ai',
+					model: config.model,
+					aiBinding: this.env.AI,
+				};
+			}
+
 			const cred = await getCredential<LLMCredential>({
 				userId,
 				provider: config.provider,
@@ -236,6 +253,13 @@ export class LLMAnalysisAgent extends Agent<Env, LLMAgentState> {
 		}
 
 		for (const provider of LLM_PROVIDERS) {
+			if (provider === 'workers-ai') {
+				return {
+					provider: 'workers-ai',
+					model: DEFAULT_MODELS['workers-ai'],
+					aiBinding: this.env.AI,
+				};
+			}
 			const cred = await getCredential<LLMCredential>({
 				userId,
 				provider,
@@ -254,7 +278,12 @@ export class LLMAnalysisAgent extends Agent<Env, LLMAgentState> {
 			}
 		}
 
-		throw new Error('No LLM credentials configured');
+		throw new Error('No LLM provider available');
+	}
+
+	async setProviderConfig(config: { provider: LLMProviderName; model: string }): Promise<void> {
+		this
+			.sql`INSERT OR REPLACE INTO provider_config (key, data) VALUES ('main', ${JSON.stringify(config)})`;
 	}
 }
 

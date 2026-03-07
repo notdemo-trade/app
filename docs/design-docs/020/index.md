@@ -2,7 +2,7 @@
 
 > Refactor from 3 monolithic agents to SRP-based 4-category multi-agent system with debate/pipeline orchestration, human-in-the-loop approval, and Workers AI as new LLM provider.
 
-Decomposes existing OrchestratorAgent + TechnicalAnalysisAgent + LLMAnalysisAgent into clean SRP categories: Data Agents, Analysis Agents, Broker Agents, Orchestrator/Session Agents. Adds two orchestration modes (multi-persona debate, sequential pipeline), real-time discussion feed, SDK-native human-in-the-loop approval flow, and Workers AI (`env.AI`) via `@ai-sdk/cloudflare` as a new zero-cost LLM provider. User chooses LLM provider in UI.
+Decomposes existing OrchestratorAgent + TechnicalAnalysisAgent + LLMAnalysisAgent into clean SRP categories: Data Agents, Analysis Agents, Broker Agents, Orchestrator/Session Agents. Adds two orchestration modes (multi-persona debate, sequential pipeline), real-time discussion feed, SDK-native human-in-the-loop approval flow, and Workers AI (`env.AI`) via `workers-ai-provider` as a new zero-cost LLM provider. User chooses LLM provider in UI.
 
 ## Current State (Pre-Refactor)
 

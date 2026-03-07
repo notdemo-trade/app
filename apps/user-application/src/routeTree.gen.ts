@@ -9,19 +9,19 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
-import { Route as AuthRouteRouteImport } from './routes/_auth/route'
-import { Route as IndexRouteImport } from './routes/index'
-import { Route as FaqCategoryIdRouteImport } from './routes/faq/$categoryId'
-import { Route as ApiHealthRouteImport } from './routes/api/health'
-import { Route as AuthProfileIndexRouteImport } from './routes/_auth/profile/index'
-import { Route as AuthOrchestratorIndexRouteImport } from './routes/_auth/orchestrator/index'
-import { Route as AuthDashboardIndexRouteImport } from './routes/_auth/dashboard/index'
-import { Route as AuthAppIndexRouteImport } from './routes/_auth/app/index'
-import { Route as ApiAuthSplatRouteImport } from './routes/api/auth.$'
-import { Route as AuthSettingsTradingRouteImport } from './routes/_auth/settings/trading'
-import { Route as AuthSettingsTokensRouteImport } from './routes/_auth/settings/tokens'
-import { Route as AuthSettingsCredentialsRouteImport } from './routes/_auth/settings/credentials'
 import { Route as AuthAnalysisSymbolRouteImport } from './routes/_auth/analysis/$symbol'
+import { Route as AuthAppIndexRouteImport } from './routes/_auth/app/index'
+import { Route as AuthDashboardIndexRouteImport } from './routes/_auth/dashboard/index'
+import { Route as AuthOrchestratorIndexRouteImport } from './routes/_auth/orchestrator/index'
+import { Route as AuthProfileIndexRouteImport } from './routes/_auth/profile/index'
+import { Route as AuthRouteRouteImport } from './routes/_auth/route'
+import { Route as AuthSettingsCredentialsRouteImport } from './routes/_auth/settings/credentials'
+import { Route as AuthSettingsTokensRouteImport } from './routes/_auth/settings/tokens'
+import { Route as AuthSettingsTradingRouteImport } from './routes/_auth/settings/trading'
+import { Route as ApiAuthSplatRouteImport } from './routes/api/auth.$'
+import { Route as ApiHealthRouteImport } from './routes/api/health'
+import { Route as FaqCategoryIdRouteImport } from './routes/faq/$categoryId'
+import { Route as IndexRouteImport } from './routes/index'
 
 const AuthRouteRoute = AuthRouteRouteImport.update({
   id: '/_auth',
@@ -321,6 +321,7 @@ export const routeTree = rootRouteImport
 
 import type { getRouter } from './router.tsx'
 import type { startInstance } from './start.tsx'
+
 declare module '@tanstack/react-start' {
   interface Register {
     ssr: true

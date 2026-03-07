@@ -226,6 +226,9 @@ importers:
       drizzle-orm:
         specifier: ^0.45.1
         version: 0.45.1(@cloudflare/workers-types@4.20260207.0)(@neondatabase/serverless@1.0.2)(@opentelemetry/api@1.9.0)(@planetscale/database@1.19.0)(@types/better-sqlite3@7.6.13)(@types/pg@8.15.5)(better-sqlite3@12.2.0)(kysely@0.28.8)(mysql2@3.14.3)(postgres@3.4.8)
+      workers-ai-provider:
+        specifier: ^3.1.2
+        version: 3.1.2(@ai-sdk/provider@3.0.8)(ai@6.0.116(zod@4.3.6))
       zod:
         specifier: ^4.3.6
         version: 4.3.6
@@ -5163,6 +5166,12 @@ packages:
     resolution: {integrity: sha512-Sb0WXhrvf+XHQigP2trAxQnXo7wxZFC4PWnn6I7LhFxiTvzxvOAqMEiLkIz58wggRCb54T/KAA8hdjkTniR5FA==}
     engines: {node: '>=16'}
     hasBin: true
+
+  workers-ai-provider@3.1.2:
+    resolution: {integrity: sha512-ZXCWZIWk9rmjVKo0rUmbLQrRXdKWViAdqyV/cdqNQYT7FlSwITyZfZG/9CaInKKRDQQdBNvdPyB2+LWIz1E8Bw==}
+    peerDependencies:
+      '@ai-sdk/provider': ^3.0.0
+      ai: ^6.0.0
 
   wrangler@4.64.0:
     resolution: {integrity: sha512-0PBiVEbshQT4Av/KLHbOAks4ioIKp/eAO7Xr2BgAX5v7cFYYgeOvudBrbtZa/hDDIA6858QuJnTQ8mI+cm8Vqw==}
@@ -10657,6 +10666,11 @@ snapshots:
       '@cloudflare/workerd-linux-64': 1.20260210.0
       '@cloudflare/workerd-linux-arm64': 1.20260210.0
       '@cloudflare/workerd-windows-64': 1.20260210.0
+
+  workers-ai-provider@3.1.2(@ai-sdk/provider@3.0.8)(ai@6.0.116(zod@4.3.6)):
+    dependencies:
+      '@ai-sdk/provider': 3.0.8
+      ai: 6.0.116(zod@4.3.6)
 
   wrangler@4.64.0(@cloudflare/workers-types@4.20260207.0):
     dependencies:

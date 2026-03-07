@@ -1,10 +1,11 @@
-export type LLMProviderName = 'openai' | 'anthropic' | 'google' | 'xai' | 'deepseek';
+export type LLMProviderName = 'openai' | 'anthropic' | 'google' | 'xai' | 'deepseek' | 'workers-ai';
 
 export interface LLMProviderConfig {
 	provider: LLMProviderName;
-	apiKey: string;
+	apiKey?: string;
 	model: string;
 	baseUrl?: string;
+	aiBinding?: unknown;
 }
 
 export interface CompletionMessage {

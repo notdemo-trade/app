@@ -7,10 +7,18 @@ export const CredentialProviderSchema = z.enum([
 	'google',
 	'xai',
 	'deepseek',
+	'workers-ai',
 ]);
 export type CredentialProvider = z.infer<typeof CredentialProviderSchema>;
 
-export const LLMProviderSchema = z.enum(['openai', 'anthropic', 'google', 'xai', 'deepseek']);
+export const LLMProviderSchema = z.enum([
+	'openai',
+	'anthropic',
+	'google',
+	'xai',
+	'deepseek',
+	'workers-ai',
+]);
 export type LLMProvider = z.infer<typeof LLMProviderSchema>;
 
 export const AlpacaCredentialSchema = z.object({

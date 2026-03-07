@@ -4,6 +4,7 @@ import { createGoogleGenerativeAI } from '@ai-sdk/google';
 import { createOpenAI } from '@ai-sdk/openai';
 import { createXai } from '@ai-sdk/xai';
 import { generateText } from 'ai';
+import { createWorkersAI } from 'workers-ai-provider';
 import type {
 	CompletionParams,
 	CompletionResult,
@@ -12,7 +13,7 @@ import type {
 	LLMProviderName,
 } from '../../agents/llm/types';
 
-type ProviderFactory = (config: { apiKey: string; baseUrl?: string }) => {
+type ProviderFactory = (config: { apiKey?: string; baseUrl?: string; aiBinding?: unknown }) => {
 	languageModel: (modelId: string) => ReturnType<ReturnType<typeof createOpenAI>>;
 };
 
@@ -37,6 +38,10 @@ const PROVIDER_FACTORIES: Record<LLMProviderName, ProviderFactory> = {
 		const provider = createDeepSeek({ apiKey, baseURL: baseUrl });
 		return { languageModel: (id: string) => provider(id) };
 	},
+	'workers-ai': ({ aiBinding }) => {
+		const provider = createWorkersAI({ binding: aiBinding as Ai });
+		return { languageModel: (id: string) => provider(id) };
+	},
 };
 
 export function createLLMProvider(config: LLMProviderConfig): LLMClient {
@@ -45,7 +50,11 @@ export function createLLMProvider(config: LLMProviderConfig): LLMClient {
 		throw new Error(`Unsupported LLM provider: ${config.provider}`);
 	}
 
-	const provider = factory({ apiKey: config.apiKey, baseUrl: config.baseUrl });
+	const provider = factory({
+		apiKey: config.apiKey,
+		baseUrl: config.baseUrl,
+		aiBinding: config.aiBinding,
+	});
 	const model = provider.languageModel(config.model);
 
 	return {

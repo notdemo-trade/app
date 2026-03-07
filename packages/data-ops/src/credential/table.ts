@@ -17,6 +17,7 @@ export const credentialProviderEnum = pgEnum('credential_provider', [
 	'google',
 	'xai',
 	'deepseek',
+	'workers-ai',
 ]);
 
 export const user_credentials = pgTable(

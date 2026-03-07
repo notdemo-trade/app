@@ -6,8 +6,11 @@ import { App } from '@/hono/app';
 import { handleQueue } from './queues';
 import { handleScheduled } from './scheduled';
 
+export { AlpacaBrokerAgent } from './agents/alpaca-broker-agent';
+export { AlpacaMarketDataAgent } from './agents/alpaca-market-data-agent';
 export { LLMAnalysisAgent } from './agents/llm-analysis-agent';
 export { OrchestratorAgent } from './agents/orchestrator-agent';
+export { SessionAgent } from './agents/session-agent';
 export { TechnicalAnalysisAgent } from './agents/technical-analysis-agent';
 
 export default class DataService extends WorkerEntrypoint<Env> {

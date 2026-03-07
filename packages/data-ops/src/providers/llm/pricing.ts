@@ -24,6 +24,8 @@ const MODEL_PRICING: Record<string, ModelPricing> = {
 	'grok-beta': { promptPer1M: 5, completionPer1M: 15 },
 	'deepseek-chat': { promptPer1M: 0.14, completionPer1M: 0.28 },
 	'deepseek-reasoner': { promptPer1M: 0.55, completionPer1M: 2.19 },
+	'@cf/meta/llama-3.3-70b-instruct-fp8-fast': { promptPer1M: 0, completionPer1M: 0 },
+	'@cf/qwen/qwen2.5-coder-32b-instruct': { promptPer1M: 0, completionPer1M: 0 },
 };
 
 const DEFAULT_PRICING: ModelPricing = { promptPer1M: 5, completionPer1M: 15 };

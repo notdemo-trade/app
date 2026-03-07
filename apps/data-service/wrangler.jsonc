@@ -9,17 +9,22 @@
   "observability": {
     "enabled": true,
   },
+  "ai": { "binding": "AI" },
   "durable_objects": {
     "bindings": [
       { "name": "TechnicalAnalysisAgent", "class_name": "TechnicalAnalysisAgent" },
       { "name": "LLMAnalysisAgent", "class_name": "LLMAnalysisAgent" },
-      { "name": "OrchestratorAgent", "class_name": "OrchestratorAgent" }
+      { "name": "OrchestratorAgent", "class_name": "OrchestratorAgent" },
+      { "name": "AlpacaMarketDataAgent", "class_name": "AlpacaMarketDataAgent" },
+      { "name": "AlpacaBrokerAgent", "class_name": "AlpacaBrokerAgent" },
+      { "name": "SessionAgent", "class_name": "SessionAgent" }
     ]
   },
   "migrations": [
     { "tag": "v1", "new_sqlite_classes": ["TechnicalAnalysisAgent"] },
     { "tag": "v2", "new_sqlite_classes": ["LLMAnalysisAgent"] },
-    { "tag": "v3", "new_sqlite_classes": ["OrchestratorAgent"] }
+    { "tag": "v3", "new_sqlite_classes": ["OrchestratorAgent"] },
+    { "tag": "v4", "new_sqlite_classes": ["AlpacaMarketDataAgent", "AlpacaBrokerAgent", "SessionAgent"] }
   ],
   // "triggers": {
   //   "crons": [
@@ -32,11 +37,15 @@
 		*/
     "dev": {
       "name": "notdemo-trade-ds-dev",
+      "ai": { "binding": "AI" },
       "durable_objects": {
         "bindings": [
           { "name": "TechnicalAnalysisAgent", "class_name": "TechnicalAnalysisAgent" },
           { "name": "LLMAnalysisAgent", "class_name": "LLMAnalysisAgent" },
-          { "name": "OrchestratorAgent", "class_name": "OrchestratorAgent" }
+          { "name": "OrchestratorAgent", "class_name": "OrchestratorAgent" },
+          { "name": "AlpacaMarketDataAgent", "class_name": "AlpacaMarketDataAgent" },
+          { "name": "AlpacaBrokerAgent", "class_name": "AlpacaBrokerAgent" },
+          { "name": "SessionAgent", "class_name": "SessionAgent" }
         ]
       },
       // "kv_namespaces": [
@@ -75,11 +84,15 @@
         }
       ],
       "name": "notdemo-trade-ds-staging",
+      "ai": { "binding": "AI" },
       "durable_objects": {
         "bindings": [
           { "name": "TechnicalAnalysisAgent", "class_name": "TechnicalAnalysisAgent" },
           { "name": "LLMAnalysisAgent", "class_name": "LLMAnalysisAgent" },
-          { "name": "OrchestratorAgent", "class_name": "OrchestratorAgent" }
+          { "name": "OrchestratorAgent", "class_name": "OrchestratorAgent" },
+          { "name": "AlpacaMarketDataAgent", "class_name": "AlpacaMarketDataAgent" },
+          { "name": "AlpacaBrokerAgent", "class_name": "AlpacaBrokerAgent" },
+          { "name": "SessionAgent", "class_name": "SessionAgent" }
         ]
       },
       // "kv_namespaces": [
@@ -118,11 +131,15 @@
         }
       ],
       "name": "notdemo-trade-ds-production",
+      "ai": { "binding": "AI" },
       "durable_objects": {
         "bindings": [
           { "name": "TechnicalAnalysisAgent", "class_name": "TechnicalAnalysisAgent" },
           { "name": "LLMAnalysisAgent", "class_name": "LLMAnalysisAgent" },
-          { "name": "OrchestratorAgent", "class_name": "OrchestratorAgent" }
+          { "name": "OrchestratorAgent", "class_name": "OrchestratorAgent" },
+          { "name": "AlpacaMarketDataAgent", "class_name": "AlpacaMarketDataAgent" },
+          { "name": "AlpacaBrokerAgent", "class_name": "AlpacaBrokerAgent" },
+          { "name": "SessionAgent", "class_name": "SessionAgent" }
         ]
       },
       // "kv_namespaces": [
