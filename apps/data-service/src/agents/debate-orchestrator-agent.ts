@@ -104,7 +104,7 @@ export class DebateOrchestratorAgent extends Agent<Env, DebateOrchestratorState>
 		this.sql`INSERT INTO debate_sessions (id, symbol, status, config, started_at)
 			VALUES (${sessionId}, ${params.symbol}, 'analyzing', ${JSON.stringify(params.config)}, ${Date.now()})`;
 
-		const llm = this.getLLMAgent();
+		const llm = await this.getLLMAgent();
 		const data = {
 			symbol: params.symbol,
 			signals: params.signals.map((s) => ({
@@ -304,7 +304,7 @@ export class DebateOrchestratorAgent extends Agent<Env, DebateOrchestratorState>
 		};
 	}
 
-	private getLLMAgent(): LLMAnalysisAgent {
+	private async getLLMAgent(): Promise<LLMAnalysisAgent> {
 		const userId = this.getUserId();
 		return getAgentByName<LLMAnalysisAgent>(this.env.LLMAnalysisAgent, userId);
 	}

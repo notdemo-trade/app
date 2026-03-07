@@ -19,6 +19,7 @@ export interface SessionState {
 	lastCycleAt: number | null;
 	cycleCount: number;
 	activeThreadId: string | null;
+	activeThread: DiscussionThread | null;
 	pendingProposalCount: number;
 	errorCount: number;
 	lastError: string | null;

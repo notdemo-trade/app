@@ -1,4 +1,4 @@
-export { createLLMProvider } from './factory';
+export { createLanguageModel, createLLMProvider } from './factory';
 export { estimateCost, getModelPricing } from './pricing';
 export {
 	CONSENSUS_SYNTHESIS_PROMPT,

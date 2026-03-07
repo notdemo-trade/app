@@ -1,19 +1,659 @@
-import type { SessionState } from '@repo/data-ops/agents/session/types';
-import { Agent } from 'agents';
+import type { OnChatMessageOptions } from '@cloudflare/ai-chat';
+import { AIChatAgent } from '@cloudflare/ai-chat';
+import type { PersonaConfig } from '@repo/data-ops/agents/debate/types';
+import type { LLMProviderConfig, StrategyTemplate } from '@repo/data-ops/agents/llm/types';
+import {
+	DEFAULT_DEBATE_CONFIG,
+	DEFAULT_PERSONAS,
+	DEFAULT_SESSION_CONFIG,
+} from '@repo/data-ops/agents/session/defaults';
+import type {
+	DiscussionMessage,
+	DiscussionThread,
+	SessionConfig,
+	SessionState,
+	TradeProposal,
+} from '@repo/data-ops/agents/session/types';
+import type { LLMCredential } from '@repo/data-ops/credential';
+import { getCredential } from '@repo/data-ops/credential';
+import { initDatabase } from '@repo/data-ops/database/setup';
+import { createLanguageModel } from '@repo/data-ops/providers/llm';
+import { callable, getAgentByName } from 'agents';
+import type { StreamTextOnFinishCallback, ToolSet } from 'ai';
+import { convertToModelMessages, jsonSchema, stepCountIs, streamText, tool } from 'ai';
+import type { AlpacaBrokerAgent } from './alpaca-broker-agent';
+import type { DebateOrchestratorAgent, RunDebateResult } from './debate-orchestrator-agent';
+import type { LLMAnalysisAgent } from './llm-analysis-agent';
+import type { PipelineOrchestratorAgent, RunPipelineResult } from './pipeline-orchestrator-agent';
+import {
+	type CountRow,
+	DEFAULT_STRATEGIES,
+	type MessageRow,
+	type ProposalRow,
+	rowToConfig,
+	rowToMessage,
+	rowToProposal,
+	rowToThread,
+	type SessionConfigRow,
+	type StrategyTemplateRow,
+	SYSTEM_PROMPT,
+	type ThreadRow,
+} from './session-agent-helpers';
+import type { TechnicalAnalysisAgent } from './technical-analysis-agent';
 
-// TODO(M6): Extend AIChatAgent when implementing full chat + HITL flow
-export class SessionAgent extends Agent<Env, SessionState> {
+export class SessionAgent extends AIChatAgent<Env, SessionState> {
+	maxPersistedMessages = 500;
+
 	initialState: SessionState = {
 		enabled: false,
 		lastCycleAt: null,
 		cycleCount: 0,
 		activeThreadId: null,
+		activeThread: null,
 		pendingProposalCount: 0,
 		errorCount: 0,
 		lastError: null,
 	};
 
 	async onStart() {
+		initDatabase({
+			host: this.env.DATABASE_HOST,
+			username: this.env.DATABASE_USERNAME,
+			password: this.env.DATABASE_PASSWORD,
+		});
+
+		this.initTables();
+		this.seedDefaults();
+
+		if (this.state.enabled) {
+			const config = this.loadConfig();
+			await this.scheduleEvery(config.analysisIntervalSec, 'runScheduledCycle');
+		}
+	}
+
+	// --- AIChatAgent: onChatMessage ---
+
+	async onChatMessage(
+		onFinish: StreamTextOnFinishCallback<ToolSet>,
+		options?: OnChatMessageOptions,
+	): Promise<Response | undefined> {
+		const config = this.loadConfig();
+		const providerConfig = await this.resolveProviderConfig(config);
+		const model = createLanguageModel(providerConfig);
+
+		const modelMessages = await convertToModelMessages(this.messages);
+
+		const result = streamText({
+			model,
+			system: SYSTEM_PROMPT,
+			messages: modelMessages,
+			tools: {
+				analyzeSymbol: tool({
+					description: 'Run a full analysis cycle for a given ticker symbol',
+					inputSchema: jsonSchema<{ symbol: string }>({
+						type: 'object',
+						properties: {
+							symbol: {
+								type: 'string',
+								description: 'The ticker symbol to analyze (e.g. AAPL, TSLA)',
+							},
+						},
+						required: ['symbol'],
+					}),
+					execute: async ({ symbol }) => {
+						return this.runAnalysisForSymbol(symbol.toUpperCase(), config);
+					},
+				}),
+				executeTrade: tool({
+					description: 'Execute a trade from a pending proposal',
+					inputSchema: jsonSchema<{ proposalId: string; approved: boolean }>({
+						type: 'object',
+						properties: {
+							proposalId: {
+								type: 'string',
+								description: 'The ID of the trade proposal to execute',
+							},
+							approved: { type: 'boolean', description: 'Whether the trade is approved' },
+						},
+						required: ['proposalId', 'approved'],
+					}),
+					execute: async ({ proposalId, approved }) => {
+						return this.handleTradeDecision(proposalId, approved);
+					},
+					needsApproval: async () => true,
+				}),
+			},
+			stopWhen: stepCountIs(5),
+			abortSignal: options?.abortSignal,
+			onFinish,
+		});
+
+		return result.toTextStreamResponse();
+	}
+
+	// --- @callable() RPCs ---
+
+	@callable()
+	async start(): Promise<SessionState> {
+		const config = this.loadConfig();
+		this.setState({ ...this.state, enabled: true });
+		await this.scheduleEvery(config.analysisIntervalSec, 'runScheduledCycle');
+		return this.state;
+	}
+
+	@callable()
+	async stop(): Promise<SessionState> {
+		this.setState({ ...this.state, enabled: false });
+		return this.state;
+	}
+
+	@callable()
+	async updateConfig(partial: Partial<SessionConfig>): Promise<SessionConfig> {
+		const current = this.loadConfig();
+		const updated = { ...current, ...partial };
+		this.persistConfig(updated);
+
+		// Sync LLM provider to LLMAnalysisAgent if changed
+		if (partial.llmProvider || partial.llmModel) {
+			await this.syncLLMProvider(updated);
+		}
+
+		// Reschedule if interval changed and enabled
+		if (partial.analysisIntervalSec && this.state.enabled) {
+			await this.scheduleEvery(updated.analysisIntervalSec, 'runScheduledCycle');
+		}
+
+		return updated;
+	}
+
+	@callable()
+	getConfig(): SessionConfig {
+		return this.loadConfig();
+	}
+
+	@callable()
+	getStatus(): SessionState {
+		const pending = this
+			.sql<CountRow>`SELECT COUNT(*) as cnt FROM trade_proposals WHERE status = 'pending'`;
+		return {
+			...this.state,
+			pendingProposalCount: pending[0]?.cnt ?? 0,
+		};
+	}
+
+	@callable()
+	async triggerAnalysis(): Promise<{ threadIds: string[] }> {
+		const config = this.loadConfig();
+		const threadIds: string[] = [];
+		for (const symbol of config.watchlistSymbols) {
+			const result = await this.runAnalysisForSymbol(symbol, config);
+			if (result.threadId) {
+				threadIds.push(result.threadId);
+			}
+		}
+		this.setState({
+			...this.state,
+			lastCycleAt: Date.now(),
+			cycleCount: this.state.cycleCount + 1,
+		});
+		return { threadIds };
+	}
+
+	@callable()
+	getThreads(limit = 20): DiscussionThread[] {
+		const rows = this.sql<ThreadRow>`
+			SELECT id, orchestration_mode, symbol, status, started_at, completed_at, proposal_id
+			FROM discussion_threads ORDER BY started_at DESC LIMIT ${limit}`;
+		return rows.map((row) => this.hydrateThread(row));
+	}
+
+	@callable()
+	getThread(threadId: string): DiscussionThread | null {
+		const rows = this.sql<ThreadRow>`
+			SELECT id, orchestration_mode, symbol, status, started_at, completed_at, proposal_id
+			FROM discussion_threads WHERE id = ${threadId}`;
+		const row = rows[0];
+		if (!row) return null;
+		return this.hydrateThread(row);
+	}
+
+	@callable()
+	getProposals(status?: string): TradeProposal[] {
+		if (status) {
+			const rows = this.sql<ProposalRow>`
+				SELECT * FROM trade_proposals WHERE status = ${status} ORDER BY created_at DESC`;
+			return rows.map(rowToProposal);
+		}
+		const rows = this.sql<ProposalRow>`
+			SELECT * FROM trade_proposals ORDER BY created_at DESC LIMIT 50`;
+		return rows.map(rowToProposal);
+	}
+
+	@callable()
+	updatePersona(personaId: string, updates: Partial<PersonaConfig>): PersonaConfig[] {
+		const personas = this.loadPersonas();
+		const idx = personas.findIndex((p) => p.id === personaId);
+		if (idx === -1) {
+			throw new Error(`Persona '${personaId}' not found`);
+		}
+		personas[idx] = { ...personas[idx], ...updates } as PersonaConfig;
+		this
+			.sql`INSERT OR REPLACE INTO personas (key, data) VALUES ('current', ${JSON.stringify(personas)})`;
+		return personas;
+	}
+
+	@callable()
+	resetPersonas(): PersonaConfig[] {
+		this
+			.sql`INSERT OR REPLACE INTO personas (key, data) VALUES ('current', ${JSON.stringify(DEFAULT_PERSONAS)})`;
+		return DEFAULT_PERSONAS;
+	}
+
+	@callable()
+	async approveProposal(proposalId: string): Promise<{ status: string; message: string }> {
+		const result = await this.handleTradeDecision(proposalId, true);
+		this.broadcastThread(
+			this.sql<ThreadRow>`SELECT * FROM discussion_threads WHERE proposal_id = ${proposalId}`[0]
+				?.id ?? '',
+		);
+		return result;
+	}
+
+	@callable()
+	async rejectProposal(proposalId: string): Promise<{ status: string; message: string }> {
+		const result = await this.handleTradeDecision(proposalId, false);
+		this.broadcastThread(
+			this.sql<ThreadRow>`SELECT * FROM discussion_threads WHERE proposal_id = ${proposalId}`[0]
+				?.id ?? '',
+		);
+		return result;
+	}
+
+	// --- Scheduled analysis ---
+
+	async runScheduledCycle() {
+		if (!this.state.enabled) return;
+
+		try {
+			await this.triggerAnalysis();
+			this.expireProposals();
+		} catch (err) {
+			const message = err instanceof Error ? err.message : String(err);
+			this.setState({
+				...this.state,
+				errorCount: this.state.errorCount + 1,
+				lastError: message,
+			});
+		}
+	}
+
+	// --- Analysis orchestration ---
+
+	private async runAnalysisForSymbol(
+		symbol: string,
+		config: SessionConfig,
+	): Promise<{ threadId: string; summary: string }> {
+		const threadId = crypto.randomUUID();
+		const now = Date.now();
+
+		this.sql`INSERT INTO discussion_threads (id, orchestration_mode, symbol, status, started_at)
+			VALUES (${threadId}, ${config.orchestrationMode}, ${symbol}, 'in_progress', ${now})`;
+
+		this.setState({ ...this.state, activeThreadId: threadId });
+
+		const onMessage = (msg: Omit<DiscussionMessage, 'id' | 'threadId' | 'timestamp'>) => {
+			const msgId = crypto.randomUUID();
+			const ts = Date.now();
+			this
+				.sql`INSERT INTO discussion_messages (id, thread_id, timestamp, sender, phase, content, metadata)
+				VALUES (${msgId}, ${threadId}, ${ts}, ${JSON.stringify(msg.sender)}, ${msg.phase}, ${msg.content}, ${JSON.stringify(msg.metadata)})`;
+			this.broadcastThread(threadId);
+		};
+
+		try {
+			const strategy = this.getActiveStrategy(config);
+			let summary: string;
+
+			if (config.orchestrationMode === 'debate') {
+				summary = await this.runDebateAnalysis(threadId, symbol, strategy, config, onMessage);
+			} else {
+				summary = await this.runPipelineAnalysis(threadId, symbol, strategy, config, onMessage);
+			}
+
+			this
+				.sql`UPDATE discussion_threads SET status = 'completed', completed_at = ${Date.now()} WHERE id = ${threadId}`;
+			this.setState({ ...this.state, activeThreadId: null });
+			this.broadcastThread(threadId);
+
+			return { threadId, summary };
+		} catch (err) {
+			const message = err instanceof Error ? err.message : String(err);
+			this
+				.sql`UPDATE discussion_threads SET status = 'failed', completed_at = ${Date.now()} WHERE id = ${threadId}`;
+			this.setState({
+				...this.state,
+				activeThreadId: null,
+				errorCount: this.state.errorCount + 1,
+				lastError: message,
+			});
+			return { threadId, summary: `Analysis failed: ${message}` };
+		}
+	}
+
+	private async runDebateAnalysis(
+		threadId: string,
+		symbol: string,
+		strategy: StrategyTemplate,
+		config: SessionConfig,
+		onMessage: (msg: Omit<DiscussionMessage, 'id' | 'threadId' | 'timestamp'>) => void,
+	): Promise<string> {
+		const userId = this.name;
+		const debate = await getAgentByName<Env, DebateOrchestratorAgent>(
+			this.env.DebateOrchestratorAgent,
+			`${userId}:${symbol}`,
+		);
+		const ta = await getAgentByName<Env, TechnicalAnalysisAgent>(
+			this.env.TechnicalAnalysisAgent,
+			`${userId}:${symbol}`,
+		);
+		const taResult = await ta.analyze('1Day');
+
+		const personas = this.loadPersonas();
+		const debateConfig = {
+			personas,
+			rounds: config.debateRounds,
+			moderatorPrompt: DEFAULT_DEBATE_CONFIG.moderatorPrompt,
+		};
+
+		const result = (await debate.runDebate({
+			symbol,
+			signals: taResult.signals,
+			indicators: taResult.indicators,
+			strategy,
+			config: debateConfig,
+			onMessage,
+		})) as RunDebateResult;
+
+		const consensus = result.consensus;
+		if (consensus.action !== 'hold' && consensus.confidence >= config.minConfidenceThreshold) {
+			this.createProposal(threadId, symbol, consensus, config);
+		}
+
+		return `Debate analysis for ${symbol}: ${consensus.action} (confidence: ${consensus.confidence.toFixed(2)})`;
+	}
+
+	private async runPipelineAnalysis(
+		threadId: string,
+		symbol: string,
+		strategy: StrategyTemplate,
+		config: SessionConfig,
+		onMessage: (msg: Omit<DiscussionMessage, 'id' | 'threadId' | 'timestamp'>) => void,
+	): Promise<string> {
+		const userId = this.name;
+		const pipeline = await getAgentByName<Env, PipelineOrchestratorAgent>(
+			this.env.PipelineOrchestratorAgent,
+			`${userId}:${symbol}`,
+		);
+
+		const result = (await pipeline.runPipeline({
+			symbol,
+			strategyId: config.activeStrategyId,
+			strategy,
+			onMessage,
+		})) as RunPipelineResult;
+
+		if (result.proposal) {
+			const proposal = { ...result.proposal, threadId };
+			this.storeProposal(proposal);
+			this.sql`UPDATE discussion_threads SET proposal_id = ${proposal.id} WHERE id = ${threadId}`;
+		}
+
+		const status = result.session.status;
+		const action = result.proposal?.action ?? 'hold';
+		return `Pipeline analysis for ${symbol}: ${action} (status: ${status})`;
+	}
+
+	// --- Trade decision ---
+
+	private async handleTradeDecision(
+		proposalId: string,
+		approved: boolean,
+	): Promise<{ status: string; message: string }> {
+		const rows = this.sql<ProposalRow>`SELECT * FROM trade_proposals WHERE id = ${proposalId}`;
+		const row = rows[0];
+		if (!row) return { status: 'error', message: 'Proposal not found' };
+
+		const proposal = rowToProposal(row);
+		if (proposal.status !== 'pending') {
+			return { status: 'error', message: `Proposal already ${proposal.status}` };
+		}
+		if (proposal.expiresAt < Date.now()) {
+			this
+				.sql`UPDATE trade_proposals SET status = 'expired', decided_at = ${Date.now()} WHERE id = ${proposalId}`;
+			return { status: 'expired', message: 'Proposal has expired' };
+		}
+
+		const decidedAt = Date.now();
+		if (!approved) {
+			this
+				.sql`UPDATE trade_proposals SET status = 'rejected', decided_at = ${decidedAt} WHERE id = ${proposalId}`;
+			return { status: 'rejected', message: 'Trade rejected by user' };
+		}
+
+		this
+			.sql`UPDATE trade_proposals SET status = 'approved', decided_at = ${decidedAt} WHERE id = ${proposalId}`;
+
+		try {
+			const userId = this.name;
+			const broker = await getAgentByName<Env, AlpacaBrokerAgent>(
+				this.env.AlpacaBrokerAgent,
+				userId,
+			);
+			await broker.placeOrder({
+				symbol: proposal.symbol,
+				side: proposal.action,
+				type: 'market',
+				timeInForce: 'day',
+				qty: proposal.qty ?? undefined,
+				notional: proposal.notional ?? undefined,
+			});
+
+			this.sql`UPDATE trade_proposals SET status = 'executed' WHERE id = ${proposalId}`;
+			return {
+				status: 'executed',
+				message: `Trade executed: ${proposal.action} ${proposal.symbol}`,
+			};
+		} catch (err) {
+			const message = err instanceof Error ? err.message : String(err);
+			return { status: 'error', message: `Execution failed: ${message}` };
+		}
+	}
+
+	// --- Helpers ---
+
+	private broadcastThread(threadId: string): void {
+		const thread = this.getThread(threadId);
+		if (thread) {
+			this.setState({
+				...this.state,
+				activeThreadId: thread.status === 'in_progress' ? threadId : null,
+				activeThread: thread,
+				pendingProposalCount: this.countPendingProposals(),
+			});
+		}
+	}
+
+	private hydrateThread(row: ThreadRow): DiscussionThread {
+		const msgRows = this.sql<MessageRow>`
+			SELECT * FROM discussion_messages WHERE thread_id = ${row.id} ORDER BY timestamp ASC`;
+		const messages = msgRows.map(rowToMessage);
+
+		let proposal: TradeProposal | null = null;
+		if (row.proposal_id) {
+			const pRows = this
+				.sql<ProposalRow>`SELECT * FROM trade_proposals WHERE id = ${row.proposal_id}`;
+			if (pRows[0]) proposal = rowToProposal(pRows[0]);
+		}
+
+		return rowToThread(row, messages, proposal);
+	}
+
+	private loadConfig(): SessionConfig {
+		const rows = this.sql<SessionConfigRow>`
+			SELECT orchestration_mode, broker_type, llm_provider, llm_model,
+				watchlist_symbols, analysis_interval_sec, min_confidence_threshold,
+				position_size_pct, active_strategy_id, debate_rounds, proposal_timeout_sec
+			FROM session_config WHERE id = 'current'`;
+		if (rows[0]) return rowToConfig(rows[0]);
+		return DEFAULT_SESSION_CONFIG;
+	}
+
+	private persistConfig(config: SessionConfig): void {
+		this.sql`UPDATE session_config SET
+			orchestration_mode = ${config.orchestrationMode},
+			broker_type = ${config.brokerType},
+			llm_provider = ${config.llmProvider},
+			llm_model = ${config.llmModel},
+			watchlist_symbols = ${JSON.stringify(config.watchlistSymbols)},
+			analysis_interval_sec = ${config.analysisIntervalSec},
+			min_confidence_threshold = ${config.minConfidenceThreshold},
+			position_size_pct = ${config.positionSizePctOfCash},
+			active_strategy_id = ${config.activeStrategyId},
+			debate_rounds = ${config.debateRounds},
+			proposal_timeout_sec = ${config.proposalTimeoutSec},
+			updated_at = ${Date.now()}
+			WHERE id = 'current'`;
+	}
+
+	private loadPersonas(): PersonaConfig[] {
+		const rows = this.sql<{ data: string }>`SELECT data FROM personas WHERE key = 'current'`;
+		if (rows[0]) return JSON.parse(rows[0].data) as PersonaConfig[];
+		return [...DEFAULT_PERSONAS];
+	}
+
+	private getActiveStrategy(config: SessionConfig): StrategyTemplate {
+		const rows = this.sql<StrategyTemplateRow>`
+			SELECT id, name, data, is_default FROM strategy_templates WHERE id = ${config.activeStrategyId}`;
+		if (rows[0]) return JSON.parse(rows[0].data) as StrategyTemplate;
+
+		// Fallback to moderate
+		const fallback = DEFAULT_STRATEGIES.find((s) => s.id === 'moderate');
+		if (fallback) return fallback;
+		return DEFAULT_STRATEGIES[0] as StrategyTemplate;
+	}
+
+	private createProposal(
+		threadId: string,
+		symbol: string,
+		consensus: {
+			action: string;
+			confidence: number;
+			rationale: string;
+			entryPrice: number | null;
+			targetPrice: number | null;
+			stopLoss: number | null;
+			positionSizePct: number | null;
+			risks: string[];
+		},
+		config: SessionConfig,
+	): void {
+		if (consensus.action === 'hold') return;
+
+		const proposal: TradeProposal = {
+			id: crypto.randomUUID(),
+			threadId,
+			symbol,
+			action: consensus.action as 'buy' | 'sell',
+			confidence: consensus.confidence,
+			rationale: consensus.rationale,
+			entryPrice: consensus.entryPrice,
+			targetPrice: consensus.targetPrice,
+			stopLoss: consensus.stopLoss,
+			qty: null,
+			notional: null,
+			positionSizePct: consensus.positionSizePct ?? config.positionSizePctOfCash,
+			risks: consensus.risks,
+			expiresAt: Date.now() + config.proposalTimeoutSec * 1000,
+			status: 'pending',
+			createdAt: Date.now(),
+			decidedAt: null,
+		};
+
+		this.storeProposal(proposal);
+		this.sql`UPDATE discussion_threads SET proposal_id = ${proposal.id} WHERE id = ${threadId}`;
+	}
+
+	private storeProposal(p: TradeProposal): void {
+		this.sql`INSERT INTO trade_proposals
+			(id, thread_id, symbol, action, confidence, rationale, entry_price, target_price,
+			 stop_loss, qty, notional, position_size_pct, risks, expires_at, status, created_at, decided_at)
+			VALUES (${p.id}, ${p.threadId}, ${p.symbol}, ${p.action}, ${p.confidence}, ${p.rationale},
+				${p.entryPrice}, ${p.targetPrice}, ${p.stopLoss}, ${p.qty}, ${p.notional},
+				${p.positionSizePct}, ${JSON.stringify(p.risks)}, ${p.expiresAt}, ${p.status},
+				${p.createdAt}, ${p.decidedAt})`;
+	}
+
+	private countPendingProposals(): number {
+		const rows = this
+			.sql<CountRow>`SELECT COUNT(*) as cnt FROM trade_proposals WHERE status = 'pending'`;
+		return rows[0]?.cnt ?? 0;
+	}
+
+	private expireProposals(): void {
+		const now = Date.now();
+		this.sql`UPDATE trade_proposals SET status = 'expired', decided_at = ${now}
+			WHERE status = 'pending' AND expires_at < ${now}`;
+	}
+
+	private async syncLLMProvider(config: SessionConfig): Promise<void> {
+		try {
+			const userId = this.name;
+			const llm = await getAgentByName<Env, LLMAnalysisAgent>(this.env.LLMAnalysisAgent, userId);
+			await llm.setProviderConfig({
+				provider: config.llmProvider,
+				model: config.llmModel,
+			});
+		} catch {
+			// Non-critical: LLM agent will use its own fallback
+		}
+	}
+
+	private async resolveProviderConfig(config: SessionConfig): Promise<LLMProviderConfig> {
+		if (config.llmProvider === 'workers-ai') {
+			return {
+				provider: 'workers-ai',
+				model: config.llmModel,
+				aiBinding: this.env.AI,
+			};
+		}
+
+		const userId = this.name;
+		const cred = await getCredential<LLMCredential>({
+			userId,
+			provider: config.llmProvider,
+			masterKey: this.env.CREDENTIALS_ENCRYPTION_KEY,
+		});
+
+		if (cred) {
+			return {
+				provider: config.llmProvider,
+				apiKey: cred.apiKey,
+				model: config.llmModel,
+				baseUrl: cred.baseUrl,
+			};
+		}
+
+		// Fallback to workers-ai
+		return {
+			provider: 'workers-ai',
+			model: '@cf/meta/llama-3.3-70b-instruct-fp8-fast',
+			aiBinding: this.env.AI,
+		};
+	}
+
+	// --- Table init + seeding ---
+
+	private initTables(): void {
 		this.sql`CREATE TABLE IF NOT EXISTS session_config (
 			id                       TEXT PRIMARY KEY DEFAULT 'current',
 			orchestration_mode       TEXT NOT NULL DEFAULT 'debate',
@@ -70,6 +710,19 @@ export class SessionAgent extends Agent<Env, SessionState> {
 			decided_at        INTEGER
 		)`;
 
+		this.sql`CREATE TABLE IF NOT EXISTS strategy_templates (
+			id TEXT PRIMARY KEY,
+			name TEXT NOT NULL,
+			data TEXT NOT NULL,
+			is_default INTEGER DEFAULT 0,
+			created_at TEXT DEFAULT (datetime('now'))
+		)`;
+
+		this.sql`CREATE TABLE IF NOT EXISTS personas (
+			key TEXT PRIMARY KEY,
+			data TEXT NOT NULL
+		)`;
+
 		this
 			.sql`CREATE INDEX IF NOT EXISTS idx_threads_symbol ON discussion_threads(symbol, started_at DESC)`;
 		this.sql`CREATE INDEX IF NOT EXISTS idx_threads_status ON discussion_threads(status)`;
@@ -77,14 +730,27 @@ export class SessionAgent extends Agent<Env, SessionState> {
 			.sql`CREATE INDEX IF NOT EXISTS idx_messages_thread ON discussion_messages(thread_id, timestamp ASC)`;
 		this
 			.sql`CREATE INDEX IF NOT EXISTS idx_proposals_status ON trade_proposals(status, created_at DESC)`;
-
-		this.seedDefaults();
 	}
 
-	private seedDefaults() {
+	private seedDefaults(): void {
 		const existing = this.sql`SELECT id FROM session_config WHERE id = 'current'`;
 		if (existing.length === 0) {
 			this.sql`INSERT INTO session_config (id, updated_at) VALUES ('current', ${Date.now()})`;
+		}
+
+		const stratCount = this.sql<CountRow>`SELECT COUNT(*) as cnt FROM strategy_templates`;
+		if ((stratCount[0]?.cnt ?? 0) === 0) {
+			for (let idx = 0; idx < DEFAULT_STRATEGIES.length; idx++) {
+				const s = DEFAULT_STRATEGIES[idx] as StrategyTemplate;
+				this.sql`INSERT OR IGNORE INTO strategy_templates (id, name, data, is_default, created_at)
+					VALUES (${s.id}, ${s.name}, ${JSON.stringify(s)}, ${idx === 1 ? 1 : 0}, ${new Date().toISOString()})`;
+			}
+		}
+
+		const personaCount = this.sql<CountRow>`SELECT COUNT(*) as cnt FROM personas`;
+		if ((personaCount[0]?.cnt ?? 0) === 0) {
+			this
+				.sql`INSERT INTO personas (key, data) VALUES ('current', ${JSON.stringify(DEFAULT_PERSONAS)})`;
 		}
 	}
 }

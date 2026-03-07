@@ -44,6 +44,23 @@ const PROVIDER_FACTORIES: Record<LLMProviderName, ProviderFactory> = {
 	},
 };
 
+/** Returns a raw AI SDK LanguageModel for use with streamText/generateText. */
+export function createLanguageModel(
+	config: LLMProviderConfig,
+): ReturnType<ReturnType<typeof createOpenAI>> {
+	const factory = PROVIDER_FACTORIES[config.provider];
+	if (!factory) {
+		throw new Error(`Unsupported LLM provider: ${config.provider}`);
+	}
+
+	const provider = factory({
+		apiKey: config.apiKey,
+		baseUrl: config.baseUrl,
+		aiBinding: config.aiBinding,
+	});
+	return provider.languageModel(config.model);
+}
+
 export function createLLMProvider(config: LLMProviderConfig): LLMClient {
 	const factory = PROVIDER_FACTORIES[config.provider];
 	if (!factory) {

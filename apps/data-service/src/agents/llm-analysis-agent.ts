@@ -239,6 +239,7 @@ export class LLMAnalysisAgent extends Agent<Env, LLMAgentState> {
 		};
 	}
 
+	@callable()
 	async analyzeAsPersona(
 		persona: PersonaConfig,
 		data: AnalyzeAsPersonaData,
@@ -275,6 +276,7 @@ export class LLMAnalysisAgent extends Agent<Env, LLMAgentState> {
 		return parsed;
 	}
 
+	@callable()
 	async runDebateRound(
 		session: { analyses: PersonaAnalysis[]; previousRounds: DebateRound[] },
 		roundNumber: number,
@@ -287,6 +289,7 @@ export class LLMAnalysisAgent extends Agent<Env, LLMAgentState> {
 		return { roundNumber, responses };
 	}
 
+	@callable()
 	async synthesizeConsensus(
 		analyses: PersonaAnalysis[],
 		debateRounds: DebateRound[],
@@ -313,6 +316,7 @@ export class LLMAnalysisAgent extends Agent<Env, LLMAgentState> {
 		return parseConsensusResult(result.content);
 	}
 
+	@callable()
 	async validateRisk(
 		recommendation: TradeRecommendation,
 		portfolio: { positions: BrokerPosition[]; account: BrokerAccount },
@@ -479,6 +483,7 @@ export class LLMAnalysisAgent extends Agent<Env, LLMAgentState> {
 		throw new Error('No LLM provider available');
 	}
 
+	@callable()
 	async setProviderConfig(config: { provider: LLMProviderName; model: string }): Promise<void> {
 		this
 			.sql`INSERT OR REPLACE INTO provider_config (key, data) VALUES ('main', ${JSON.stringify(config)})`;
@@ -489,9 +494,18 @@ function buildStrategyContext(strategy: StrategyTemplate): string {
 	return `Risk tolerance: ${strategy.riskTolerance}. Position size bias: ${strategy.positionSizeBias * 100}%. Preferred timeframe: ${strategy.preferredTimeframe}. Focus: ${strategy.analysisFocus.join(', ')}.${strategy.customPromptSuffix ? ` ${strategy.customPromptSuffix}` : ''}`;
 }
 
+/** Strip markdown code fences and whitespace so JSON.parse succeeds. */
+function cleanJsonResponse(raw: string): string {
+	let s = raw.trim();
+	if (s.startsWith('```')) {
+		s = s.replace(/^```(?:json)?\s*/, '').replace(/\s*```$/, '');
+	}
+	return s.trim();
+}
+
 function parsePersonaAnalysis(content: string, personaId: string): PersonaAnalysis {
 	try {
-		const parsed = JSON.parse(content) as Record<string, unknown>;
+		const parsed = JSON.parse(cleanJsonResponse(content)) as Record<string, unknown>;
 		const action = String(parsed.action);
 		return {
 			personaId,
@@ -519,7 +533,7 @@ function parseDebateResponse(
 	respondingTo: string[],
 ): PersonaResponse {
 	try {
-		const parsed = JSON.parse(content) as Record<string, unknown>;
+		const parsed = JSON.parse(cleanJsonResponse(content)) as Record<string, unknown>;
 		const action = String(parsed.revisedAction);
 		return {
 			personaId,
@@ -543,7 +557,7 @@ function parseDebateResponse(
 
 function parseConsensusResult(content: string): ConsensusResult {
 	try {
-		const parsed = JSON.parse(content) as Record<string, unknown>;
+		const parsed = JSON.parse(cleanJsonResponse(content)) as Record<string, unknown>;
 		const action = String(parsed.action);
 		return {
 			action: ['buy', 'sell', 'hold'].includes(action)
@@ -575,7 +589,7 @@ function parseConsensusResult(content: string): ConsensusResult {
 
 function parseRiskValidation(content: string): RiskValidation {
 	try {
-		const parsed = JSON.parse(content) as Record<string, unknown>;
+		const parsed = JSON.parse(cleanJsonResponse(content)) as Record<string, unknown>;
 		return {
 			approved: parsed.approved === true,
 			adjustedPositionSize:
@@ -623,7 +637,7 @@ function buildConsensusTranscript(
 
 function parseRecommendation(content: string): TradeRecommendation {
 	try {
-		const parsed = JSON.parse(content) as Record<string, unknown>;
+		const parsed = JSON.parse(cleanJsonResponse(content)) as Record<string, unknown>;
 		const action = String(parsed.action);
 		return {
 			action: ['buy', 'sell', 'hold'].includes(action)

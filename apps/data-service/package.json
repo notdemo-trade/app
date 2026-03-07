@@ -9,6 +9,7 @@
 		"cf-typegen": "wrangler types --env-interface BaseEnv --env dev"
 	},
 	"devDependencies": {
+		"@cloudflare/ai-chat": "^0.1.8",
 		"@types/node": "^22.15.19",
 		"typescript": "^5.9.3",
 		"wrangler": "^4.64.0"
@@ -17,6 +18,7 @@
 		"@hono/zod-validator": "^0.7.6",
 		"@repo/data-ops": "workspace:*",
 		"agents": "^0.7.4",
+		"ai": "^6.0.116",
 		"hono": "^4.11.9"
 	}
 }

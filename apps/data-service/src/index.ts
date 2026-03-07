@@ -24,8 +24,14 @@ export default class DataService extends WorkerEntrypoint<Env> {
 			username: env.DATABASE_USERNAME,
 			password: env.DATABASE_PASSWORD,
 		});
+		const baseURLMap: Record<string, string> = {
+			dev: 'http://localhost:8788',
+			staging: 'https://api-staging.notdemo.trade',
+			production: 'https://api.notdemo.trade',
+		};
 		setAuth({
 			secret: env.BETTER_AUTH_SECRET,
+			baseURL: baseURLMap[env.CLOUDFLARE_ENV] ?? baseURLMap.dev,
 			adapter: { drizzleDb: getDb(), provider: 'pg' },
 		});
 	}

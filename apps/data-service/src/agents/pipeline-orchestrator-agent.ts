@@ -179,7 +179,7 @@ export class PipelineOrchestratorAgent extends Agent<Env, PipelineOrchestratorSt
 
 		switch (name) {
 			case 'fetch_market_data': {
-				const marketData = getAgentByName<AlpacaMarketDataAgent>(
+				const marketData = await getAgentByName<AlpacaMarketDataAgent>(
 					this.env.AlpacaMarketDataAgent,
 					`${userId}:${params.symbol}`,
 				);
@@ -202,7 +202,7 @@ export class PipelineOrchestratorAgent extends Agent<Env, PipelineOrchestratorSt
 			case 'technical_analysis': {
 				if (!ctx.bars) throw new Error('No bars available for technical analysis');
 
-				const ta = getAgentByName<TechnicalAnalysisAgent>(
+				const ta = await getAgentByName<TechnicalAnalysisAgent>(
 					this.env.TechnicalAnalysisAgent,
 					`${userId}:${params.symbol}`,
 				);
@@ -224,7 +224,7 @@ export class PipelineOrchestratorAgent extends Agent<Env, PipelineOrchestratorSt
 					throw new Error('No signals/indicators available for LLM analysis');
 				}
 
-				const llm = getAgentByName<LLMAnalysisAgent>(this.env.LLMAnalysisAgent, userId);
+				const llm = await getAgentByName<LLMAnalysisAgent>(this.env.LLMAnalysisAgent, userId);
 				const result = await llm.analyze({
 					symbol: params.symbol,
 					signals: ctx.signals.map((s: TechnicalSignal) => ({
@@ -250,8 +250,8 @@ export class PipelineOrchestratorAgent extends Agent<Env, PipelineOrchestratorSt
 			case 'risk_validation': {
 				if (!ctx.recommendation) throw new Error('No recommendation for risk validation');
 
-				const llm = getAgentByName<LLMAnalysisAgent>(this.env.LLMAnalysisAgent, userId);
-				const broker = getAgentByName<AlpacaBrokerAgent>(this.env.AlpacaBrokerAgent, userId);
+				const llm = await getAgentByName<LLMAnalysisAgent>(this.env.LLMAnalysisAgent, userId);
+				const broker = await getAgentByName<AlpacaBrokerAgent>(this.env.AlpacaBrokerAgent, userId);
 
 				const [positions, account] = await Promise.all([
 					broker.getPositions(),
