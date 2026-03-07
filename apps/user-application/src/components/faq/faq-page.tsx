@@ -26,7 +26,7 @@ function normalizeMarkdown(md: string): string {
 	const isList = (l: string) => /^\s*[-*+]\s|^\s*\d+\.\s/.test(l);
 	const isTable = (l: string) => /^\s*\|/.test(l);
 	for (let i = 0; i < lines.length; i++) {
-		const line = lines[i]!;
+		const line = lines[i] ?? '';
 		const prev = result[result.length - 1] ?? '';
 		if (i > 0 && line.trim() !== '' && prev.trim() !== '') {
 			const bothList = isList(line) && isList(prev);
@@ -107,16 +107,9 @@ export function FaqPage({ category }: FaqPageProps) {
 										{String(index + 1).padStart(2, '0')}
 									</span>
 									<span>{item.question}</span>
-									<span
-										role="button"
-										tabIndex={0}
+									<button
+										type="button"
 										onClick={(e) => handleCopyLink(item, e)}
-										onKeyDown={(e) => {
-											if (e.key === 'Enter' || e.key === ' ') {
-												e.preventDefault();
-												handleCopyLink(item, e as unknown as React.MouseEvent);
-											}
-										}}
 										className="relative shrink-0 cursor-pointer opacity-0 group-hover:opacity-100 hover:text-primary transition-opacity"
 										aria-label={`Copy link to "${item.question}"`}
 									>
@@ -126,7 +119,7 @@ export function FaqPage({ category }: FaqPageProps) {
 												Copied!
 											</span>
 										)}
-									</span>
+									</button>
 								</span>
 							</AccordionTrigger>
 							<AccordionContent className="px-9 pb-5">

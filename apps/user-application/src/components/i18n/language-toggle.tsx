@@ -30,6 +30,7 @@ export function LanguageToggle({ variant = 'ghost', align = 'end' }: LanguageTog
 	const locale = useLocale();
 
 	function setLocale(newLocale: Locale) {
+		// biome-ignore lint/suspicious/noDocumentCookie: Cookie Store API not available in all browsers; direct assignment is intentional
 		document.cookie = `${COOKIE_NAME}=${newLocale};path=/;samesite=lax;max-age=31536000`;
 
 		if (isIgnoredPath(window.location.pathname)) {

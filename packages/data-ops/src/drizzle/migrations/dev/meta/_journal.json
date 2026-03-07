@@ -1,55 +1,55 @@
 {
-  "version": "7",
-  "dialect": "postgresql",
-  "entries": [
-    {
-      "idx": 0,
-      "version": "7",
-      "when": 1770205315726,
-      "tag": "0000_glorious_jane_foster",
-      "breakpoints": true
-    },
-    {
-      "idx": 1,
-      "version": "7",
-      "when": 1772620907640,
-      "tag": "0001_magenta_monster_badoon",
-      "breakpoints": true
-    },
-    {
-      "idx": 2,
-      "version": "7",
-      "when": 1772624310741,
-      "tag": "0002_lame_firelord",
-      "breakpoints": true
-    },
-    {
-      "idx": 3,
-      "version": "7",
-      "when": 1772626547706,
-      "tag": "0003_exotic_adam_destine",
-      "breakpoints": true
-    },
-    {
-      "idx": 4,
-      "version": "7",
-      "when": 1772719882456,
-      "tag": "0004_nappy_deadpool",
-      "breakpoints": true
-    },
-    {
-      "idx": 5,
-      "version": "7",
-      "when": 1772733789949,
-      "tag": "0005_lethal_karen_page",
-      "breakpoints": true
-    },
-    {
-      "idx": 6,
-      "version": "7",
-      "when": 1772895511837,
-      "tag": "0006_mysterious_alex_power",
-      "breakpoints": true
-    }
-  ]
+	"version": "7",
+	"dialect": "postgresql",
+	"entries": [
+		{
+			"idx": 0,
+			"version": "7",
+			"when": 1770205315726,
+			"tag": "0000_glorious_jane_foster",
+			"breakpoints": true
+		},
+		{
+			"idx": 1,
+			"version": "7",
+			"when": 1772620907640,
+			"tag": "0001_magenta_monster_badoon",
+			"breakpoints": true
+		},
+		{
+			"idx": 2,
+			"version": "7",
+			"when": 1772624310741,
+			"tag": "0002_lame_firelord",
+			"breakpoints": true
+		},
+		{
+			"idx": 3,
+			"version": "7",
+			"when": 1772626547706,
+			"tag": "0003_exotic_adam_destine",
+			"breakpoints": true
+		},
+		{
+			"idx": 4,
+			"version": "7",
+			"when": 1772719882456,
+			"tag": "0004_nappy_deadpool",
+			"breakpoints": true
+		},
+		{
+			"idx": 5,
+			"version": "7",
+			"when": 1772733789949,
+			"tag": "0005_lethal_karen_page",
+			"breakpoints": true
+		},
+		{
+			"idx": 6,
+			"version": "7",
+			"when": 1772895511837,
+			"tag": "0006_mysterious_alex_power",
+			"breakpoints": true
+		}
+	]
 }

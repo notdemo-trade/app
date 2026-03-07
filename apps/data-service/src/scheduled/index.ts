@@ -1,5 +1,5 @@
 export async function handleScheduled(
-	controller: ScheduledController,
-	env: Env,
-	ctx: ExecutionContext,
+	_controller: ScheduledController,
+	_env: Env,
+	_ctx: ExecutionContext,
 ) {}

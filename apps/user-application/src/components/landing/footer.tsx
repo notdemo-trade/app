@@ -27,7 +27,7 @@ export function Footer() {
 				<div className="flex flex-col md:flex-row md:items-center md:space-x-8 space-y-6 md:space-y-0">
 					<div>
 						<h3 className="text-sm font-semibold text-foreground">{t('footer.llm_providers')}</h3>
-						<ul role="list" className="mt-2 space-y-1">
+						<ul className="mt-2 space-y-1">
 							{navigation.main.map((item) => (
 								<li key={item.name}>
 									<a
@@ -46,7 +46,7 @@ export function Footer() {
 
 					<div>
 						<h3 className="text-sm font-semibold text-foreground">{t('footer.signal_sources')}</h3>
-						<ul role="list" className="mt-2 space-y-1">
+						<ul className="mt-2 space-y-1">
 							{navigation.tools.map((item) => (
 								<li key={item.name}>
 									{item.href ? (

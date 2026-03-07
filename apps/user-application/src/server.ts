@@ -48,7 +48,7 @@ export default {
 			const acceptLang = request.headers.get('accept-language') || '';
 			const browserLocale = acceptLang
 				.split(',')
-				.map((part) => part.split(';')[0]!.trim().substring(0, 2))
+				.map((part) => part.split(';')[0]?.trim().substring(0, 2))
 				.find((code) => SUPPORTED_LOCALES.includes(code as Locale));
 			if (browserLocale) resolvedLocale = browserLocale as Locale;
 		}
@@ -62,8 +62,9 @@ export default {
 		});
 
 		if (localeResult.setCookieHeader) {
+			const cookieHeader = localeResult.setCookieHeader;
 			return Promise.resolve(result).then((response: Response) => {
-				response.headers.append('set-cookie', localeResult.setCookieHeader!);
+				response.headers.append('set-cookie', cookieHeader);
 				return response;
 			});
 		}

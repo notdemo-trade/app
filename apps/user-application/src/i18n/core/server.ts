@@ -14,13 +14,13 @@ export function handleLocaleMiddleware(request: Request): MiddlewareResult {
 
 	// redirect /en/* -> /* (default locale not prefixed)
 	if (firstSegment === DEFAULT_LOCALE) {
-		url.pathname = '/' + pathSegments.slice(1).join('/') || '/';
+		url.pathname = `/${pathSegments.slice(1).join('/')}` || '/';
 		return { redirect: Response.redirect(url.toString(), 308) };
 	}
 
 	// redirect /pl/app/* -> /app/* (ignored path with locale prefix)
 	if (isValidLocale(firstSegment)) {
-		const restPath = '/' + pathSegments.slice(1).join('/');
+		const restPath = `/${pathSegments.slice(1).join('/')}`;
 		if (isIgnoredPath(restPath)) {
 			url.pathname = restPath;
 			return { redirect: Response.redirect(url.toString(), 308) };

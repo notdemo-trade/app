@@ -20,7 +20,7 @@ export function deLocalizeUrl({ url }: { url: URL }): URL {
 	const segments = url.pathname.split('/').filter(Boolean);
 	segments.shift();
 	const stripped = new URL(url);
-	stripped.pathname = '/' + segments.join('/') || '/';
+	stripped.pathname = `/${segments.join('/')}` || '/';
 	return stripped;
 }
 

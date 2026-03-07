@@ -59,6 +59,10 @@
 			"includes": ["packages/data-ops/src/drizzle/auth-schema.ts", "**/*.gen.ts"],
 			"linter": { "enabled": false },
 			"formatter": { "enabled": false }
+		},
+		{
+			"includes": ["**/worker-configuration.d.ts"],
+			"linter": { "enabled": false }
 		}
 	]
 }

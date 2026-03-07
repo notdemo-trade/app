@@ -22,6 +22,8 @@ function FaqCategoryPage() {
 	const { categoryId } = Route.useParams();
 	const t = useTranslations();
 	const categories = buildFaqCategories(t);
+	// Category is guaranteed to exist — params.parse() throws notFound() for invalid IDs
+	// biome-ignore lint/style/noNonNullAssertion: validated by route params.parse
 	const category = categories.find((c) => c.id === categoryId)!;
 	return (
 		<>

@@ -2063,21 +2063,18 @@ interface KVNamespace<Key extends string = string> {
 	): Promise<ExpectedValue | null>;
 	get(key: Key, options?: KVNamespaceGetOptions<'arrayBuffer'>): Promise<ArrayBuffer | null>;
 	get(key: Key, options?: KVNamespaceGetOptions<'stream'>): Promise<ReadableStream | null>;
-	get(key: Array<Key>, type: 'text'): Promise<Map<string, string | null>>;
+	get(key: Key[], type: 'text'): Promise<Map<string, string | null>>;
 	get<ExpectedValue = unknown>(
-		key: Array<Key>,
+		key: Key[],
 		type: 'json',
 	): Promise<Map<string, ExpectedValue | null>>;
 	get(
-		key: Array<Key>,
+		key: Key[],
 		options?: Partial<KVNamespaceGetOptions<undefined>>,
 	): Promise<Map<string, string | null>>;
-	get(
-		key: Array<Key>,
-		options?: KVNamespaceGetOptions<'text'>,
-	): Promise<Map<string, string | null>>;
+	get(key: Key[], options?: KVNamespaceGetOptions<'text'>): Promise<Map<string, string | null>>;
 	get<ExpectedValue = unknown>(
-		key: Array<Key>,
+		key: Key[],
 		options?: KVNamespaceGetOptions<'json'>,
 	): Promise<Map<string, ExpectedValue | null>>;
 	list<Metadata = unknown>(
@@ -2125,23 +2122,23 @@ interface KVNamespace<Key extends string = string> {
 		options: KVNamespaceGetOptions<'stream'>,
 	): Promise<KVNamespaceGetWithMetadataResult<ReadableStream, Metadata>>;
 	getWithMetadata<Metadata = unknown>(
-		key: Array<Key>,
+		key: Key[],
 		type: 'text',
 	): Promise<Map<string, KVNamespaceGetWithMetadataResult<string, Metadata>>>;
 	getWithMetadata<ExpectedValue = unknown, Metadata = unknown>(
-		key: Array<Key>,
+		key: Key[],
 		type: 'json',
 	): Promise<Map<string, KVNamespaceGetWithMetadataResult<ExpectedValue, Metadata>>>;
 	getWithMetadata<Metadata = unknown>(
-		key: Array<Key>,
+		key: Key[],
 		options?: Partial<KVNamespaceGetOptions<undefined>>,
 	): Promise<Map<string, KVNamespaceGetWithMetadataResult<string, Metadata>>>;
 	getWithMetadata<Metadata = unknown>(
-		key: Array<Key>,
+		key: Key[],
 		options?: KVNamespaceGetOptions<'text'>,
 	): Promise<Map<string, KVNamespaceGetWithMetadataResult<string, Metadata>>>;
 	getWithMetadata<ExpectedValue = unknown, Metadata = unknown>(
-		key: Array<Key>,
+		key: Key[],
 		options?: KVNamespaceGetOptions<'json'>,
 	): Promise<Map<string, KVNamespaceGetWithMetadataResult<ExpectedValue, Metadata>>>;
 	delete(key: Key): Promise<void>;
@@ -3988,7 +3985,7 @@ declare abstract class BaseAiTranslation {
 type ResponsesInput = {
 	background?: boolean | null;
 	conversation?: string | ResponseConversationParam | null;
-	include?: Array<ResponseIncludable> | null;
+	include?: ResponseIncludable[] | null;
 	input?: string | ResponseInput;
 	instructions?: string | null;
 	max_output_tokens?: number | null;
@@ -4003,7 +4000,7 @@ type ResponsesInput = {
 	temperature?: number | null;
 	text?: ResponseTextConfig;
 	tool_choice?: ToolChoiceOptions | ToolChoiceFunction;
-	tools?: Array<Tool>;
+	tools?: Tool[];
 	top_p?: number | null;
 	truncation?: 'auto' | 'disabled' | null;
 };
@@ -4013,13 +4010,13 @@ type ResponsesOutput = {
 	output_text?: string;
 	error?: ResponseError | null;
 	incomplete_details?: ResponseIncompleteDetails | null;
-	instructions?: string | Array<ResponseInputItem> | null;
+	instructions?: string | ResponseInputItem[] | null;
 	object?: 'response';
-	output?: Array<ResponseOutputItem>;
+	output?: ResponseOutputItem[];
 	parallel_tool_calls?: boolean;
 	temperature?: number | null;
 	tool_choice?: ToolChoiceOptions | ToolChoiceFunction;
-	tools?: Array<Tool>;
+	tools?: Tool[];
 	top_p?: number | null;
 	max_output_tokens?: number | null;
 	previous_response_id?: string | null;
@@ -4154,7 +4151,7 @@ type ResponseFunctionCallArgumentsDoneEvent = {
 	type: 'response.function_call_arguments.done';
 };
 type ResponseFunctionCallOutputItem = ResponseInputTextContent | ResponseInputImageContent;
-type ResponseFunctionCallOutputItemList = Array<ResponseFunctionCallOutputItem>;
+type ResponseFunctionCallOutputItemList = ResponseFunctionCallOutputItem[];
 type ResponseFunctionToolCall = {
 	arguments: string;
 	call_id: string;
@@ -4179,7 +4176,7 @@ type ResponseIncompleteEvent = {
 	sequence_number: number;
 	type: 'response.incomplete';
 };
-type ResponseInput = Array<ResponseInputItem>;
+type ResponseInput = ResponseInputItem[];
 type ResponseInputContent = ResponseInputText | ResponseInputImage;
 type ResponseInputImage = {
 	detail: 'low' | 'high' | 'auto';
@@ -4217,7 +4214,7 @@ type ResponseInputItemMessage = {
 	status?: 'in_progress' | 'completed' | 'incomplete';
 	type?: 'message';
 };
-type ResponseInputMessageContentList = Array<ResponseInputContent>;
+type ResponseInputMessageContentList = ResponseInputContent[];
 type ResponseInputMessageItem = {
 	id: string;
 	content: ResponseInputMessageContentList;
@@ -4265,13 +4262,13 @@ type ResponseOutputRefusal = {
 type ResponseOutputText = {
 	text: string;
 	type: 'output_text';
-	logprobs?: Array<Logprob>;
+	logprobs?: Logprob[];
 };
 type ResponseReasoningItem = {
 	id: string;
-	summary: Array<ResponseReasoningSummaryItem>;
+	summary: ResponseReasoningSummaryItem[];
 	type: 'reasoning';
-	content?: Array<ResponseReasoningContentItem>;
+	content?: ResponseReasoningContentItem[];
 	encrypted_content?: string | null;
 	status?: 'in_progress' | 'completed' | 'incomplete';
 };
@@ -4351,7 +4348,7 @@ type ResponseTextDeltaEvent = {
 	content_index: number;
 	delta: string;
 	item_id: string;
-	logprobs: Array<Logprob>;
+	logprobs: Logprob[];
 	output_index: number;
 	sequence_number: number;
 	type: 'response.output_text.delta';
@@ -4359,7 +4356,7 @@ type ResponseTextDeltaEvent = {
 type ResponseTextDoneEvent = {
 	content_index: number;
 	item_id: string;
-	logprobs: Array<Logprob>;
+	logprobs: Logprob[];
 	output_index: number;
 	sequence_number: number;
 	text: string;
@@ -4368,7 +4365,7 @@ type ResponseTextDoneEvent = {
 type Logprob = {
 	token: string;
 	logprob: number;
-	top_logprobs?: Array<TopLogprob>;
+	top_logprobs?: TopLogprob[];
 };
 type TopLogprob = {
 	token?: string;
@@ -11134,7 +11131,7 @@ declare namespace Rpc {
 	export type Stub<T extends Stubable> = Provider<T> & StubBase<T>;
 	// This represents all the types that can be sent as-is over an RPC boundary
 	type BaseType =
-		| void
+		| undefined
 		| undefined
 		| null
 		| boolean
@@ -11161,9 +11158,9 @@ declare namespace Rpc {
 			: T extends Set<infer V>
 				? Set<Stubify<V>>
 				: T extends Array<infer V>
-					? Array<Stubify<V>>
+					? Stubify<V>[]
 					: T extends ReadonlyArray<infer V>
-						? ReadonlyArray<Stubify<V>>
+						? readonly Stubify<V>[]
 						: T extends BaseType
 							? T
 							: T extends {
@@ -11185,9 +11182,9 @@ declare namespace Rpc {
 				: T extends Set<infer V>
 					? Set<Unstubify<V>>
 					: T extends Array<infer V>
-						? Array<Unstubify<V>>
+						? Unstubify<V>[]
 						: T extends ReadonlyArray<infer V>
-							? ReadonlyArray<Unstubify<V>>
+							? readonly Unstubify<V>[]
 							: T extends BaseType
 								? T
 								: T extends {
