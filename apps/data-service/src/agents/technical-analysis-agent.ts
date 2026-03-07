@@ -7,13 +7,10 @@ import type {
 	Timeframe,
 } from '@repo/data-ops/agents/ta/types';
 import { initDatabase } from '@repo/data-ops/database/setup';
-import {
-	AlpacaMarketDataProvider,
-	getAlpacaMarketDataConfig,
-} from '@repo/data-ops/providers/alpaca';
 import { computeTechnicals, detectSignals } from '@repo/data-ops/providers/technicals';
 import { insertSignal } from '@repo/data-ops/signal';
-import { Agent, callable } from 'agents';
+import { Agent, callable, getAgentByName } from 'agents';
+import type { AlpacaMarketDataAgent } from './alpaca-market-data-agent';
 
 interface ParsedIdentity {
 	userId: string;
@@ -81,10 +78,17 @@ export class TechnicalAnalysisAgent extends Agent<Env, TAAgentState> {
 	}
 
 	@callable()
-	async analyze(timeframe: Timeframe = '1Day'): Promise<AnalysisResult> {
+	async analyze(timeframe: Timeframe = '1Day', bars?: Bar[]): Promise<AnalysisResult> {
 		const { userId, symbol } = this.getIdentity();
-		const marketData = await this.getMarketDataProvider(userId);
-		const bars = await marketData.getBars(symbol, timeframe, { limit: 250, adjustment: 'split' });
+
+		if (!bars) {
+			const marketData = await getAgentByName<Env, AlpacaMarketDataAgent>(
+				this.env.AlpacaMarketDataAgent,
+				`${userId}:${symbol}`,
+			);
+			const result = await marketData.fetchBars({ symbol, timeframe, limit: 250 });
+			bars = result.bars;
+		}
 
 		if (bars.length < 50) {
 			throw new Error(`Insufficient data for ${symbol}: ${bars.length} bars`);
@@ -157,11 +161,5 @@ export class TechnicalAnalysisAgent extends Agent<Env, TAAgentState> {
 				.sql`INSERT OR REPLACE INTO bars (timestamp, open, high, low, close, volume, trade_count, vwap)
 				VALUES (${bar.t}, ${bar.o}, ${bar.h}, ${bar.l}, ${bar.c}, ${bar.v}, ${bar.n}, ${bar.vw})`;
 		}
-	}
-
-	private async getMarketDataProvider(userId: string): Promise<AlpacaMarketDataProvider> {
-		const config = await getAlpacaMarketDataConfig(userId, this.env.CREDENTIALS_ENCRYPTION_KEY);
-		if (!config) throw new Error('Alpaca credentials not configured');
-		return new AlpacaMarketDataProvider(config);
 	}
 }

@@ -57,5 +57,5 @@ export interface TAAgentState {
 export interface TAAgentRPC {
 	getSignals(since?: string): Promise<TechnicalSignal[]>;
 	getIndicators(): Promise<TechnicalIndicators | null>;
-	analyze(timeframe?: Timeframe): Promise<AnalysisResult>;
+	analyze(timeframe?: Timeframe, bars?: Bar[]): Promise<AnalysisResult>;
 }
