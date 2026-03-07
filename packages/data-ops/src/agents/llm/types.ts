@@ -115,4 +115,62 @@ export interface LLMAgentRPC {
 	classifyEvent(rawContent: string): Promise<ClassifyEventResult>;
 	generateReport(symbol: string, context: Record<string, unknown>): Promise<GenerateReportResult>;
 	getUsage(days?: number): Promise<UsageSummaryResult>;
+	analyzeAsPersona(
+		persona: { id: string; name: string; role: string; systemPrompt: string; bias: string },
+		data: { symbol: string; signals: AnalysisSignal[]; indicators: Record<string, unknown> },
+		strategy: StrategyTemplate,
+	): Promise<{
+		personaId: string;
+		action: 'buy' | 'sell' | 'hold';
+		confidence: number;
+		rationale: string;
+		keyPoints: string[];
+	}>;
+	runDebateRound(
+		session: {
+			analyses: {
+				personaId: string;
+				action: 'buy' | 'sell' | 'hold';
+				confidence: number;
+				rationale: string;
+				keyPoints: string[];
+			}[];
+			previousRounds: { roundNumber: number; responses: unknown[] }[];
+		},
+		roundNumber: number,
+		personas: { id: string; name: string; role: string; systemPrompt: string; bias: string }[],
+	): Promise<{ roundNumber: number; responses: unknown[] }>;
+	synthesizeConsensus(
+		analyses: {
+			personaId: string;
+			action: 'buy' | 'sell' | 'hold';
+			confidence: number;
+			rationale: string;
+			keyPoints: string[];
+		}[],
+		debateRounds: { roundNumber: number; responses: unknown[] }[],
+		moderatorPrompt: string,
+	): Promise<{
+		action: 'buy' | 'sell' | 'hold';
+		confidence: number;
+		rationale: string;
+		dissent: string | null;
+		entryPrice: number | null;
+		targetPrice: number | null;
+		stopLoss: number | null;
+		positionSizePct: number | null;
+		risks: string[];
+	}>;
+	validateRisk(
+		recommendation: TradeRecommendation,
+		portfolio: {
+			positions: { symbol: string; qty: number; side: string; marketValue: number }[];
+			account: { cash: number; portfolioValue: number; buyingPower: number };
+		},
+	): Promise<{
+		approved: boolean;
+		adjustedPositionSize: number | null;
+		warnings: string[];
+		rationale: string;
+	}>;
 }

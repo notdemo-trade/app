@@ -17,14 +17,17 @@
       { "name": "OrchestratorAgent", "class_name": "OrchestratorAgent" },
       { "name": "AlpacaMarketDataAgent", "class_name": "AlpacaMarketDataAgent" },
       { "name": "AlpacaBrokerAgent", "class_name": "AlpacaBrokerAgent" },
-      { "name": "SessionAgent", "class_name": "SessionAgent" }
+      { "name": "SessionAgent", "class_name": "SessionAgent" },
+      { "name": "DebateOrchestratorAgent", "class_name": "DebateOrchestratorAgent" },
+      { "name": "PipelineOrchestratorAgent", "class_name": "PipelineOrchestratorAgent" }
     ]
   },
   "migrations": [
     { "tag": "v1", "new_sqlite_classes": ["TechnicalAnalysisAgent"] },
     { "tag": "v2", "new_sqlite_classes": ["LLMAnalysisAgent"] },
     { "tag": "v3", "new_sqlite_classes": ["OrchestratorAgent"] },
-    { "tag": "v4", "new_sqlite_classes": ["AlpacaMarketDataAgent", "AlpacaBrokerAgent", "SessionAgent"] }
+    { "tag": "v4", "new_sqlite_classes": ["AlpacaMarketDataAgent", "AlpacaBrokerAgent", "SessionAgent"] },
+    { "tag": "v5", "new_sqlite_classes": ["DebateOrchestratorAgent", "PipelineOrchestratorAgent"] }
   ],
   // "triggers": {
   //   "crons": [
@@ -45,7 +48,9 @@
           { "name": "OrchestratorAgent", "class_name": "OrchestratorAgent" },
           { "name": "AlpacaMarketDataAgent", "class_name": "AlpacaMarketDataAgent" },
           { "name": "AlpacaBrokerAgent", "class_name": "AlpacaBrokerAgent" },
-          { "name": "SessionAgent", "class_name": "SessionAgent" }
+          { "name": "SessionAgent", "class_name": "SessionAgent" },
+          { "name": "DebateOrchestratorAgent", "class_name": "DebateOrchestratorAgent" },
+          { "name": "PipelineOrchestratorAgent", "class_name": "PipelineOrchestratorAgent" }
         ]
       },
       // "kv_namespaces": [
@@ -92,7 +97,9 @@
           { "name": "OrchestratorAgent", "class_name": "OrchestratorAgent" },
           { "name": "AlpacaMarketDataAgent", "class_name": "AlpacaMarketDataAgent" },
           { "name": "AlpacaBrokerAgent", "class_name": "AlpacaBrokerAgent" },
-          { "name": "SessionAgent", "class_name": "SessionAgent" }
+          { "name": "SessionAgent", "class_name": "SessionAgent" },
+          { "name": "DebateOrchestratorAgent", "class_name": "DebateOrchestratorAgent" },
+          { "name": "PipelineOrchestratorAgent", "class_name": "PipelineOrchestratorAgent" }
         ]
       },
       // "kv_namespaces": [
@@ -139,7 +146,9 @@
           { "name": "OrchestratorAgent", "class_name": "OrchestratorAgent" },
           { "name": "AlpacaMarketDataAgent", "class_name": "AlpacaMarketDataAgent" },
           { "name": "AlpacaBrokerAgent", "class_name": "AlpacaBrokerAgent" },
-          { "name": "SessionAgent", "class_name": "SessionAgent" }
+          { "name": "SessionAgent", "class_name": "SessionAgent" },
+          { "name": "DebateOrchestratorAgent", "class_name": "DebateOrchestratorAgent" },
+          { "name": "PipelineOrchestratorAgent", "class_name": "PipelineOrchestratorAgent" }
         ]
       },
       // "kv_namespaces": [

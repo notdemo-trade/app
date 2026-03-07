@@ -8,8 +8,10 @@ import { handleScheduled } from './scheduled';
 
 export { AlpacaBrokerAgent } from './agents/alpaca-broker-agent';
 export { AlpacaMarketDataAgent } from './agents/alpaca-market-data-agent';
+export { DebateOrchestratorAgent } from './agents/debate-orchestrator-agent';
 export { LLMAnalysisAgent } from './agents/llm-analysis-agent';
 export { OrchestratorAgent } from './agents/orchestrator-agent';
+export { PipelineOrchestratorAgent } from './agents/pipeline-orchestrator-agent';
 export { SessionAgent } from './agents/session-agent';
 export { TechnicalAnalysisAgent } from './agents/technical-analysis-agent';
 

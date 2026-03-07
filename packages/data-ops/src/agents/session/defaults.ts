@@ -1,18 +1,7 @@
+import type { DebateConfig, PersonaConfig } from '../debate/types';
 import type { SessionConfig } from './types';
 
-export interface PersonaConfig {
-	id: string;
-	name: string;
-	role: string;
-	systemPrompt: string;
-	bias: string;
-}
-
-export interface DebateConfig {
-	personas: PersonaConfig[];
-	rounds: number;
-	moderatorPrompt: string;
-}
+export type { DebateConfig, PersonaConfig };
 
 export const DEFAULT_PERSONAS: PersonaConfig[] = [
 	{
