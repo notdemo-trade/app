@@ -135,7 +135,37 @@
 		"credentials": "Credentials",
 		"tokens": "API Tokens",
 		"trading": "Trading Config",
-		"profile": "Profile"
+		"profile": "Profile",
+		"performance": "Performance"
+	},
+	"performance": {
+		"title": "Agent Performance",
+		"description": "Track persona scores, trade outcomes, and learned patterns",
+		"personaScores": "Persona Scores",
+		"pipelineScores": "Pipeline Scores",
+		"winRate": "Win Rate",
+		"avgReturn": "Avg Return",
+		"sharpe": "Sharpe",
+		"bestSymbol": "Best",
+		"worstSymbol": "Worst",
+		"calibration": {
+			"good": "Good",
+			"fair": "Fair",
+			"poor": "Poor"
+		},
+		"outcomeHistory": "Outcome History",
+		"noOutcomes": "No resolved outcomes yet",
+		"tracking": "Tracking",
+		"live": "Live",
+		"currentPrice": "Current Price",
+		"unrealizedPnl": "Unrealized P&L",
+		"patterns": "Patterns",
+		"sampleSize": "{count} samples",
+		"activePositions": "Active Positions",
+		"coldStart": {
+			"title": "Not enough data yet",
+			"description": "{remaining} more resolved trades needed (minimum {required}) before performance metrics are displayed."
+		}
 	},
 	"auth": {
 		"online": "Online",

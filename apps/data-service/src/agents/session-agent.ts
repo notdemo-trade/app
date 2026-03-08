@@ -3,7 +3,11 @@ import { AIChatAgent } from '@cloudflare/ai-chat';
 import type { BrokerPosition, OrderLogEntry } from '@repo/data-ops/agents/broker/types';
 import type { PersonaConfig } from '@repo/data-ops/agents/debate/types';
 import type { LLMProviderConfig, StrategyTemplate } from '@repo/data-ops/agents/llm/types';
-import type { ExitReason, ProposalOutcome } from '@repo/data-ops/agents/memory/types';
+import type {
+	ExitReason,
+	OutcomeSnapshot,
+	ProposalOutcome,
+} from '@repo/data-ops/agents/memory/types';
 import {
 	DEFAULT_DEBATE_CONFIG,
 	DEFAULT_PERSONAS,
@@ -31,12 +35,14 @@ import {
 	type CountRow,
 	DEFAULT_STRATEGIES,
 	type MessageRow,
+	type OutcomeSnapshotRow,
 	type ProposalOutcomeRow,
 	type ProposalRow,
 	rowToConfig,
 	rowToMessage,
 	rowToOutcome,
 	rowToProposal,
+	rowToSnapshot,
 	rowToThread,
 	type SessionConfigRow,
 	type StrategyTemplateRow,
@@ -880,6 +886,13 @@ export class SessionAgent extends AIChatAgent<Env, SessionState> {
 		const rows = this.sql<ProposalOutcomeRow>`
 			SELECT * FROM proposal_outcomes ORDER BY created_at DESC LIMIT 50`;
 		return rows.map(rowToOutcome);
+	}
+
+	@callable()
+	getOutcomeSnapshots(outcomeId: string): OutcomeSnapshot[] {
+		const rows = this.sql<OutcomeSnapshotRow>`
+			SELECT * FROM outcome_snapshots WHERE outcome_id = ${outcomeId} ORDER BY snapshot_at DESC`;
+		return rows.map(rowToSnapshot);
 	}
 
 	// --- Table init + seeding ---

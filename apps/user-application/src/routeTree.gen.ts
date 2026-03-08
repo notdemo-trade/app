@@ -15,6 +15,7 @@ import { Route as FaqCategoryIdRouteImport } from './routes/faq/$categoryId'
 import { Route as ApiHealthRouteImport } from './routes/api/health'
 import { Route as AuthSessionIndexRouteImport } from './routes/_auth/session/index'
 import { Route as AuthProfileIndexRouteImport } from './routes/_auth/profile/index'
+import { Route as AuthPerformanceIndexRouteImport } from './routes/_auth/performance/index'
 import { Route as AuthDashboardIndexRouteImport } from './routes/_auth/dashboard/index'
 import { Route as ApiAuthSplatRouteImport } from './routes/api/auth.$'
 import { Route as AuthSettingsTradingRouteImport } from './routes/_auth/settings/trading'
@@ -49,6 +50,11 @@ const AuthSessionIndexRoute = AuthSessionIndexRouteImport.update({
 const AuthProfileIndexRoute = AuthProfileIndexRouteImport.update({
   id: '/profile/',
   path: '/profile/',
+  getParentRoute: () => AuthRouteRoute,
+} as any)
+const AuthPerformanceIndexRoute = AuthPerformanceIndexRouteImport.update({
+  id: '/performance/',
+  path: '/performance/',
   getParentRoute: () => AuthRouteRoute,
 } as any)
 const AuthDashboardIndexRoute = AuthDashboardIndexRouteImport.update({
@@ -92,6 +98,7 @@ export interface FileRoutesByFullPath {
   '/settings/trading': typeof AuthSettingsTradingRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
   '/dashboard/': typeof AuthDashboardIndexRoute
+  '/performance/': typeof AuthPerformanceIndexRoute
   '/profile/': typeof AuthProfileIndexRoute
   '/session/': typeof AuthSessionIndexRoute
 }
@@ -105,6 +112,7 @@ export interface FileRoutesByTo {
   '/settings/trading': typeof AuthSettingsTradingRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
   '/dashboard': typeof AuthDashboardIndexRoute
+  '/performance': typeof AuthPerformanceIndexRoute
   '/profile': typeof AuthProfileIndexRoute
   '/session': typeof AuthSessionIndexRoute
 }
@@ -120,6 +128,7 @@ export interface FileRoutesById {
   '/_auth/settings/trading': typeof AuthSettingsTradingRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
   '/_auth/dashboard/': typeof AuthDashboardIndexRoute
+  '/_auth/performance/': typeof AuthPerformanceIndexRoute
   '/_auth/profile/': typeof AuthProfileIndexRoute
   '/_auth/session/': typeof AuthSessionIndexRoute
 }
@@ -135,6 +144,7 @@ export interface FileRouteTypes {
     | '/settings/trading'
     | '/api/auth/$'
     | '/dashboard/'
+    | '/performance/'
     | '/profile/'
     | '/session/'
   fileRoutesByTo: FileRoutesByTo
@@ -148,6 +158,7 @@ export interface FileRouteTypes {
     | '/settings/trading'
     | '/api/auth/$'
     | '/dashboard'
+    | '/performance'
     | '/profile'
     | '/session'
   id:
@@ -162,6 +173,7 @@ export interface FileRouteTypes {
     | '/_auth/settings/trading'
     | '/api/auth/$'
     | '/_auth/dashboard/'
+    | '/_auth/performance/'
     | '/_auth/profile/'
     | '/_auth/session/'
   fileRoutesById: FileRoutesById
@@ -218,6 +230,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthProfileIndexRouteImport
       parentRoute: typeof AuthRouteRoute
     }
+    '/_auth/performance/': {
+      id: '/_auth/performance/'
+      path: '/performance'
+      fullPath: '/performance/'
+      preLoaderRoute: typeof AuthPerformanceIndexRouteImport
+      parentRoute: typeof AuthRouteRoute
+    }
     '/_auth/dashboard/': {
       id: '/_auth/dashboard/'
       path: '/dashboard'
@@ -269,6 +288,7 @@ interface AuthRouteRouteChildren {
   AuthSettingsTokensRoute: typeof AuthSettingsTokensRoute
   AuthSettingsTradingRoute: typeof AuthSettingsTradingRoute
   AuthDashboardIndexRoute: typeof AuthDashboardIndexRoute
+  AuthPerformanceIndexRoute: typeof AuthPerformanceIndexRoute
   AuthProfileIndexRoute: typeof AuthProfileIndexRoute
   AuthSessionIndexRoute: typeof AuthSessionIndexRoute
 }
@@ -279,6 +299,7 @@ const AuthRouteRouteChildren: AuthRouteRouteChildren = {
   AuthSettingsTokensRoute: AuthSettingsTokensRoute,
   AuthSettingsTradingRoute: AuthSettingsTradingRoute,
   AuthDashboardIndexRoute: AuthDashboardIndexRoute,
+  AuthPerformanceIndexRoute: AuthPerformanceIndexRoute,
   AuthProfileIndexRoute: AuthProfileIndexRoute,
   AuthSessionIndexRoute: AuthSessionIndexRoute,
 }

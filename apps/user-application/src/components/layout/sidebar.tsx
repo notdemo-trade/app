@@ -1,5 +1,15 @@
 import { useNavigate, useRouterState } from '@tanstack/react-router';
-import { Bot, ChartCandlestick, Coins, Home, KeyRound, Menu, Shield, User } from 'lucide-react';
+import {
+	Bot,
+	ChartCandlestick,
+	Coins,
+	Home,
+	KeyRound,
+	Menu,
+	Shield,
+	TrendingUp,
+	User,
+} from 'lucide-react';
 import { useState } from 'react';
 import { useTranslations } from 'use-intl';
 import { Button } from '@/components/ui/button';
@@ -35,6 +45,11 @@ const navigationGroups: NavigationGroup[] = [
 				nameKey: 'sidebar.analysis',
 				icon: ChartCandlestick,
 				href: '/analysis/AAPL',
+			},
+			{
+				nameKey: 'sidebar.performance',
+				icon: TrendingUp,
+				href: '/performance',
 			},
 		],
 	},
@@ -114,7 +129,9 @@ export function Sidebar({ className }: SidebarProps) {
 									const isActive =
 										currentPath === item.href ||
 										(item.href.startsWith('/analysis') && currentPath.startsWith('/analysis')) ||
-										(item.href.startsWith('/session') && currentPath.startsWith('/session'));
+										(item.href.startsWith('/session') && currentPath.startsWith('/session')) ||
+										(item.href.startsWith('/performance') &&
+											currentPath.startsWith('/performance'));
 
 									return (
 										<Button

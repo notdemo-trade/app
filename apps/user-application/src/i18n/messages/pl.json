@@ -135,7 +135,37 @@
 		"credentials": "Poświadczenia",
 		"tokens": "Tokeny API",
 		"trading": "Konfiguracja",
-		"profile": "Profil"
+		"profile": "Profil",
+		"performance": "Wydajność"
+	},
+	"performance": {
+		"title": "Wydajność Agentów",
+		"description": "Śledź wyniki person, wyniki transakcji i nauczone wzorce",
+		"personaScores": "Wyniki Person",
+		"pipelineScores": "Wyniki Pipeline",
+		"winRate": "Skuteczność",
+		"avgReturn": "Śr. Zwrot",
+		"sharpe": "Sharpe",
+		"bestSymbol": "Najlepszy",
+		"worstSymbol": "Najgorszy",
+		"calibration": {
+			"good": "Dobra",
+			"fair": "Średnia",
+			"poor": "Słaba"
+		},
+		"outcomeHistory": "Historia Wyników",
+		"noOutcomes": "Brak rozstrzygniętych wyników",
+		"tracking": "Śledzenie",
+		"live": "Na żywo",
+		"currentPrice": "Aktualna Cena",
+		"unrealizedPnl": "Niezrealizowany P&L",
+		"patterns": "Wzorce",
+		"sampleSize": "{count} próbek",
+		"activePositions": "Aktywne Pozycje",
+		"coldStart": {
+			"title": "Za mało danych",
+			"description": "Potrzebujesz jeszcze {remaining} rozstrzygniętych transakcji (minimum {required}) przed wyświetleniem metryk wydajności."
+		}
 	},
 	"auth": {
 		"online": "Online",

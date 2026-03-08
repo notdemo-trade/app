@@ -1,5 +1,9 @@
 import type { StrategyTemplate } from '@repo/data-ops/agents/llm/types';
-import type { ExitReason, ProposalOutcome } from '@repo/data-ops/agents/memory/types';
+import type {
+	ExitReason,
+	OutcomeSnapshot,
+	ProposalOutcome,
+} from '@repo/data-ops/agents/memory/types';
 import type {
 	DiscussionMessage,
 	DiscussionPhase,
@@ -201,6 +205,17 @@ export function rowToOutcome(row: ProposalOutcomeRow): ProposalOutcome {
 		holdingDurationMs: row.holding_duration_ms,
 		resolvedAt: row.resolved_at,
 		createdAt: row.created_at,
+	};
+}
+
+export function rowToSnapshot(row: OutcomeSnapshotRow): OutcomeSnapshot {
+	return {
+		id: row.id,
+		outcomeId: row.outcome_id,
+		unrealizedPnl: row.unrealized_pnl,
+		unrealizedPnlPct: row.unrealized_pnl_pct,
+		currentPrice: row.current_price,
+		snapshotAt: row.snapshot_at,
 	};
 }
 
