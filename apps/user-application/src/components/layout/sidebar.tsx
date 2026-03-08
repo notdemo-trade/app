@@ -27,9 +27,9 @@ const navigationGroups: NavigationGroup[] = [
 				href: '/dashboard',
 			},
 			{
-				nameKey: 'sidebar.orchestrator',
+				nameKey: 'sidebar.session',
 				icon: Bot,
-				href: '/orchestrator',
+				href: '/session',
 			},
 			{
 				nameKey: 'sidebar.analysis',
@@ -114,8 +114,7 @@ export function Sidebar({ className }: SidebarProps) {
 									const isActive =
 										currentPath === item.href ||
 										(item.href.startsWith('/analysis') && currentPath.startsWith('/analysis')) ||
-										(item.href.startsWith('/orchestrator') &&
-											currentPath.startsWith('/orchestrator'));
+										(item.href.startsWith('/session') && currentPath.startsWith('/session'));
 
 									return (
 										<Button

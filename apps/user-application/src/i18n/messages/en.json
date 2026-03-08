@@ -129,7 +129,7 @@
 	},
 	"sidebar": {
 		"dashboard": "Dashboard",
-		"orchestrator": "AI Orchestrator",
+		"session": "Session Agent",
 		"analysis": "Analysis",
 		"settingsGroup": "Settings",
 		"credentials": "Credentials",
