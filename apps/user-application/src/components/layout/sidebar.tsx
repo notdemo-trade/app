@@ -8,6 +8,7 @@ import {
 	KeyRound,
 	LineChart,
 	Menu,
+	MessageSquare,
 	Shield,
 	TrendingUp,
 	User,
@@ -82,6 +83,11 @@ const navigationGroups: NavigationGroup[] = [
 				nameKey: 'sidebar.technicalAnalysis',
 				icon: LineChart,
 				href: '/settings/technical-analysis',
+			},
+			{
+				nameKey: 'sidebar.debate',
+				icon: MessageSquare,
+				href: '/settings/debate',
 			},
 			{
 				nameKey: 'sidebar.profile',

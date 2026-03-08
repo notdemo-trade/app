@@ -55,6 +55,9 @@ export const user_trading_config = pgTable(
 		confidenceDisplayHigh: real('confidence_display_high').notNull().default(0.7),
 		confidenceDisplayMed: real('confidence_display_med').notNull().default(0.4),
 
+		// Phase 24: Customizable moderator prompt
+		moderatorPrompt: text('moderator_prompt'),
+
 		createdAt: timestamp('created_at').defaultNow().notNull(),
 		updatedAt: timestamp('updated_at')
 			.defaultNow()

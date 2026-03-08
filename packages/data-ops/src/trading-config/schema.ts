@@ -52,6 +52,9 @@ const TradingConfigBaseSchema = z.object({
 	scoreWindows: ScoreWindowsSchema,
 	confidenceDisplayHigh: z.number().min(0.5).max(1.0).default(0.7),
 	confidenceDisplayMed: z.number().min(0.1).max(0.7).default(0.4),
+
+	// Phase 24: Customizable moderator prompt
+	moderatorPrompt: z.string().min(10).max(2000).nullable().default(null),
 });
 
 export const TradingConfigSchema = TradingConfigBaseSchema.refine(

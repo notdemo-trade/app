@@ -66,6 +66,10 @@
 		"./llm-analysis": {
 			"types": "./dist/llm-analysis/index.d.ts",
 			"default": "./dist/llm-analysis/index.js"
+		},
+		"./debate-persona": {
+			"types": "./dist/debate-persona/index.d.ts",
+			"default": "./dist/debate-persona/index.js"
 		}
 	},
 	"scripts": {

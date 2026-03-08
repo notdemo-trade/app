@@ -1,6 +1,7 @@
 import { Hono } from 'hono';
 import { analysisRouter } from './handlers/analysis-handlers';
 import credentials from './handlers/credential-handlers';
+import debatePersonas from './handlers/debate-persona-handlers';
 import health from './handlers/health-handlers';
 import { llmRouter } from './handlers/llm-analysis-handlers';
 import { performanceRouter } from './handlers/performance-handlers';
@@ -29,3 +30,4 @@ App.route('/api/analysis', analysisRouter);
 App.route('/api/llm', llmRouter);
 App.route('/api/performance', performanceRouter);
 App.route('/api/technical-config', taConfigRoutes);
+App.route('/api/debate-personas', debatePersonas);

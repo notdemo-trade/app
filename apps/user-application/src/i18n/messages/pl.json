@@ -172,7 +172,8 @@
 		"models": "Modele AI",
 		"profile": "Profil",
 		"performance": "Wydajność",
-		"technicalAnalysis": "Wskaźniki"
+		"technicalAnalysis": "Wskaźniki",
+		"debate": "Debata"
 	},
 	"performance": {
 		"title": "Wydajność Agentów",

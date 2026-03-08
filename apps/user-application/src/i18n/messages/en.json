@@ -172,7 +172,8 @@
 		"models": "AI Models",
 		"profile": "Profile",
 		"performance": "Performance",
-		"technicalAnalysis": "Indicators"
+		"technicalAnalysis": "Indicators",
+		"debate": "Debate"
 	},
 	"performance": {
 		"title": "Agent Performance",

@@ -9,7 +9,7 @@ import type {
 	ProposalOutcome,
 } from '@repo/data-ops/agents/memory/types';
 import {
-	DEFAULT_DEBATE_CONFIG,
+	DEFAULT_MODERATOR_PROMPT,
 	DEFAULT_PERSONAS,
 	DEFAULT_SESSION_CONFIG,
 } from '@repo/data-ops/agents/session/defaults';
@@ -25,6 +25,7 @@ import type {
 import type { LLMCredential } from '@repo/data-ops/credential';
 import { getCredential } from '@repo/data-ops/credential';
 import { initDatabase } from '@repo/data-ops/database/setup';
+import { getDebatePersonas, seedDefaultPersonas } from '@repo/data-ops/debate-persona';
 import { createLanguageModel } from '@repo/data-ops/providers/llm';
 import { getTradingConfig } from '@repo/data-ops/trading-config';
 import { callable, getAgentByName } from 'agents';
@@ -279,25 +280,8 @@ export class SessionAgent extends AIChatAgent<Env, SessionState> {
 		return rows.map(rowToProposal);
 	}
 
-	@callable()
-	updatePersona(personaId: string, updates: Partial<PersonaConfig>): PersonaConfig[] {
-		const personas = this.loadPersonas();
-		const idx = personas.findIndex((p) => p.id === personaId);
-		if (idx === -1) {
-			throw new Error(`Persona '${personaId}' not found`);
-		}
-		personas[idx] = { ...personas[idx], ...updates } as PersonaConfig;
-		this
-			.sql`INSERT OR REPLACE INTO personas (key, data) VALUES ('current', ${JSON.stringify(personas)})`;
-		return personas;
-	}
-
-	@callable()
-	resetPersonas(): PersonaConfig[] {
-		this
-			.sql`INSERT OR REPLACE INTO personas (key, data) VALUES ('current', ${JSON.stringify(DEFAULT_PERSONAS)})`;
-		return DEFAULT_PERSONAS;
-	}
+	// Phase 24: updatePersona and resetPersonas callables removed.
+	// Persona CRUD is now handled via REST API -> PostgreSQL.
 
 	@callable()
 	async approveProposal(proposalId: string): Promise<{ status: string; message: string }> {
@@ -411,11 +395,12 @@ export class SessionAgent extends AIChatAgent<Env, SessionState> {
 		);
 		const taResult = await ta.analyze('1Day');
 
-		const personas = this.loadPersonas();
+		const personas = await this.loadPersonasFromDb();
+		const moderatorPrompt = await this.loadModeratorPrompt();
 		const debateConfig = {
 			personas,
 			rounds: config.debateRounds,
-			moderatorPrompt: DEFAULT_DEBATE_CONFIG.moderatorPrompt,
+			moderatorPrompt,
 		};
 
 		const result = (await debate.runDebate({
@@ -606,10 +591,42 @@ export class SessionAgent extends AIChatAgent<Env, SessionState> {
 			WHERE id = 'current'`;
 	}
 
-	private loadPersonas(): PersonaConfig[] {
-		const rows = this.sql<{ data: string }>`SELECT data FROM personas WHERE key = 'current'`;
-		if (rows[0]) return JSON.parse(rows[0].data) as PersonaConfig[];
-		return [...DEFAULT_PERSONAS];
+	private async loadPersonasFromDb(): Promise<PersonaConfig[]> {
+		try {
+			const userId = this.name;
+			let rows = await getDebatePersonas(userId);
+
+			// Lazy seed if no rows exist
+			if (rows.length === 0) {
+				rows = await seedDefaultPersonas(userId);
+			}
+
+			// Filter to active personas only
+			const active = rows.filter((r) => r.isActive);
+
+			// Map DB rows to PersonaConfig for orchestrator
+			return active.map((row) => ({
+				id: row.name,
+				name: row.displayName,
+				role: row.role,
+				systemPrompt: row.systemPrompt,
+				bias: row.bias,
+			}));
+		} catch (error) {
+			// Fallback to hardcoded defaults if DB fetch fails
+			console.error('Failed to load personas from DB, using defaults:', error);
+			return [...DEFAULT_PERSONAS];
+		}
+	}
+
+	private async loadModeratorPrompt(): Promise<string> {
+		try {
+			const userId = this.name;
+			const tradingConfig = await getTradingConfig(userId);
+			return tradingConfig?.moderatorPrompt ?? DEFAULT_MODERATOR_PROMPT;
+		} catch {
+			return DEFAULT_MODERATOR_PROMPT;
+		}
 	}
 
 	private getActiveStrategy(config: Pick<SessionConfig, 'activeStrategyId'>): StrategyTemplate {
@@ -1148,10 +1165,7 @@ export class SessionAgent extends AIChatAgent<Env, SessionState> {
 			}
 		}
 
-		const personaCount = this.sql<CountRow>`SELECT COUNT(*) as cnt FROM personas`;
-		if ((personaCount[0]?.cnt ?? 0) === 0) {
-			this
-				.sql`INSERT INTO personas (key, data) VALUES ('current', ${JSON.stringify(DEFAULT_PERSONAS)})`;
-		}
+		// Phase 24: Personas are now stored in PostgreSQL via debate_personas table.
+		// DO SQLite personas table is kept for backward compat but no longer seeded or read.
 	}
 }
