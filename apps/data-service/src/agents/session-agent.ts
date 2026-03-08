@@ -13,9 +13,11 @@ import {
 	DEFAULT_PERSONAS,
 	DEFAULT_SESSION_CONFIG,
 } from '@repo/data-ops/agents/session/defaults';
+import { resolveEffectiveConfig } from '@repo/data-ops/agents/session/resolve-config';
 import type {
 	DiscussionMessage,
 	DiscussionThread,
+	EffectiveConfig,
 	SessionConfig,
 	SessionState,
 	TradeProposal,
@@ -24,6 +26,7 @@ import type { LLMCredential } from '@repo/data-ops/credential';
 import { getCredential } from '@repo/data-ops/credential';
 import { initDatabase } from '@repo/data-ops/database/setup';
 import { createLanguageModel } from '@repo/data-ops/providers/llm';
+import { getTradingConfig } from '@repo/data-ops/trading-config';
 import { callable, getAgentByName } from 'agents';
 import type { StreamTextOnFinishCallback, ToolSet } from 'ai';
 import { convertToModelMessages, jsonSchema, stepCountIs, streamText, tool } from 'ai';
@@ -91,8 +94,8 @@ export class SessionAgent extends AIChatAgent<Env, SessionState> {
 		onFinish: StreamTextOnFinishCallback<ToolSet>,
 		options?: OnChatMessageOptions,
 	): Promise<Response | undefined> {
-		const config = this.loadConfig();
-		const providerConfig = await this.resolveProviderConfig(config);
+		const effectiveConfig = await this.loadEffectiveConfig();
+		const providerConfig = await this.resolveProviderConfig(effectiveConfig);
 		const model = createLanguageModel(providerConfig);
 
 		const modelMessages = await convertToModelMessages(this.messages);
@@ -115,7 +118,7 @@ export class SessionAgent extends AIChatAgent<Env, SessionState> {
 						required: ['symbol'],
 					}),
 					execute: async ({ symbol }) => {
-						return this.runAnalysisForSymbol(symbol.toUpperCase(), config);
+						return this.runAnalysisForSymbol(symbol.toUpperCase(), effectiveConfig);
 					},
 				}),
 				executeTrade: tool({
@@ -224,10 +227,10 @@ export class SessionAgent extends AIChatAgent<Env, SessionState> {
 	@callable()
 	async triggerAnalysis(): Promise<{ threadIds: string[] }> {
 		this.setState({ ...this.state, lastError: null });
-		const config = this.loadConfig();
+		const effectiveConfig = await this.loadEffectiveConfig();
 		const threadIds: string[] = [];
-		for (const symbol of config.watchlistSymbols) {
-			const result = await this.runAnalysisForSymbol(symbol, config);
+		for (const symbol of effectiveConfig.watchlistSymbols) {
+			const result = await this.runAnalysisForSymbol(symbol, effectiveConfig);
 			if (result.threadId) {
 				threadIds.push(result.threadId);
 			}
@@ -240,7 +243,7 @@ export class SessionAgent extends AIChatAgent<Env, SessionState> {
 
 		// Reschedule so next cycle aligns with this trigger
 		if (this.state.enabled) {
-			await this.rescheduleAnalysisCycle(config.analysisIntervalSec);
+			await this.rescheduleAnalysisCycle(effectiveConfig.analysisIntervalSec);
 		}
 
 		return { threadIds };
@@ -341,7 +344,7 @@ export class SessionAgent extends AIChatAgent<Env, SessionState> {
 
 	private async runAnalysisForSymbol(
 		symbol: string,
-		config: SessionConfig,
+		config: EffectiveConfig,
 	): Promise<{ threadId: string; summary: string }> {
 		const threadId = crypto.randomUUID();
 		const now = Date.now();
@@ -394,7 +397,7 @@ export class SessionAgent extends AIChatAgent<Env, SessionState> {
 		threadId: string,
 		symbol: string,
 		strategy: StrategyTemplate,
-		config: SessionConfig,
+		config: EffectiveConfig,
 		onMessage: (msg: Omit<DiscussionMessage, 'id' | 'threadId' | 'timestamp'>) => void,
 	): Promise<string> {
 		const userId = this.name;
@@ -436,7 +439,7 @@ export class SessionAgent extends AIChatAgent<Env, SessionState> {
 		threadId: string,
 		symbol: string,
 		strategy: StrategyTemplate,
-		config: SessionConfig,
+		config: EffectiveConfig,
 		onMessage: (msg: Omit<DiscussionMessage, 'id' | 'threadId' | 'timestamp'>) => void,
 	): Promise<string> {
 		const userId = this.name;
@@ -568,6 +571,13 @@ export class SessionAgent extends AIChatAgent<Env, SessionState> {
 		return DEFAULT_SESSION_CONFIG;
 	}
 
+	private async loadEffectiveConfig(): Promise<EffectiveConfig> {
+		const sessionConfig = this.loadConfig();
+		const tradingConfig = await getTradingConfig(this.name);
+		const activeStrategy = this.getActiveStrategy(sessionConfig);
+		return resolveEffectiveConfig({ tradingConfig, sessionConfig, activeStrategy });
+	}
+
 	private persistConfig(config: SessionConfig): void {
 		this.sql`UPDATE session_config SET
 			orchestration_mode = ${config.orchestrationMode},
@@ -591,7 +601,7 @@ export class SessionAgent extends AIChatAgent<Env, SessionState> {
 		return [...DEFAULT_PERSONAS];
 	}
 
-	private getActiveStrategy(config: SessionConfig): StrategyTemplate {
+	private getActiveStrategy(config: Pick<SessionConfig, 'activeStrategyId'>): StrategyTemplate {
 		const rows = this.sql<StrategyTemplateRow>`
 			SELECT id, name, data, is_default FROM strategy_templates WHERE id = ${config.activeStrategyId}`;
 		if (rows[0]) return JSON.parse(rows[0].data) as StrategyTemplate;
@@ -615,7 +625,7 @@ export class SessionAgent extends AIChatAgent<Env, SessionState> {
 			positionSizePct: number | null;
 			risks: string[];
 		},
-		config: SessionConfig,
+		config: EffectiveConfig,
 	): Promise<void> {
 		if (consensus.action === 'hold') return;
 
@@ -707,7 +717,9 @@ export class SessionAgent extends AIChatAgent<Env, SessionState> {
 		}
 	}
 
-	private async resolveProviderConfig(config: SessionConfig): Promise<LLMProviderConfig> {
+	private async resolveProviderConfig(
+		config: Pick<EffectiveConfig, 'llmProvider' | 'llmModel'>,
+	): Promise<LLMProviderConfig> {
 		if (config.llmProvider === 'workers-ai') {
 			return {
 				provider: 'workers-ai',

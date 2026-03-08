@@ -3,7 +3,7 @@ import { z } from 'zod';
 export const ModelSelectionSchema = z
 	.string()
 	.regex(
-		/^(openai|anthropic|google|xai|deepseek)\/[\w-]+$/,
+		/^(openai|anthropic|google|xai|deepseek|workers-ai)\/[\w@/.:-]+$/,
 		'Model must be in format provider/model',
 	);
 

@@ -1,5 +1,37 @@
 import type { LLMProviderName } from '../llm/types';
 
+export interface EffectiveConfig {
+	// Resolved values (used for execution)
+	positionSizePctOfCash: number;
+	llmProvider: LLMProviderName;
+	llmModel: string;
+	maxPositionValue: number;
+	maxPositions: number;
+	maxNotionalPerTrade: number;
+	maxDailyLossPct: number;
+	takeProfitPct: number;
+	stopLossPct: number;
+	cooldownMinutesAfterLoss: number;
+	tradingHoursOnly: boolean;
+	extendedHoursAllowed: boolean;
+	allowShortSelling: boolean;
+	tickerBlacklist: string[];
+	tickerAllowlist: string[] | null;
+
+	// Session-specific (not in trading config)
+	orchestrationMode: 'debate' | 'pipeline';
+	brokerType: string;
+	watchlistSymbols: string[];
+	analysisIntervalSec: number;
+	minConfidenceThreshold: number;
+	activeStrategyId: string;
+	debateRounds: number;
+	proposalTimeoutSec: number;
+
+	// Provenance tracking (for debugging)
+	_sources: Record<string, 'trading_config' | 'session_config' | 'strategy_profile' | 'default'>;
+}
+
 export interface SessionConfig {
 	orchestrationMode: 'debate' | 'pipeline';
 	brokerType: string;
