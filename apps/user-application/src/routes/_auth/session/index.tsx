@@ -1,14 +1,12 @@
 import { createFileRoute, Link } from '@tanstack/react-router';
-import { Bot, Clock, History, Play, RefreshCw, Send, Settings, User } from 'lucide-react';
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { Bot, Clock, History, Play, RefreshCw, Settings } from 'lucide-react';
+import { useCallback, useEffect, useState } from 'react';
 import { useTranslations } from 'use-intl';
 import { DiscussionThread, SessionSettings, TradeProposalCard } from '@/components/agents';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { InfoTip } from '@/components/ui/info-tip';
-import { Input } from '@/components/ui/input';
-import { ScrollArea } from '@/components/ui/scroll-area';
 import { Switch } from '@/components/ui/switch';
 import { useDiscussionFeed } from '@/hooks/use-discussion-feed';
 import { authClient } from '@/lib/auth-client';
@@ -185,12 +183,6 @@ function SessionDashboard({ userId }: SessionDashboardProps) {
 							</CardContent>
 						</Card>
 					)}
-
-					{/* Chat Messages */}
-					{session.messages.length > 0 && <ChatMessages session={session} />}
-
-					{/* Chat Input */}
-					<ChatInput session={session} tipText={t('session.tips.chat')} />
 				</div>
 
 				{/* Sidebar: Pending Proposals */}
@@ -242,90 +234,3 @@ function SessionDashboard({ userId }: SessionDashboardProps) {
 	);
 }
 
-function ChatMessages({ session }: { session: ReturnType<typeof useSession> }) {
-	const scrollRef = useRef<HTMLDivElement>(null);
-
-	useEffect(() => {
-		scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: 'smooth' });
-	});
-
-	return (
-		<Card>
-			<CardContent className="py-3">
-				<ScrollArea className="max-h-[300px]" ref={scrollRef}>
-					<div className="space-y-3 pr-2">
-						{session.messages.map((msg) => {
-							const textParts = (msg.parts ?? []).filter(
-								(p): p is { type: 'text'; text: string } => p.type === 'text',
-							);
-							const text = textParts.length > 0 ? textParts.map((p) => p.text).join('') : '';
-							if (!text) return null;
-
-							return (
-								<div
-									key={msg.id}
-									className={`flex gap-2 ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}
-								>
-									{msg.role !== 'user' && (
-										<Bot className="mt-1 h-4 w-4 shrink-0 text-muted-foreground" />
-									)}
-									<div
-										className={`max-w-[80%] rounded-lg px-3 py-2 text-sm whitespace-pre-wrap ${
-											msg.role === 'user'
-												? 'bg-primary text-primary-foreground'
-												: 'bg-muted text-foreground'
-										}`}
-									>
-										{text}
-									</div>
-									{msg.role === 'user' && (
-										<User className="mt-1 h-4 w-4 shrink-0 text-muted-foreground" />
-									)}
-								</div>
-							);
-						})}
-					</div>
-				</ScrollArea>
-			</CardContent>
-		</Card>
-	);
-}
-
-interface ChatInputProps {
-	session: ReturnType<typeof useSession>;
-	tipText: string;
-}
-
-function ChatInput({ session, tipText }: ChatInputProps) {
-	const [input, setInput] = useState('');
-
-	return (
-		<Card>
-			<CardContent className="py-3">
-				<div className="flex items-center gap-1 mb-2">
-					<span className="text-xs font-medium text-muted-foreground">Chat</span>
-					<InfoTip content={tipText} side="right" />
-				</div>
-				<form
-					onSubmit={(e) => {
-						e.preventDefault();
-						if (!input.trim()) return;
-						session.sendMessage({ text: input });
-						setInput('');
-					}}
-					className="flex gap-2"
-				>
-					<Input
-						value={input}
-						onChange={(e) => setInput(e.target.value)}
-						placeholder="Ask the agent to analyze a symbol, check positions, etc."
-						className="flex-1"
-					/>
-					<Button type="submit" size="icon" disabled={!input.trim()}>
-						<Send className="h-4 w-4" />
-					</Button>
-				</form>
-			</CardContent>
-		</Card>
-	);
-}
