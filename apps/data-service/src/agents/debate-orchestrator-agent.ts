@@ -32,6 +32,8 @@ export interface RunDebateParams {
 	strategy: StrategyTemplate;
 	config: DebateConfig;
 	onMessage: (msg: Omit<DiscussionMessage, 'id' | 'threadId' | 'timestamp'>) => void;
+	llmPrefs?: { temperature: number; maxTokens: number };
+	scoreWindows?: number[];
 }
 
 export interface RunDebateResult {
@@ -198,6 +200,7 @@ export class DebateOrchestratorAgent extends Agent<Env, DebateOrchestratorState>
 				params.strategy,
 				params,
 				scoreMap,
+				params.llmPrefs,
 			);
 
 			// Phase 2: Debate rounds
@@ -208,6 +211,7 @@ export class DebateOrchestratorAgent extends Agent<Env, DebateOrchestratorState>
 				analyses,
 				params.config,
 				params,
+				params.llmPrefs,
 			);
 
 			// Phase 3: Consensus synthesis — with confidence dampening + persona comparison
@@ -236,6 +240,7 @@ export class DebateOrchestratorAgent extends Agent<Env, DebateOrchestratorState>
 				debateRounds,
 				params.config.moderatorPrompt,
 				comparison,
+				params.llmPrefs,
 			);
 
 			this.emitMessage(params, { type: 'moderator' }, 'consensus', consensus.rationale, {
@@ -343,6 +348,7 @@ export class DebateOrchestratorAgent extends Agent<Env, DebateOrchestratorState>
 		strategy: StrategyTemplate,
 		params: RunDebateParams,
 		scoreMap?: Map<string, PersonaScore>,
+		llmPrefs?: { temperature: number; maxTokens: number },
 	): Promise<PersonaAnalysis[]> {
 		const analyses = await Promise.all(
 			personas.map(async (persona) => {
@@ -354,7 +360,7 @@ export class DebateOrchestratorAgent extends Agent<Env, DebateOrchestratorState>
 					perfContext = { personaId: persona.id, windowDays: 30, score, symbolRecord, patterns };
 				}
 
-				const analysis = await llm.analyzeAsPersona(persona, data, strategy, perfContext);
+				const analysis = await llm.analyzeAsPersona(persona, data, strategy, perfContext, llmPrefs);
 
 				this.emitMessage(
 					params,
@@ -384,6 +390,7 @@ export class DebateOrchestratorAgent extends Agent<Env, DebateOrchestratorState>
 		analyses: PersonaAnalysis[],
 		config: DebateConfig,
 		params: RunDebateParams,
+		llmPrefs?: { temperature: number; maxTokens: number },
 	): Promise<DebateRound[]> {
 		const debateRounds: DebateRound[] = [];
 
@@ -399,6 +406,7 @@ export class DebateOrchestratorAgent extends Agent<Env, DebateOrchestratorState>
 				{ analyses, previousRounds: debateRounds },
 				round,
 				config.personas,
+				llmPrefs,
 			);
 
 			// Store round
@@ -468,8 +476,8 @@ export class DebateOrchestratorAgent extends Agent<Env, DebateOrchestratorState>
 		}
 	}
 
-	private recomputeScores(personaId: string): void {
-		const windows: ScoreWindow[] = [30, 90, 180];
+	private recomputeScores(personaId: string, scoreWindows?: number[]): void {
+		const windows = scoreWindows ?? [30, 90, 180];
 		const now = Date.now();
 
 		for (const windowDays of windows) {

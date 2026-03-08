@@ -18,6 +18,14 @@ export interface EffectiveConfig {
 	tickerBlacklist: string[];
 	tickerAllowlist: string[] | null;
 
+	// Phase 23: Extended settings (from trading config)
+	proposalTimeoutSec: number;
+	llmTemperature: number;
+	llmMaxTokens: number;
+	scoreWindows: number[];
+	confidenceDisplayHigh: number;
+	confidenceDisplayMed: number;
+
 	// Session-specific (not in trading config)
 	orchestrationMode: 'debate' | 'pipeline';
 	brokerType: string;
@@ -26,7 +34,6 @@ export interface EffectiveConfig {
 	minConfidenceThreshold: number;
 	activeStrategyId: string;
 	debateRounds: number;
-	proposalTimeoutSec: number;
 
 	// Provenance tracking (for debugging)
 	_sources: Record<string, 'trading_config' | 'session_config' | 'strategy_profile' | 'default'>;

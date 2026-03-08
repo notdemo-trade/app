@@ -1,4 +1,4 @@
-import type { ScoreWindow } from '@repo/data-ops/agents/memory/types';
+import { getTradingConfig } from '@repo/data-ops/trading-config';
 import { getAgentByName } from 'agents';
 import { Hono } from 'hono';
 import type { DebateOrchestratorAgent } from '../../agents/debate-orchestrator-agent';
@@ -6,11 +6,12 @@ import type { PipelineOrchestratorAgent } from '../../agents/pipeline-orchestrat
 import type { SessionAgent } from '../../agents/session-agent';
 import { sessionAuthMiddleware } from '../middleware/session-auth';
 
-const VALID_WINDOWS = new Set([30, 90, 180]);
-
-function parseWindowDays(raw: string | undefined): ScoreWindow {
+async function parseWindowDays(raw: string | undefined, userId: string): Promise<number> {
+	const config = await getTradingConfig(userId);
+	const userWindows: number[] = (config?.scoreWindows as number[]) ?? [30, 90, 180];
+	const validWindows = new Set(userWindows);
 	const n = Number(raw);
-	return VALID_WINDOWS.has(n) ? (n as ScoreWindow) : 30;
+	return validWindows.has(n) ? n : (userWindows[0] ?? 30);
 }
 
 const performanceRouter = new Hono<{ Bindings: Env; Variables: { userId: string } }>();
@@ -19,7 +20,7 @@ performanceRouter.use('*', sessionAuthMiddleware);
 
 performanceRouter.get('/scores', async (c) => {
 	const userId = c.get('userId');
-	const windowDays = parseWindowDays(c.req.query('window'));
+	const windowDays = await parseWindowDays(c.req.query('window'), userId);
 
 	try {
 		const debate = await getAgentByName<Env, DebateOrchestratorAgent>(

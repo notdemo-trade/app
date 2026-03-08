@@ -33,7 +33,7 @@ export const OutcomeSnapshotSchema = z.object({
 	snapshotAt: z.number(),
 });
 
-export const ScoreWindowSchema = z.union([z.literal(30), z.literal(90), z.literal(180)]);
+export const ScoreWindowSchema = z.number().int().min(7).max(365);
 
 export const PersonaOutcomeRecordSchema = z.object({
 	personaId: z.string(),

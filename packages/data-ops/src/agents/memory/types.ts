@@ -2,7 +2,7 @@ export type OutcomeStatus = 'none' | 'tracking' | 'resolved';
 export type ExitReason = 'stop_loss' | 'target_hit' | 'manual_close' | 'time_exit';
 export type PatternType = 'indicator_outcome' | 'market_regime' | 'sector' | 'symbol';
 export type CalibrationRating = 'good' | 'fair' | 'poor';
-export type ScoreWindow = 30 | 90 | 180;
+export type ScoreWindow = number;
 
 export interface ProposalOutcome {
 	id: string;

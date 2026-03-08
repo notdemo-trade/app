@@ -1,10 +1,13 @@
 import { useForm } from '@tanstack/react-form';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { createFileRoute, Link } from '@tanstack/react-router';
-import { ArrowLeft } from 'lucide-react';
+import { ArrowLeft, ChevronDown } from 'lucide-react';
+import { ConfidencePreview } from '@/components/settings/confidence-preview';
+import { ScoreWindowsEditor } from '@/components/settings/score-windows-editor';
 import { Alert } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
@@ -84,6 +87,12 @@ function TradingConfigForm({ config, updateMutation }: TradingConfigFormProps) {
 			tradingHoursOnly: (config.tradingHoursOnly as boolean) ?? true,
 			extendedHoursAllowed: (config.extendedHoursAllowed as boolean) ?? false,
 			allowShortSelling: (config.allowShortSelling as boolean) ?? false,
+			proposalTimeoutSec: (config.proposalTimeoutSec as number) ?? 900,
+			llmTemperature: (config.llmTemperature as number) ?? 0.3,
+			llmMaxTokens: (config.llmMaxTokens as number) ?? 1000,
+			scoreWindows: (config.scoreWindows as number[]) ?? [30, 90, 180],
+			confidenceDisplayHigh: (config.confidenceDisplayHigh as number) ?? 0.7,
+			confidenceDisplayMed: (config.confidenceDisplayMed as number) ?? 0.4,
 		},
 		onSubmit: async ({ value }) => {
 			updateMutation.reset();
@@ -315,6 +324,211 @@ function TradingConfigForm({ config, updateMutation }: TradingConfigFormProps) {
 					</form.Field>
 				</CardContent>
 			</Card>
+
+			{/* Advanced Settings - Collapsible */}
+			<Collapsible>
+				<Card>
+					<CardHeader>
+						<CollapsibleTrigger asChild>
+							<div className="flex items-center justify-between cursor-pointer">
+								<div>
+									<CardTitle>Advanced Settings</CardTitle>
+									<CardDescription>
+										Fine-tune proposal timing, AI model behavior, and display preferences.
+									</CardDescription>
+								</div>
+								<ChevronDown className="h-4 w-4 text-muted-foreground transition-transform" />
+							</div>
+						</CollapsibleTrigger>
+					</CardHeader>
+					<CollapsibleContent>
+						<CardContent className="space-y-8">
+							{/* Proposals */}
+							<div className="space-y-4">
+								<h4 className="text-sm font-medium text-foreground">Proposals</h4>
+								<form.Field name="proposalTimeoutSec">
+									{(field) => (
+										<div className="space-y-2">
+											<Label htmlFor="proposalTimeoutSec">
+												Proposal Timeout ({Math.floor(field.state.value / 60)}m{' '}
+												{field.state.value % 60}s)
+											</Label>
+											<Input
+												id="proposalTimeoutSec"
+												type="number"
+												min={60}
+												max={3600}
+												step={60}
+												value={field.state.value}
+												onChange={(e) => field.handleChange(Number(e.target.value))}
+											/>
+											<p className="text-xs text-muted-foreground">
+												How long a trade proposal stays active before auto-expiring (60s - 3600s).
+											</p>
+										</div>
+									)}
+								</form.Field>
+							</div>
+
+							{/* AI Model */}
+							<div className="space-y-4">
+								<h4 className="text-sm font-medium text-foreground">AI Model</h4>
+								<form.Field name="llmTemperature">
+									{(field) => (
+										<div className="space-y-2">
+											<Label htmlFor="llmTemperature">
+												Temperature ({field.state.value.toFixed(2)})
+											</Label>
+											<Input
+												id="llmTemperature"
+												type="range"
+												min={0}
+												max={1}
+												step={0.05}
+												value={field.state.value}
+												onChange={(e) => field.handleChange(Number(e.target.value))}
+												className="w-full"
+											/>
+											<div className="flex justify-between text-xs text-muted-foreground">
+												<span>Conservative (0.0)</span>
+												<span>Balanced (0.3)</span>
+												<span>Creative (1.0)</span>
+											</div>
+											<p className="text-xs text-muted-foreground">
+												Controls AI creativity. Lower = more deterministic, higher = more varied
+												analysis.
+											</p>
+										</div>
+									)}
+								</form.Field>
+
+								<form.Field name="llmMaxTokens">
+									{(field) => (
+										<div className="space-y-2">
+											<Label htmlFor="llmMaxTokens">
+												Max Response Length ({field.state.value} tokens)
+											</Label>
+											<Input
+												id="llmMaxTokens"
+												type="range"
+												min={200}
+												max={4000}
+												step={100}
+												value={field.state.value}
+												onChange={(e) => field.handleChange(Number(e.target.value))}
+												className="w-full"
+											/>
+											<div className="flex justify-between text-xs text-muted-foreground">
+												<span>Concise (200)</span>
+												<span>Standard (1000)</span>
+												<span>Detailed (4000)</span>
+											</div>
+											<p className="text-xs text-muted-foreground">
+												Maximum AI response length. Higher values allow more detailed analysis but
+												cost more tokens.
+											</p>
+										</div>
+									)}
+								</form.Field>
+							</div>
+
+							{/* Display */}
+							<div className="space-y-4">
+								<h4 className="text-sm font-medium text-foreground">Display</h4>
+
+								<form.Field name="scoreWindows">
+									{(field) => (
+										<div className="space-y-2">
+											<Label>Performance Windows (days)</Label>
+											<ScoreWindowsEditor value={field.state.value} onChange={field.handleChange} />
+											<p className="text-xs text-muted-foreground">
+												Time periods shown in the performance dashboard. 1-5 windows, each 7-365
+												days.
+											</p>
+										</div>
+									)}
+								</form.Field>
+
+								<form.Field
+									name="confidenceDisplayHigh"
+									validators={{
+										onChange: ({ value, fieldApi }) => {
+											const med = fieldApi.form.getFieldValue('confidenceDisplayMed');
+											if (value <= med) return 'Must be greater than medium threshold';
+											return undefined;
+										},
+									}}
+								>
+									{(field) => (
+										<div className="space-y-2">
+											<Label htmlFor="confidenceDisplayHigh">
+												High Confidence Threshold ({(field.state.value * 100).toFixed(0)}%)
+											</Label>
+											<Input
+												id="confidenceDisplayHigh"
+												type="range"
+												min={0.5}
+												max={1.0}
+												step={0.05}
+												value={field.state.value}
+												onChange={(e) => field.handleChange(Number(e.target.value))}
+												className="w-full"
+											/>
+											<p className="text-xs text-muted-foreground">
+												Confidence at or above this value is shown in green.
+											</p>
+											{field.state.meta.errors.length > 0 && (
+												<p className="text-xs text-destructive">{field.state.meta.errors[0]}</p>
+											)}
+										</div>
+									)}
+								</form.Field>
+
+								<form.Field
+									name="confidenceDisplayMed"
+									validators={{
+										onChange: ({ value, fieldApi }) => {
+											const high = fieldApi.form.getFieldValue('confidenceDisplayHigh');
+											if (value >= high) return 'Must be less than high threshold';
+											return undefined;
+										},
+									}}
+								>
+									{(field) => (
+										<div className="space-y-2">
+											<Label htmlFor="confidenceDisplayMed">
+												Medium Confidence Threshold ({(field.state.value * 100).toFixed(0)}%)
+											</Label>
+											<Input
+												id="confidenceDisplayMed"
+												type="range"
+												min={0.1}
+												max={0.7}
+												step={0.05}
+												value={field.state.value}
+												onChange={(e) => field.handleChange(Number(e.target.value))}
+												className="w-full"
+											/>
+											<p className="text-xs text-muted-foreground">
+												Confidence at or above this (but below high) is shown in yellow. Below this
+												is red.
+											</p>
+											{field.state.meta.errors.length > 0 && (
+												<p className="text-xs text-destructive">{field.state.meta.errors[0]}</p>
+											)}
+										</div>
+									)}
+								</form.Field>
+
+								<ConfidencePreview
+									high={form.getFieldValue('confidenceDisplayHigh')}
+									med={form.getFieldValue('confidenceDisplayMed')}
+								/>
+							</div>
+						</CardContent>
+					</CollapsibleContent>
+				</Card>
+			</Collapsible>
 
 			<form.Subscribe selector={(s) => s.canSubmit}>
 				{(canSubmit) => (

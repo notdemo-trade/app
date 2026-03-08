@@ -1,8 +1,5 @@
-import type {
-	PersonaScore,
-	ProposalOutcome,
-	ScoreWindow,
-} from '@repo/data-ops/agents/memory/types';
+import type { PersonaScore, ProposalOutcome } from '@repo/data-ops/agents/memory/types';
+import { useQuery } from '@tanstack/react-query';
 import { createFileRoute } from '@tanstack/react-router';
 import { RefreshCw } from 'lucide-react';
 import { useState } from 'react';
@@ -14,6 +11,7 @@ import { PatternHighlights } from '@/components/performance/pattern-highlights';
 import { PersonaScoreCard } from '@/components/performance/persona-score-card';
 import { WindowSelector } from '@/components/performance/window-selector';
 import { Button } from '@/components/ui/button';
+import { getUserTradingConfig } from '@/core/functions/trading-config/direct';
 import { useOutcomes, usePatterns, useScores, useSnapshots } from '@/lib/performance-queries';
 
 export const Route = createFileRoute('/_auth/performance/')({
@@ -24,8 +22,14 @@ const MIN_OUTCOMES_FOR_DISPLAY = 5;
 
 function PerformancePage() {
 	const t = useTranslations('performance');
-	const [windowDays, setWindowDays] = useState<ScoreWindow>(30);
+	const [windowDays, setWindowDays] = useState<number>(30);
 	const [_selectedOutcome, setSelectedOutcome] = useState<ProposalOutcome | null>(null);
+
+	const { data: tradingConfig } = useQuery({
+		queryKey: ['trading-config'],
+		queryFn: () => getUserTradingConfig(),
+	});
+	const userWindows = (tradingConfig?.scoreWindows as number[]) ?? [30, 90, 180];
 
 	const scores = useScores(windowDays);
 	const resolvedOutcomes = useOutcomes('resolved');
@@ -53,7 +57,7 @@ function PerformancePage() {
 					<p className="text-sm text-muted-foreground">{t('description')}</p>
 				</div>
 				<div className="flex items-center gap-3">
-					<WindowSelector value={windowDays} onChange={setWindowDays} />
+					<WindowSelector value={windowDays} onChange={setWindowDays} windows={userWindows} />
 					<Button
 						variant="outline"
 						size="icon"

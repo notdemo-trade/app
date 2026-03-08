@@ -425,6 +425,11 @@ export class SessionAgent extends AIChatAgent<Env, SessionState> {
 			strategy,
 			config: debateConfig,
 			onMessage,
+			llmPrefs: {
+				temperature: config.llmTemperature,
+				maxTokens: config.llmMaxTokens,
+			},
+			scoreWindows: config.scoreWindows,
 		})) as RunDebateResult;
 
 		const consensus = result.consensus;
@@ -453,6 +458,12 @@ export class SessionAgent extends AIChatAgent<Env, SessionState> {
 			strategyId: config.activeStrategyId,
 			strategy,
 			onMessage,
+			llmPrefs: {
+				temperature: config.llmTemperature,
+				maxTokens: config.llmMaxTokens,
+			},
+			proposalTimeoutSec: config.proposalTimeoutSec,
+			scoreWindows: config.scoreWindows,
 		})) as RunPipelineResult;
 
 		if (result.proposal) {

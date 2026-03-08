@@ -1,4 +1,14 @@
-import { boolean, index, integer, pgTable, real, text, timestamp, uuid } from 'drizzle-orm/pg-core';
+import {
+	boolean,
+	index,
+	integer,
+	jsonb,
+	pgTable,
+	real,
+	text,
+	timestamp,
+	uuid,
+} from 'drizzle-orm/pg-core';
 import { auth_user } from '../drizzle/auth-schema';
 
 export const user_trading_config = pgTable(
@@ -36,6 +46,14 @@ export const user_trading_config = pgTable(
 		// Symbol restrictions
 		tickerBlacklist: text('ticker_blacklist').array().default([]),
 		tickerAllowlist: text('ticker_allowlist').array(),
+
+		// Phase 23: Extended settings
+		proposalTimeoutSec: integer('proposal_timeout_sec').notNull().default(900),
+		llmTemperature: real('llm_temperature').notNull().default(0.3),
+		llmMaxTokens: integer('llm_max_tokens').notNull().default(1000),
+		scoreWindows: jsonb('score_windows').notNull().default([30, 90, 180]),
+		confidenceDisplayHigh: real('confidence_display_high').notNull().default(0.7),
+		confidenceDisplayMed: real('confidence_display_med').notNull().default(0.4),
 
 		createdAt: timestamp('created_at').defaultNow().notNull(),
 		updatedAt: timestamp('updated_at')

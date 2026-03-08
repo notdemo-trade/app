@@ -81,9 +81,18 @@ interface TradeProposalCardProps {
 	proposal: TradeProposal;
 	onApprove?: () => void;
 	onReject?: () => void;
+	confidenceThresholds?: {
+		high: number;
+		med: number;
+	};
 }
 
-export function TradeProposalCard({ proposal, onApprove, onReject }: TradeProposalCardProps) {
+export function TradeProposalCard({
+	proposal,
+	onApprove,
+	onReject,
+	confidenceThresholds,
+}: TradeProposalCardProps) {
 	const t = useTranslations();
 	const timeLeft = useCountdown(proposal.expiresAt);
 	const isPending = proposal.status === 'pending';
@@ -114,9 +123,9 @@ export function TradeProposalCard({ proposal, onApprove, onReject }: TradePropos
 					<div className="flex items-center gap-1">
 						<Badge
 							variant={
-								proposal.confidence >= 0.7
+								proposal.confidence >= (confidenceThresholds?.high ?? 0.7)
 									? 'success'
-									: proposal.confidence >= 0.4
+									: proposal.confidence >= (confidenceThresholds?.med ?? 0.4)
 										? 'warning'
 										: 'destructive'
 							}

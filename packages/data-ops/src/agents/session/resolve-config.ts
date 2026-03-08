@@ -96,6 +96,14 @@ export function resolveEffectiveConfig(sources: ConfigSources): EffectiveConfig 
 		tickerBlacklist,
 		tickerAllowlist,
 
+		// Phase 23: Extended settings (PG trading config takes priority over session config)
+		proposalTimeoutSec: tradingConfig?.proposalTimeoutSec ?? sessionConfig.proposalTimeoutSec,
+		llmTemperature: (tradingConfig?.llmTemperature as number) ?? 0.3,
+		llmMaxTokens: (tradingConfig?.llmMaxTokens as number) ?? 1000,
+		scoreWindows: (tradingConfig?.scoreWindows as number[]) ?? [30, 90, 180],
+		confidenceDisplayHigh: (tradingConfig?.confidenceDisplayHigh as number) ?? 0.7,
+		confidenceDisplayMed: (tradingConfig?.confidenceDisplayMed as number) ?? 0.4,
+
 		// Session-specific (pass through)
 		orchestrationMode: sessionConfig.orchestrationMode,
 		brokerType: sessionConfig.brokerType,
@@ -104,7 +112,6 @@ export function resolveEffectiveConfig(sources: ConfigSources): EffectiveConfig 
 		minConfidenceThreshold: sessionConfig.minConfidenceThreshold,
 		activeStrategyId: sessionConfig.activeStrategyId,
 		debateRounds: sessionConfig.debateRounds,
-		proposalTimeoutSec: sessionConfig.proposalTimeoutSec,
 
 		_sources,
 	};

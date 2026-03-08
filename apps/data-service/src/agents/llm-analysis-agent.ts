@@ -37,6 +37,7 @@ import {
 	RISK_VALIDATION_PROMPT,
 	TRADE_RECOMMENDATION_PROMPT,
 } from '@repo/data-ops/providers/llm';
+import { resolveTaskLLMParams } from '@repo/data-ops/trading-config';
 import { Agent, callable } from 'agents';
 
 const LLM_PROVIDERS: LLMProviderName[] = [
@@ -86,7 +87,10 @@ export class LLMAnalysisAgent extends Agent<Env, LLMAgentState> {
 	}
 
 	@callable()
-	async analyze(request: AnalysisRequest): Promise<LLMAnalysisResult> {
+	async analyze(
+		request: AnalysisRequest,
+		llmPrefs?: { temperature: number; maxTokens: number },
+	): Promise<LLMAnalysisResult> {
 		const userId = this.name;
 		const config = await this.resolveProviderConfig(userId);
 		const llm = createLLMProvider(config);
@@ -104,13 +108,17 @@ export class LLMAnalysisAgent extends Agent<Env, LLMAgentState> {
 
 		const totalUsage = { prompt_tokens: 0, completion_tokens: 0, total_tokens: 0 };
 
+		const { temperature: recTemp, maxTokens: recMaxTokens } = llmPrefs
+			? resolveTaskLLMParams(llmPrefs.temperature, llmPrefs.maxTokens, 'trade_recommendation')
+			: { temperature: 0.3, maxTokens: 800 };
+
 		const recResult = await llm.complete({
 			messages: [
 				{ role: 'system', content: `You are a trading analyst. ${strategyContext}` },
 				{ role: 'user', content: TRADE_RECOMMENDATION_PROMPT + contextStr },
 			],
-			temperature: 0.3,
-			max_tokens: 800,
+			temperature: recTemp,
+			max_tokens: recMaxTokens,
 			response_format: { type: 'json_object' },
 		});
 
@@ -122,6 +130,10 @@ export class LLMAnalysisAgent extends Agent<Env, LLMAgentState> {
 
 		let research: string | undefined;
 		if (request.includeResearch) {
+			const { temperature: resTemp, maxTokens: resMaxTokens } = llmPrefs
+				? resolveTaskLLMParams(llmPrefs.temperature, llmPrefs.maxTokens, 'research_report')
+				: { temperature: 0.5, maxTokens: 2000 };
+
 			const resResult = await llm.complete({
 				messages: [
 					{ role: 'system', content: RESEARCH_REPORT_PROMPT },
@@ -130,8 +142,8 @@ export class LLMAnalysisAgent extends Agent<Env, LLMAgentState> {
 						content: `Research report for ${request.symbol}.\n\nContext:\n${contextStr}`,
 					},
 				],
-				temperature: 0.5,
-				max_tokens: 2000,
+				temperature: resTemp,
+				max_tokens: resMaxTokens,
 			});
 			research = resResult.content;
 			totalUsage.prompt_tokens += resResult.usage.prompt_tokens;
@@ -178,9 +190,16 @@ export class LLMAnalysisAgent extends Agent<Env, LLMAgentState> {
 	}
 
 	@callable()
-	async classifyEvent(rawContent: string): Promise<ClassifyEventResult> {
+	async classifyEvent(
+		rawContent: string,
+		llmPrefs?: { temperature: number; maxTokens: number },
+	): Promise<ClassifyEventResult> {
 		const config = await this.resolveProviderConfig(this.name);
 		const llm = createLLMProvider(config);
+
+		const { temperature: evtTemp, maxTokens: evtMaxTokens } = llmPrefs
+			? resolveTaskLLMParams(llmPrefs.temperature, llmPrefs.maxTokens, 'event_classification')
+			: { temperature: 0.3, maxTokens: 500 };
 
 		const result = await llm.complete({
 			messages: [
@@ -190,8 +209,8 @@ export class LLMAnalysisAgent extends Agent<Env, LLMAgentState> {
 					content: EVENT_CLASSIFICATION_PROMPT + rawContent.slice(0, 4000),
 				},
 			],
-			temperature: 0.3,
-			max_tokens: 500,
+			temperature: evtTemp,
+			max_tokens: evtMaxTokens,
 			response_format: { type: 'json_object' },
 		});
 
@@ -208,9 +227,14 @@ export class LLMAnalysisAgent extends Agent<Env, LLMAgentState> {
 	async generateReport(
 		symbol: string,
 		context: Record<string, unknown>,
+		llmPrefs?: { temperature: number; maxTokens: number },
 	): Promise<GenerateReportResult> {
 		const config = await this.resolveProviderConfig(this.name);
 		const llm = createLLMProvider(config);
+
+		const { temperature: repTemp, maxTokens: repMaxTokens } = llmPrefs
+			? resolveTaskLLMParams(llmPrefs.temperature, llmPrefs.maxTokens, 'report_generation')
+			: { temperature: 0.5, maxTokens: 2000 };
 
 		const result = await llm.complete({
 			messages: [
@@ -220,8 +244,8 @@ export class LLMAnalysisAgent extends Agent<Env, LLMAgentState> {
 					content: `Research report for ${symbol}.\n\n${JSON.stringify(context, null, 2)}`,
 				},
 			],
-			temperature: 0.5,
-			max_tokens: 2000,
+			temperature: repTemp,
+			max_tokens: repMaxTokens,
 		});
 
 		return { report: result.content };
@@ -246,6 +270,7 @@ export class LLMAnalysisAgent extends Agent<Env, LLMAgentState> {
 		data: AnalyzeAsPersonaData,
 		strategy: StrategyTemplate,
 		performanceContext?: PerformanceContext,
+		llmPrefs?: { temperature: number; maxTokens: number },
 	): Promise<PersonaAnalysis> {
 		const config = await this.resolveProviderConfig(this.name);
 		const llm = createLLMProvider(config);
@@ -272,10 +297,14 @@ export class LLMAnalysisAgent extends Agent<Env, LLMAgentState> {
 			},
 		];
 
+		const { temperature: perTemp, maxTokens: perMaxTokens } = llmPrefs
+			? resolveTaskLLMParams(llmPrefs.temperature, llmPrefs.maxTokens, 'persona_analysis')
+			: { temperature: 0.4, maxTokens: 800 };
+
 		const result = await llm.complete({
 			messages,
-			temperature: 0.4,
-			max_tokens: 800,
+			temperature: perTemp,
+			max_tokens: perMaxTokens,
 			response_format: { type: 'json_object' },
 		});
 
@@ -290,9 +319,12 @@ export class LLMAnalysisAgent extends Agent<Env, LLMAgentState> {
 		session: { analyses: PersonaAnalysis[]; previousRounds: DebateRound[] },
 		roundNumber: number,
 		personas: PersonaConfig[],
+		llmPrefs?: { temperature: number; maxTokens: number },
 	): Promise<DebateRound> {
 		const responses = await Promise.all(
-			personas.map((persona) => this.generateDebateResponse(persona, session, roundNumber)),
+			personas.map((persona) =>
+				this.generateDebateResponse(persona, session, roundNumber, llmPrefs),
+			),
 		);
 
 		return { roundNumber, responses };
@@ -304,6 +336,7 @@ export class LLMAnalysisAgent extends Agent<Env, LLMAgentState> {
 		debateRounds: DebateRound[],
 		moderatorPrompt: string,
 		personaComparison?: PersonaComparisonRow[],
+		llmPrefs?: { temperature: number; maxTokens: number },
 	): Promise<ConsensusResult> {
 		const config = await this.resolveProviderConfig(this.name);
 		const llm = createLLMProvider(config);
@@ -320,10 +353,14 @@ export class LLMAnalysisAgent extends Agent<Env, LLMAgentState> {
 			{ role: 'user', content: `${CONSENSUS_SYNTHESIS_PROMPT}${transcript}` },
 		];
 
+		const { temperature: conTemp, maxTokens: conMaxTokens } = llmPrefs
+			? resolveTaskLLMParams(llmPrefs.temperature, llmPrefs.maxTokens, 'consensus_synthesis')
+			: { temperature: 0.3, maxTokens: 1000 };
+
 		const result = await llm.complete({
 			messages,
-			temperature: 0.3,
-			max_tokens: 1000,
+			temperature: conTemp,
+			max_tokens: conMaxTokens,
 			response_format: { type: 'json_object' },
 		});
 
@@ -336,6 +373,7 @@ export class LLMAnalysisAgent extends Agent<Env, LLMAgentState> {
 		symbol: string,
 		recommendation: TradeRecommendation,
 		portfolio: { positions: BrokerPosition[]; account: BrokerAccount },
+		llmPrefs?: { temperature: number; maxTokens: number },
 	): Promise<RiskValidation> {
 		const config = await this.resolveProviderConfig(this.name);
 		const llm = createLLMProvider(config);
@@ -375,10 +413,14 @@ export class LLMAnalysisAgent extends Agent<Env, LLMAgentState> {
 			{ role: 'user', content: contextStr },
 		];
 
+		const { temperature: riskTemp, maxTokens: riskMaxTokens } = llmPrefs
+			? resolveTaskLLMParams(llmPrefs.temperature, llmPrefs.maxTokens, 'risk_validation')
+			: { temperature: 0.2, maxTokens: 600 };
+
 		const result = await llm.complete({
 			messages,
-			temperature: 0.2,
-			max_tokens: 600,
+			temperature: riskTemp,
+			max_tokens: riskMaxTokens,
 			response_format: { type: 'json_object' },
 		});
 
@@ -390,6 +432,7 @@ export class LLMAnalysisAgent extends Agent<Env, LLMAgentState> {
 		persona: PersonaConfig,
 		session: { analyses: PersonaAnalysis[]; previousRounds: DebateRound[] },
 		roundNumber: number,
+		llmPrefs?: { temperature: number; maxTokens: number },
 	): Promise<PersonaResponse> {
 		const config = await this.resolveProviderConfig(this.name);
 		const llm = createLLMProvider(config);
@@ -411,10 +454,14 @@ export class LLMAnalysisAgent extends Agent<Env, LLMAgentState> {
 			{ role: 'user', content: `${DEBATE_ROUND_PROMPT}${contextStr}` },
 		];
 
+		const { temperature: debTemp, maxTokens: debMaxTokens } = llmPrefs
+			? resolveTaskLLMParams(llmPrefs.temperature, llmPrefs.maxTokens, 'debate_response')
+			: { temperature: 0.5, maxTokens: 600 };
+
 		const result = await llm.complete({
 			messages,
-			temperature: 0.5,
-			max_tokens: 600,
+			temperature: debTemp,
+			max_tokens: debMaxTokens,
 			response_format: { type: 'json_object' },
 		});
 

@@ -1,18 +1,18 @@
-import type { ScoreWindow } from '@repo/data-ops/agents/memory/types';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 
 interface WindowSelectorProps {
-	value: ScoreWindow;
-	onChange: (window: ScoreWindow) => void;
+	value: number;
+	onChange: (window: number) => void;
+	windows?: number[];
 }
 
-const WINDOWS: ScoreWindow[] = [30, 90, 180];
+export function WindowSelector({ value, onChange, windows }: WindowSelectorProps) {
+	const displayWindows = windows ?? [30, 90, 180];
 
-export function WindowSelector({ value, onChange }: WindowSelectorProps) {
 	return (
 		<div className="flex gap-1 rounded-lg border border-border bg-muted p-1">
-			{WINDOWS.map((w) => (
+			{displayWindows.map((w) => (
 				<Button
 					key={w}
 					variant="ghost"

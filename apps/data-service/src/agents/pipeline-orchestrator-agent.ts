@@ -25,6 +25,9 @@ export interface RunPipelineParams {
 	strategyId: string;
 	strategy: StrategyTemplate;
 	onMessage: (msg: Omit<DiscussionMessage, 'id' | 'threadId' | 'timestamp'>) => void;
+	llmPrefs?: { temperature: number; maxTokens: number };
+	proposalTimeoutSec?: number;
+	scoreWindows?: number[];
 }
 
 export interface RunPipelineResult {
@@ -303,17 +306,20 @@ export class PipelineOrchestratorAgent extends Agent<Env, PipelineOrchestratorSt
 				}
 
 				const llm = await getAgentByName<LLMAnalysisAgent>(this.env.LLMAnalysisAgent, userId);
-				const result = await llm.analyze({
-					symbol: params.symbol,
-					signals: ctx.signals.map((s: TechnicalSignal) => ({
-						type: s.type,
-						direction: s.direction,
-						strength: s.strength,
-						source: 'technical',
-					})),
-					technicals: ctx.indicators as unknown as Record<string, unknown>,
-					strategy: params.strategy,
-				});
+				const result = await llm.analyze(
+					{
+						symbol: params.symbol,
+						signals: ctx.signals.map((s: TechnicalSignal) => ({
+							type: s.type,
+							direction: s.direction,
+							strength: s.strength,
+							source: 'technical',
+						})),
+						technicals: ctx.indicators as unknown as Record<string, unknown>,
+						strategy: params.strategy,
+					},
+					params.llmPrefs,
+				);
 				ctx.recommendation = result.recommendation;
 
 				this.emitMessage(
@@ -336,10 +342,15 @@ export class PipelineOrchestratorAgent extends Agent<Env, PipelineOrchestratorSt
 					broker.getAccount(),
 				]);
 
-				ctx.riskValidation = await llm.validateRisk(ctx.symbol, ctx.recommendation, {
-					positions,
-					account,
-				});
+				ctx.riskValidation = await llm.validateRisk(
+					ctx.symbol,
+					ctx.recommendation,
+					{
+						positions,
+						account,
+					},
+					params.llmPrefs,
+				);
 
 				const status = ctx.riskValidation.approved ? 'approved' : 'rejected';
 				this.emitMessage(
@@ -394,8 +405,8 @@ export class PipelineOrchestratorAgent extends Agent<Env, PipelineOrchestratorSt
 		}
 	}
 
-	private recomputePipelineScores(strategyId: string): void {
-		const windows: ScoreWindow[] = [30, 90, 180];
+	private recomputePipelineScores(strategyId: string, scoreWindows?: number[]): void {
+		const windows = scoreWindows ?? [30, 90, 180];
 		const now = Date.now();
 
 		for (const windowDays of windows) {
@@ -469,7 +480,7 @@ export class PipelineOrchestratorAgent extends Agent<Env, PipelineOrchestratorSt
 			positionSizePct,
 			risks: rec.risks,
 			warnings: ctx.riskValidation?.warnings ?? [],
-			expiresAt: Date.now() + 900_000,
+			expiresAt: Date.now() + (params.proposalTimeoutSec ?? 900) * 1000,
 			status: 'pending',
 			createdAt: Date.now(),
 			decidedAt: null,

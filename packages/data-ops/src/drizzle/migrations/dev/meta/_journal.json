@@ -57,6 +57,13 @@
 			"when": 1772997128592,
 			"tag": "0007_glorious_newton_destine",
 			"breakpoints": true
+		},
+		{
+			"idx": 8,
+			"version": "7",
+			"when": 1772999809307,
+			"tag": "0008_yellow_wind_dancer",
+			"breakpoints": true
 		}
 	]
 }
