@@ -1,10 +1,12 @@
 import { createFileRoute } from '@tanstack/react-router';
 import { Bot, Play, RefreshCw, Send, Settings, User } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
+import { useTranslations } from 'use-intl';
 import { DiscussionThread, SessionSettings, TradeProposalCard } from '@/components/agents';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { InfoTip } from '@/components/ui/info-tip';
 import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Switch } from '@/components/ui/switch';
@@ -30,6 +32,7 @@ interface SessionDashboardProps {
 }
 
 function SessionDashboard({ userId }: SessionDashboardProps) {
+	const t = useTranslations();
 	const session = useSession(userId);
 	const feed = useDiscussionFeed(session.state);
 	const [showSettings, setShowSettings] = useState(false);
@@ -48,8 +51,11 @@ function SessionDashboard({ userId }: SessionDashboardProps) {
 			{/* Header */}
 			<div className="flex items-center justify-between">
 				<div>
-					<h1 className="text-2xl font-bold text-foreground">Session Agent</h1>
-					<p className="text-sm text-muted-foreground">AI-powered trade analysis and execution</p>
+					<div className="flex items-center gap-2">
+						<h1 className="text-2xl font-bold text-foreground">{t('session.title')}</h1>
+						<InfoTip content={t('session.tips.title')} side="right" />
+					</div>
+					<p className="text-sm text-muted-foreground">{t('session.subtitle')}</p>
 				</div>
 				<div className="flex items-center gap-3">
 					<Button
@@ -77,31 +83,40 @@ function SessionDashboard({ userId }: SessionDashboardProps) {
 							<Badge variant={isEnabled ? 'success' : 'secondary'}>
 								{isEnabled ? 'Running' : 'Stopped'}
 							</Badge>
+							<InfoTip content={t('session.tips.agentToggle')} side="bottom" />
 						</div>
 						<div className="hidden items-center gap-4 text-sm sm:flex">
-							<div className="text-muted-foreground">
+							<div className="flex items-center gap-1 text-muted-foreground">
 								Cycles: <span className="font-mono text-foreground">{cycleCount}</span>
+								<InfoTip content={t('session.tips.cycles')} side="bottom" />
 							</div>
-							<div className="text-muted-foreground">
+							<div className="flex items-center gap-1 text-muted-foreground">
 								Errors: <span className="font-mono text-foreground">{errorCount}</span>
+								<InfoTip content={t('session.tips.errors')} side="bottom" />
 							</div>
 							{pendingProposalCount > 0 && (
-								<Badge variant="warning">{pendingProposalCount} pending</Badge>
+								<div className="flex items-center gap-1">
+									<Badge variant="warning">{pendingProposalCount} pending</Badge>
+									<InfoTip content={t('session.tips.pending')} side="bottom" />
+								</div>
 							)}
 						</div>
 					</div>
-					<div className="flex gap-2">
+					<div className="flex items-center gap-2">
 						{isEnabled && (
-							<Button
-								variant="outline"
-								size="sm"
-								onClick={() =>
-									session.triggerAnalysis(session.state?.activeThread?.symbol ?? 'AAPL')
-								}
-							>
-								<RefreshCw className="h-4 w-4" />
-								Trigger
-							</Button>
+							<>
+								<Button
+									variant="outline"
+									size="sm"
+									onClick={() =>
+										session.triggerAnalysis(session.state?.activeThread?.symbol ?? 'AAPL')
+									}
+								>
+									<RefreshCw className="h-4 w-4" />
+									Trigger
+								</Button>
+								<InfoTip content={t('session.tips.trigger')} side="left" />
+							</>
 						)}
 					</div>
 				</CardContent>
@@ -125,9 +140,7 @@ function SessionDashboard({ userId }: SessionDashboardProps) {
 							<CardContent className="flex flex-col items-center justify-center py-12 text-center">
 								<Bot className="mb-3 h-10 w-10 text-muted-foreground" />
 								<h3 className="text-sm font-medium text-foreground">No active analysis</h3>
-								<p className="mt-1 text-xs text-muted-foreground">
-									Start the agent or trigger a manual analysis to begin.
-								</p>
+								<p className="mt-1 text-xs text-muted-foreground">{t('session.tips.noAnalysis')}</p>
 								{!isEnabled && (
 									<Button className="mt-4" size="sm" onClick={() => session.start()}>
 										<Play className="h-4 w-4" />
@@ -142,12 +155,15 @@ function SessionDashboard({ userId }: SessionDashboardProps) {
 					{session.messages.length > 0 && <ChatMessages session={session} />}
 
 					{/* Chat Input */}
-					<ChatInput session={session} />
+					<ChatInput session={session} tipText={t('session.tips.chat')} />
 				</div>
 
 				{/* Sidebar: Pending Proposals */}
 				<div className="space-y-3">
-					<h3 className="text-sm font-semibold text-muted-foreground">Pending Proposals</h3>
+					<div className="flex items-center gap-1">
+						<h3 className="text-sm font-semibold text-muted-foreground">Pending Proposals</h3>
+						<InfoTip content={t('session.tips.pendingProposals')} side="left" />
+					</div>
 					{pendingProposal ? (
 						<TradeProposalCard
 							proposal={pendingProposal}
@@ -166,7 +182,10 @@ function SessionDashboard({ userId }: SessionDashboardProps) {
 					{session.state?.lastError && (
 						<Card className="border-destructive/50">
 							<CardHeader className="pb-2">
-								<CardTitle className="text-sm text-destructive">Last Error</CardTitle>
+								<div className="flex items-center gap-1">
+									<CardTitle className="text-sm text-destructive">Last Error</CardTitle>
+									<InfoTip content={t('session.tips.lastError')} side="left" />
+								</div>
 							</CardHeader>
 							<CardContent>
 								<p className="text-xs text-muted-foreground">{session.state.lastError}</p>
@@ -230,14 +249,19 @@ function ChatMessages({ session }: { session: ReturnType<typeof useSession> }) {
 
 interface ChatInputProps {
 	session: ReturnType<typeof useSession>;
+	tipText: string;
 }
 
-function ChatInput({ session }: ChatInputProps) {
+function ChatInput({ session, tipText }: ChatInputProps) {
 	const [input, setInput] = useState('');
 
 	return (
 		<Card>
 			<CardContent className="py-3">
+				<div className="flex items-center gap-1 mb-2">
+					<span className="text-xs font-medium text-muted-foreground">Chat</span>
+					<InfoTip content={tipText} side="right" />
+				</div>
 				<form
 					onSubmit={(e) => {
 						e.preventDefault();

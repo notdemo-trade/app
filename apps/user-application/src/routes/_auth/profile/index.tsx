@@ -1,4 +1,5 @@
-import { createFileRoute } from '@tanstack/react-router';
+import { createFileRoute, Link } from '@tanstack/react-router';
+import { ArrowLeft } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { authClient } from '@/lib/auth-client';
@@ -18,8 +19,17 @@ function ProfilePage() {
 		: user.email?.charAt(0).toUpperCase() || 'U';
 
 	return (
-		<div className="max-w-2xl mx-auto">
-			<h1 className="text-2xl font-bold text-foreground mb-6">Profile</h1>
+		<div className="max-w-2xl mx-auto space-y-8">
+			<div>
+				<Link
+					to="/dashboard"
+					className="inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground mb-4"
+				>
+					<ArrowLeft className="h-4 w-4" />
+					Back to Dashboard
+				</Link>
+				<h1 className="text-2xl font-bold text-foreground">Profile</h1>
+			</div>
 			<Card>
 				<CardHeader>
 					<CardTitle>Account Details</CardTitle>

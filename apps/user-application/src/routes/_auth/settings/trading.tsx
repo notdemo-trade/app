@@ -1,16 +1,13 @@
-import type { CredentialProvider } from '@repo/data-ops/credential';
 import { useForm } from '@tanstack/react-form';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { createFileRoute } from '@tanstack/react-router';
-import { useMemo } from 'react';
+import { createFileRoute, Link } from '@tanstack/react-router';
+import { ArrowLeft } from 'lucide-react';
 import { Alert } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Select } from '@/components/ui/select';
 import { Switch } from '@/components/ui/switch';
-import { listUserCredentials } from '@/core/functions/credentials/direct';
 import {
 	getUserTradingConfig,
 	updateUserTradingConfig,
@@ -21,22 +18,6 @@ export const Route = createFileRoute('/_auth/settings/trading')({
 });
 
 const TRADING_CONFIG_QUERY_KEY = ['trading-config'] as const;
-const CREDENTIALS_QUERY_KEY = ['credentials'] as const;
-
-const PROVIDER_MODELS: Record<string, string[]> = {
-	openai: ['gpt-4o-mini', 'gpt-4o', 'o1', 'o1-mini'],
-	anthropic: [
-		'claude-3-7-sonnet-latest',
-		'claude-sonnet-4-0',
-		'claude-opus-4-1',
-		'claude-3-5-haiku-latest',
-	],
-	google: ['gemini-2.5-pro', 'gemini-2.5-flash', 'gemini-2.0-flash', 'gemini-3-pro-preview'],
-	xai: ['grok-4', 'grok-3', 'grok-4-fast-reasoning'],
-	deepseek: ['deepseek-chat', 'deepseek-reasoner'],
-};
-
-const LLM_PROVIDER_IDS: CredentialProvider[] = ['openai', 'anthropic', 'google', 'xai', 'deepseek'];
 
 function TradingConfigPage() {
 	const queryClient = useQueryClient();
@@ -45,24 +26,6 @@ function TradingConfigPage() {
 		queryKey: TRADING_CONFIG_QUERY_KEY,
 		queryFn: () => getUserTradingConfig(),
 	});
-
-	const credentialsQuery = useQuery({
-		queryKey: CREDENTIALS_QUERY_KEY,
-		queryFn: () => listUserCredentials(),
-	});
-
-	const availableModels = useMemo(() => {
-		const models: string[] = [];
-		credentialsQuery.data?.forEach((cred) => {
-			if (LLM_PROVIDER_IDS.includes(cred.provider as CredentialProvider)) {
-				const providerModels = PROVIDER_MODELS[cred.provider];
-				providerModels?.forEach((model) => {
-					models.push(`${cred.provider}/${model}`);
-				});
-			}
-		});
-		return models;
-	}, [credentialsQuery.data]);
 
 	const updateMutation = useMutation({
 		mutationFn: (value: Record<string, unknown>) => updateUserTradingConfig({ data: value }),
@@ -84,30 +47,30 @@ function TradingConfigPage() {
 	return (
 		<div className="max-w-2xl mx-auto space-y-8">
 			<div>
+				<Link
+					to="/dashboard"
+					className="inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground mb-4"
+				>
+					<ArrowLeft className="h-4 w-4" />
+					Back to Dashboard
+				</Link>
 				<h1 className="text-2xl font-bold text-foreground">Trading Configuration</h1>
 				<p className="text-muted-foreground text-sm mt-1">
-					Configure position limits, risk management, and AI model selection.
+					Configure position limits, risk management, and trading hours.
 				</p>
 			</div>
 
-			{config && (
-				<TradingConfigForm
-					config={config}
-					availableModels={availableModels}
-					updateMutation={updateMutation}
-				/>
-			)}
+			{config && <TradingConfigForm config={config} updateMutation={updateMutation} />}
 		</div>
 	);
 }
 
 interface TradingConfigFormProps {
 	config: Record<string, unknown>;
-	availableModels: string[];
 	updateMutation: ReturnType<typeof useMutation<unknown, Error, Record<string, unknown>>>;
 }
 
-function TradingConfigForm({ config, availableModels, updateMutation }: TradingConfigFormProps) {
+function TradingConfigForm({ config, updateMutation }: TradingConfigFormProps) {
 	const form = useForm({
 		defaultValues: {
 			maxPositions: (config.maxPositions as number) ?? 10,
@@ -118,8 +81,6 @@ function TradingConfigForm({ config, availableModels, updateMutation }: TradingC
 			maxDailyLossPct: (config.maxDailyLossPct as number) ?? 0.02,
 			positionSizePctOfCash: (config.positionSizePctOfCash as number) ?? 0.1,
 			cooldownMinutesAfterLoss: (config.cooldownMinutesAfterLoss as number) ?? 30,
-			researchModel: (config.researchModel as string) ?? 'openai/gpt-4o-mini',
-			analystModel: (config.analystModel as string) ?? 'openai/gpt-4o',
 			tradingHoursOnly: (config.tradingHoursOnly as boolean) ?? true,
 			extendedHoursAllowed: (config.extendedHoursAllowed as boolean) ?? false,
 			allowShortSelling: (config.allowShortSelling as boolean) ?? false,
@@ -303,67 +264,6 @@ function TradingConfigForm({ config, availableModels, updateMutation }: TradingC
 									value={field.state.value}
 									onChange={(e) => field.handleChange(Number(e.target.value))}
 								/>
-							</div>
-						)}
-					</form.Field>
-				</CardContent>
-			</Card>
-
-			<Card>
-				<CardHeader>
-					<CardTitle>AI Models</CardTitle>
-					<CardDescription>
-						Select models for research and trading decisions. Add provider API keys in the
-						Credentials tab first.
-					</CardDescription>
-				</CardHeader>
-				<CardContent className="space-y-4">
-					<form.Field name="researchModel">
-						{(field) => (
-							<div className="space-y-2">
-								<Label htmlFor="researchModel">Research Model</Label>
-								<Select
-									id="researchModel"
-									value={field.state.value}
-									onChange={(e) => field.handleChange(e.target.value)}
-								>
-									{availableModels.length === 0 ? (
-										<option value={field.state.value}>{field.state.value}</option>
-									) : (
-										availableModels.map((model) => (
-											<option key={model} value={model}>
-												{model}
-											</option>
-										))
-									)}
-								</Select>
-								<p className="text-xs text-muted-foreground">
-									Used for market research and sentiment analysis
-								</p>
-							</div>
-						)}
-					</form.Field>
-
-					<form.Field name="analystModel">
-						{(field) => (
-							<div className="space-y-2">
-								<Label htmlFor="analystModel">Analyst Model</Label>
-								<Select
-									id="analystModel"
-									value={field.state.value}
-									onChange={(e) => field.handleChange(e.target.value)}
-								>
-									{availableModels.length === 0 ? (
-										<option value={field.state.value}>{field.state.value}</option>
-									) : (
-										availableModels.map((model) => (
-											<option key={model} value={model}>
-												{model}
-											</option>
-										))
-									)}
-								</Select>
-								<p className="text-xs text-muted-foreground">Used for trade decisions</p>
 							</div>
 						)}
 					</form.Field>

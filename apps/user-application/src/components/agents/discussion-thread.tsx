@@ -1,7 +1,9 @@
 import type { DiscussionThread as DiscussionThreadType } from '@repo/data-ops/agents/session/types';
 import { Clock, MessageSquare } from 'lucide-react';
+import { useTranslations } from 'use-intl';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { InfoTip } from '@/components/ui/info-tip';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { cn } from '@/lib/utils';
 import { DiscussionMessage } from './discussion-message';
@@ -43,6 +45,7 @@ export function DiscussionThread({
 	onApproveProposal,
 	onRejectProposal,
 }: DiscussionThreadProps) {
+	const t = useTranslations();
 	const statusConfig = STATUS_CONFIG[thread.status];
 
 	return (
@@ -55,6 +58,7 @@ export function DiscussionThread({
 						<Badge variant="outline" className="text-xs">
 							{thread.orchestrationMode === 'debate' ? 'Debate' : 'Pipeline'}
 						</Badge>
+						<InfoTip content={t('session.tips.discussionFeed')} side="right" />
 					</div>
 					<Badge variant={statusConfig.variant}>{statusConfig.label}</Badge>
 				</div>

@@ -10,6 +10,7 @@ import { IntlProvider } from 'use-intl';
 import { DefaultCatchBoundary } from '@/components/default-catch-boundary';
 import { NotFound } from '@/components/not-found';
 import { ThemeProvider } from '@/components/theme';
+import { TooltipProvider } from '@/components/ui/tooltip';
 import type { Locale } from '@/i18n/core/shared';
 import { getCurrentLocale } from '@/i18n/get-locale';
 import { messagesQueryOptions } from '@/i18n/messages';
@@ -98,7 +99,9 @@ function RootComponent() {
 					enableSystem
 					disableTransitionOnChange={false}
 				>
-					<Outlet />
+					<TooltipProvider>
+						<Outlet />
+					</TooltipProvider>
 				</ThemeProvider>
 			</IntlProvider>
 		</RootDocument>

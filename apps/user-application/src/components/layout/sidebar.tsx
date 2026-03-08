@@ -1,6 +1,7 @@
 import { useNavigate, useRouterState } from '@tanstack/react-router';
 import {
 	Bot,
+	BrainCircuit,
 	ChartCandlestick,
 	Coins,
 	Home,
@@ -70,6 +71,11 @@ const navigationGroups: NavigationGroup[] = [
 				nameKey: 'sidebar.trading',
 				icon: Coins,
 				href: '/settings/trading',
+			},
+			{
+				nameKey: 'sidebar.models',
+				icon: BrainCircuit,
+				href: '/settings/models',
 			},
 			{
 				nameKey: 'sidebar.profile',

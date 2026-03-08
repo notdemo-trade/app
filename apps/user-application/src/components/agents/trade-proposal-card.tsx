@@ -1,9 +1,11 @@
 import type { TradeProposal } from '@repo/data-ops/agents/session/types';
 import { AlertTriangle, ArrowDown, ArrowUp, Check, Clock, X } from 'lucide-react';
 import { useEffect, useState } from 'react';
+import { useTranslations } from 'use-intl';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardFooter, CardHeader } from '@/components/ui/card';
+import { InfoTip } from '@/components/ui/info-tip';
 import { cn } from '@/lib/utils';
 
 function formatCurrency(value: number): string {
@@ -60,12 +62,16 @@ const PROPOSAL_STATUS_CONFIG: Record<
 interface StatProps {
 	label: string;
 	value: string;
+	tip?: string;
 }
 
-function Stat({ label, value }: StatProps) {
+function Stat({ label, value, tip }: StatProps) {
 	return (
 		<div>
-			<div className="text-xs text-muted-foreground">{label}</div>
+			<div className="flex items-center gap-1 text-xs text-muted-foreground">
+				{label}
+				{tip && <InfoTip content={tip} side="top" />}
+			</div>
 			<div className="font-mono text-sm text-foreground">{value}</div>
 		</div>
 	);
@@ -78,6 +84,7 @@ interface TradeProposalCardProps {
 }
 
 export function TradeProposalCard({ proposal, onApprove, onReject }: TradeProposalCardProps) {
+	const t = useTranslations();
 	const timeLeft = useCountdown(proposal.expiresAt);
 	const isPending = proposal.status === 'pending';
 	const isBuy = proposal.action === 'buy';
@@ -104,17 +111,20 @@ export function TradeProposalCard({ proposal, onApprove, onReject }: TradePropos
 						</Badge>
 						<span className="text-lg font-bold text-foreground">{proposal.symbol}</span>
 					</div>
-					<Badge
-						variant={
-							proposal.confidence >= 0.7
-								? 'success'
-								: proposal.confidence >= 0.4
-									? 'warning'
-									: 'destructive'
-						}
-					>
-						{(proposal.confidence * 100).toFixed(0)}%
-					</Badge>
+					<div className="flex items-center gap-1">
+						<Badge
+							variant={
+								proposal.confidence >= 0.7
+									? 'success'
+									: proposal.confidence >= 0.4
+										? 'warning'
+										: 'destructive'
+							}
+						>
+							{(proposal.confidence * 100).toFixed(0)}%
+						</Badge>
+						<InfoTip content={t('session.tips.confidence')} side="left" />
+					</div>
 				</div>
 			</CardHeader>
 
@@ -123,18 +133,40 @@ export function TradeProposalCard({ proposal, onApprove, onReject }: TradePropos
 
 				<div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
 					{proposal.entryPrice !== null && (
-						<Stat label="Entry" value={formatCurrency(proposal.entryPrice)} />
+						<Stat
+							label="Entry"
+							value={formatCurrency(proposal.entryPrice)}
+							tip={t('session.tips.entry')}
+						/>
 					)}
 					{proposal.targetPrice !== null && (
-						<Stat label="Target" value={formatCurrency(proposal.targetPrice)} />
+						<Stat
+							label="Target"
+							value={formatCurrency(proposal.targetPrice)}
+							tip={t('session.tips.target')}
+						/>
 					)}
 					{proposal.stopLoss !== null && (
-						<Stat label="Stop Loss" value={formatCurrency(proposal.stopLoss)} />
+						<Stat
+							label="Stop Loss"
+							value={formatCurrency(proposal.stopLoss)}
+							tip={t('session.tips.stopLoss')}
+						/>
 					)}
-					<Stat label="Size" value={`${(proposal.positionSizePct * 100).toFixed(1)}%`} />
-					{proposal.qty !== null && <Stat label="Qty" value={String(proposal.qty)} />}
+					<Stat
+						label="Size"
+						value={`${(proposal.positionSizePct * 100).toFixed(1)}%`}
+						tip={t('session.tips.size')}
+					/>
+					{proposal.qty !== null && (
+						<Stat label="Qty" value={String(proposal.qty)} tip={t('session.tips.qty')} />
+					)}
 					{proposal.notional !== null && (
-						<Stat label="Notional" value={formatCurrency(proposal.notional)} />
+						<Stat
+							label="Notional"
+							value={formatCurrency(proposal.notional)}
+							tip={t('session.tips.notional')}
+						/>
 					)}
 				</div>
 

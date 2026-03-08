@@ -126,6 +126,41 @@
 	"header": {
 		"search": "Szukaj..."
 	},
+	"session": {
+		"title": "Agent Sesji",
+		"subtitle": "Analiza handlowa i realizacja oparta na AI",
+		"tips": {
+			"title": "Twoja sesja handlowa AI. Skonfiguruj ustawienia, uruchom agenta i przeglądaj propozycje transakcji generowane przez analizę AI.",
+			"agentToggle": "Włącz agenta, aby rozpocząć automatyczne cykle analizy. Gdy wyłączony, analiza nie jest uruchamiana.",
+			"cycles": "Liczba zakończonych cykli analizy od uruchomienia agenta. Każdy cykl analizuje symbole z listy obserwowanych.",
+			"errors": "Liczba błędów napotkanych podczas cykli analizy. Sprawdź 'Ostatni błąd' po szczegóły.",
+			"pending": "Propozycje transakcji oczekujące na Twoją decyzję. Każda musi być zatwierdzona lub odrzucona przed realizacją.",
+			"trigger": "Ręcznie uruchom cykl analizy teraz zamiast czekać na następny zaplanowany.",
+			"noAnalysis": "Żadna analiza nie została jeszcze uruchomiona. Uruchom agenta lub kliknij 'Trigger'.",
+			"pendingProposals": "Propozycje transakcji wygenerowane przez analizę AI. Przejrzyj uzasadnienie, poziom pewności i ryzyko przed zatwierdzeniem.",
+			"lastError": "Ostatni błąd z cyklu analizy. Częste przyczyny: nieprawidłowe klucze API, limity zapytań lub problemy z siecią.",
+			"chat": "Rozmawiaj bezpośrednio z agentem AI. Poproś o analizę konkretnych symboli, sprawdzenie pozycji lub wyjaśnienie rozumowania.",
+			"orchestrationMode": "Sposób analizy AI. Debata: wiele person AI argumentuje za/przeciw. Pipeline: liniowa analiza krok po kroku.",
+			"llmProvider": "Który dostawca AI do analizy. Workers AI jest darmowy i nie wymaga klucza API.",
+			"llmModel": "Konkretny model wybranego dostawcy. Pozostaw puste, aby użyć domyślnego modelu dostawcy.",
+			"watchlist": "Symbole monitorowane i analizowane przez agenta. Rozdzielone przecinkami, np. AAPL, TSLA, MSFT.",
+			"broker": "Który broker realizuje zatwierdzone transakcje. Alpaca łączy się z Twoim kontem rzeczywistym/paper.",
+			"analysisInterval": "Sekundy między automatycznymi cyklami analizy. Mniej = częstsza analiza, ale więcej zużycia API.",
+			"minConfidence": "Minimalny wynik pewności AI (0-1) wymagany do wygenerowania propozycji. Wyższy = mniej, ale silniejsze sygnały.",
+			"positionSize": "Procent dostępnej gotówki na transakcję. Np. 0.1 = 10% gotówki na pozycję.",
+			"debateRounds": "Liczba rund debaty między personami AI. Więcej rund = głębsza analiza, ale wolniejsza i więcej tokenów.",
+			"proposalTimeout": "Sekundy do wygaśnięcia niezatwierdzonej propozycji. Po upływie czasu propozycja jest automatycznie odrzucana.",
+			"strategyId": "Identyfikator aktywnego szablonu strategii. Określa podejście do analizy i prompt engineering.",
+			"discussionFeed": "Transkrypcja procesu analizy AI na żywo. Pokazuje rozumowanie każdego agenta, rundy debaty i finalny konsensus.",
+			"confidence": "Poziom przekonania AI. Zielony (>70%): silny sygnał. Żółty (40-70%): umiarkowany. Czerwony (<40%): słaby.",
+			"entry": "Sugerowana cena wejścia w pozycję.",
+			"target": "Docelowa cena, przy której AI zaleca realizację zysku.",
+			"stopLoss": "Poziom ceny, przy którym pozycja powinna być zamknięta, aby ograniczyć straty.",
+			"size": "Zalecana wielkość pozycji jako procent dostępnej gotówki.",
+			"qty": "Liczba akcji/jednostek do handlu.",
+			"notional": "Całkowita wartość proponowanej transakcji w dolarach."
+		}
+	},
 	"sidebar": {
 		"dashboard": "Panel",
 		"session": "Agent Sesji",
@@ -134,6 +169,7 @@
 		"credentials": "Poświadczenia",
 		"tokens": "Tokeny API",
 		"trading": "Konfiguracja",
+		"models": "Modele AI",
 		"profile": "Profil",
 		"performance": "Wydajność"
 	},

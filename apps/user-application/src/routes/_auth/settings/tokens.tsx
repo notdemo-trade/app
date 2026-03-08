@@ -1,7 +1,7 @@
 import type { TokenResponse, TokenType } from '@repo/data-ops/api-token';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { createFileRoute } from '@tanstack/react-router';
-import { Copy, Key, RefreshCw, Trash2 } from 'lucide-react';
+import { createFileRoute, Link } from '@tanstack/react-router';
+import { ArrowLeft, Copy, Key, RefreshCw, Trash2 } from 'lucide-react';
 import { z } from 'zod';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Badge } from '@/components/ui/badge';
@@ -62,8 +62,20 @@ function TokensPage() {
 	const killSwitchToken = tokensQuery.data?.find((t: TokenResponse) => t.type === 'kill_switch');
 
 	return (
-		<div className="max-w-2xl mx-auto">
-			<h1 className="text-2xl font-bold text-foreground mb-6">API Tokens</h1>
+		<div className="max-w-2xl mx-auto space-y-8">
+			<div>
+				<Link
+					to="/dashboard"
+					className="inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground mb-4"
+				>
+					<ArrowLeft className="h-4 w-4" />
+					Back to Dashboard
+				</Link>
+				<h1 className="text-2xl font-bold text-foreground">API Tokens</h1>
+				<p className="text-muted-foreground text-sm mt-1">
+					Manage access tokens for API integrations and emergency controls.
+				</p>
+			</div>
 			<p className="text-muted-foreground mb-6">
 				Manage bearer tokens for API and Telegram access. Tokens are shown once on creation.
 			</p>
