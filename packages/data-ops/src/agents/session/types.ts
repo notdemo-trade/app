@@ -85,4 +85,8 @@ export interface TradeProposal {
 	status: 'pending' | 'approved' | 'rejected' | 'expired' | 'executed';
 	createdAt: number;
 	decidedAt: number | null;
+	orderId: string | null;
+	filledQty: number | null;
+	filledAvgPrice: number | null;
+	outcomeStatus: 'none' | 'tracking' | 'resolved';
 }

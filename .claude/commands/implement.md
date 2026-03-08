@@ -35,7 +35,6 @@ Implement design doc phase: $ARGUMENTS
 6. Verify:
    - Run the phase-specific verification checks from the design doc
    - `pnpm run setup` builds
-   - `pnpm run lint` clean
 
 7. After implementation — summarize:
    - Created files

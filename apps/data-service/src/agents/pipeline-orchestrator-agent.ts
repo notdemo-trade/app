@@ -339,6 +339,10 @@ export class PipelineOrchestratorAgent extends Agent<Env, PipelineOrchestratorSt
 			status: 'pending',
 			createdAt: Date.now(),
 			decidedAt: null,
+			orderId: null,
+			filledQty: null,
+			filledAvgPrice: null,
+			outcomeStatus: 'none',
 		};
 	}
 

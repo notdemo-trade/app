@@ -55,6 +55,21 @@ export interface PortfolioHistory {
 	profitLossPct: number[];
 }
 
+export interface OrderLogEntry {
+	id: string;
+	clientOrderId: string;
+	symbol: string;
+	side: string;
+	type: string;
+	qty: number | null;
+	notional: number | null;
+	status: string;
+	filledQty: number | null;
+	filledAvgPrice: number | null;
+	createdAt: number;
+	updatedAt: number;
+}
+
 export interface AlpacaBrokerAgentState {
 	lastSyncAt: number | null;
 	positionCount: number;

@@ -3,6 +3,7 @@ import type {
 	BrokerAccount,
 	BrokerPosition,
 	MarketClock,
+	OrderLogEntry,
 	OrderRequest,
 	OrderResult,
 	PortfolioHistory,
@@ -71,5 +72,9 @@ export class AlpacaBrokerAgent extends Agent<Env, AlpacaBrokerAgentState> {
 
 	async getClock(): Promise<MarketClock> {
 		throw new Error('AlpacaBrokerAgent.getClock not yet implemented');
+	}
+
+	async getOrderHistory(_symbol: string): Promise<OrderLogEntry[]> {
+		throw new Error('AlpacaBrokerAgent.getOrderHistory not yet implemented');
 	}
 }

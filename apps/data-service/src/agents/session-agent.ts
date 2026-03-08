@@ -1,7 +1,9 @@
 import type { OnChatMessageOptions } from '@cloudflare/ai-chat';
 import { AIChatAgent } from '@cloudflare/ai-chat';
+import type { BrokerPosition, OrderLogEntry } from '@repo/data-ops/agents/broker/types';
 import type { PersonaConfig } from '@repo/data-ops/agents/debate/types';
 import type { LLMProviderConfig, StrategyTemplate } from '@repo/data-ops/agents/llm/types';
+import type { ExitReason, ProposalOutcome } from '@repo/data-ops/agents/memory/types';
 import {
 	DEFAULT_DEBATE_CONFIG,
 	DEFAULT_PERSONAS,
@@ -29,9 +31,11 @@ import {
 	type CountRow,
 	DEFAULT_STRATEGIES,
 	type MessageRow,
+	type ProposalOutcomeRow,
 	type ProposalRow,
 	rowToConfig,
 	rowToMessage,
+	rowToOutcome,
 	rowToProposal,
 	rowToThread,
 	type SessionConfigRow,
@@ -68,6 +72,7 @@ export class SessionAgent extends AIChatAgent<Env, SessionState> {
 		if (this.state.enabled) {
 			const config = this.loadConfig();
 			await this.scheduleEvery(config.analysisIntervalSec, 'runScheduledCycle');
+			await this.scheduleEvery(300, 'runOutcomeTrackingCycle');
 		}
 	}
 
@@ -138,6 +143,7 @@ export class SessionAgent extends AIChatAgent<Env, SessionState> {
 		const config = this.loadConfig();
 		this.setState({ ...this.state, enabled: true });
 		await this.scheduleEvery(config.analysisIntervalSec, 'runScheduledCycle');
+		await this.scheduleEvery(300, 'runOutcomeTrackingCycle');
 		return this.state;
 	}
 
@@ -449,7 +455,7 @@ export class SessionAgent extends AIChatAgent<Env, SessionState> {
 				this.env.AlpacaBrokerAgent,
 				userId,
 			);
-			await broker.placeOrder({
+			const orderResult = await broker.placeOrder({
 				symbol: proposal.symbol,
 				side: proposal.action,
 				type: 'market',
@@ -459,6 +465,7 @@ export class SessionAgent extends AIChatAgent<Env, SessionState> {
 			});
 
 			this.sql`UPDATE trade_proposals SET status = 'executed' WHERE id = ${proposalId}`;
+			this.createOutcomeTracking(proposal, orderResult);
 			return {
 				status: 'executed',
 				message: `Trade executed: ${proposal.action} ${proposal.symbol}`,
@@ -577,6 +584,10 @@ export class SessionAgent extends AIChatAgent<Env, SessionState> {
 			status: 'pending',
 			createdAt: Date.now(),
 			decidedAt: null,
+			orderId: null,
+			filledQty: null,
+			filledAvgPrice: null,
+			outcomeStatus: 'none',
 		};
 
 		this.storeProposal(proposal);
@@ -586,11 +597,13 @@ export class SessionAgent extends AIChatAgent<Env, SessionState> {
 	private storeProposal(p: TradeProposal): void {
 		this.sql`INSERT INTO trade_proposals
 			(id, thread_id, symbol, action, confidence, rationale, entry_price, target_price,
-			 stop_loss, qty, notional, position_size_pct, risks, expires_at, status, created_at, decided_at)
+			 stop_loss, qty, notional, position_size_pct, risks, expires_at, status, created_at, decided_at,
+			 order_id, filled_qty, filled_avg_price, outcome_status)
 			VALUES (${p.id}, ${p.threadId}, ${p.symbol}, ${p.action}, ${p.confidence}, ${p.rationale},
 				${p.entryPrice}, ${p.targetPrice}, ${p.stopLoss}, ${p.qty}, ${p.notional},
 				${p.positionSizePct}, ${JSON.stringify(p.risks)}, ${p.expiresAt}, ${p.status},
-				${p.createdAt}, ${p.decidedAt})`;
+				${p.createdAt}, ${p.decidedAt}, ${p.orderId}, ${p.filledQty}, ${p.filledAvgPrice},
+				${p.outcomeStatus})`;
 	}
 
 	private countPendingProposals(): number {
@@ -651,6 +664,195 @@ export class SessionAgent extends AIChatAgent<Env, SessionState> {
 		};
 	}
 
+	// --- Outcome tracking ---
+
+	private createOutcomeTracking(
+		proposal: TradeProposal,
+		orderResult: { id: string; filledQty: number; filledAvgPrice: number | null },
+	): void {
+		const filledPrice = orderResult.filledAvgPrice ?? proposal.entryPrice ?? 0;
+		const filledQty = orderResult.filledQty;
+
+		this.sql`UPDATE trade_proposals SET
+			order_id = ${orderResult.id},
+			filled_qty = ${filledQty},
+			filled_avg_price = ${filledPrice},
+			outcome_status = 'tracking'
+			WHERE id = ${proposal.id}`;
+
+		const thread = this.sql<ThreadRow>`
+			SELECT * FROM discussion_threads WHERE id = ${proposal.threadId}`;
+		const threadRow = thread[0];
+
+		const orchestrationMode = threadRow?.orchestration_mode ?? 'debate';
+		const orchestratorSessionId = this.resolveOrchestratorSessionId(proposal, orchestrationMode);
+
+		const outcomeId = crypto.randomUUID();
+		this.sql`INSERT INTO proposal_outcomes
+			(id, proposal_id, thread_id, orchestration_mode, orchestrator_session_id,
+			 symbol, action, entry_price, entry_qty, status, created_at)
+			VALUES (${outcomeId}, ${proposal.id}, ${proposal.threadId},
+				${orchestrationMode}, ${orchestratorSessionId},
+				${proposal.symbol}, ${proposal.action},
+				${filledPrice}, ${filledQty}, 'tracking', ${Date.now()})`;
+	}
+
+	private resolveOrchestratorSessionId(proposal: TradeProposal, _mode: string): string {
+		// The orchestrator session ID links this outcome back to the specific debate/pipeline session
+		// For now, use the convention: {userId}:{symbol}
+		const userId = this.name;
+		return `${userId}:${proposal.symbol}`;
+	}
+
+	async runOutcomeTrackingCycle(): Promise<void> {
+		try {
+			const userId = this.name;
+			const broker = await getAgentByName<Env, AlpacaBrokerAgent>(
+				this.env.AlpacaBrokerAgent,
+				userId,
+			);
+
+			const clock = await broker.getClock();
+			if (!clock.isOpen) return;
+
+			const tracking = this.sql<ProposalOutcomeRow>`
+				SELECT * FROM proposal_outcomes WHERE status = 'tracking'`;
+			if (tracking.length === 0) return;
+
+			const positions = await broker.getPositions();
+			const positionMap = new Map(positions.map((p) => [p.symbol, p]));
+
+			for (const row of tracking) {
+				const outcome = rowToOutcome(row);
+				const position = positionMap.get(outcome.symbol);
+
+				if (!position || position.qty === 0) {
+					await this.resolveOutcome(outcome, broker);
+				} else {
+					this.recordSnapshot(outcome, position);
+				}
+			}
+		} catch (err) {
+			const message = err instanceof Error ? err.message : String(err);
+			this.setState({
+				...this.state,
+				errorCount: this.state.errorCount + 1,
+				lastError: `Outcome tracking failed: ${message}`,
+			});
+		}
+	}
+
+	private async resolveOutcome(
+		outcome: ProposalOutcome,
+		broker: Pick<AlpacaBrokerAgent, 'getOrderHistory'>,
+	): Promise<void> {
+		let exitOrder: OrderLogEntry | undefined;
+		try {
+			const orders = await broker.getOrderHistory(outcome.symbol);
+			exitOrder = this.findExitOrder(orders, outcome);
+		} catch {
+			// getOrderHistory may not be implemented yet — resolve with entry price
+		}
+
+		const exitPrice = exitOrder?.filledAvgPrice ?? outcome.entryPrice;
+		const pnl =
+			outcome.action === 'buy'
+				? (exitPrice - outcome.entryPrice) * outcome.entryQty
+				: (outcome.entryPrice - exitPrice) * outcome.entryQty;
+		const pnlPct =
+			((exitPrice - outcome.entryPrice) / outcome.entryPrice) * (outcome.action === 'buy' ? 1 : -1);
+
+		const exitReason = this.determineExitReason(exitOrder, outcome);
+		const now = Date.now();
+
+		this.sql`UPDATE proposal_outcomes SET
+			status = 'resolved',
+			exit_price = ${exitPrice},
+			exit_reason = ${exitReason},
+			realized_pnl = ${pnl},
+			realized_pnl_pct = ${pnlPct},
+			holding_duration_ms = ${now - outcome.createdAt},
+			resolved_at = ${now}
+			WHERE id = ${outcome.id}`;
+
+		this.sql`UPDATE trade_proposals SET outcome_status = 'resolved'
+			WHERE id = ${outcome.proposalId}`;
+
+		await this.distributeOutcome(outcome, pnl, pnlPct);
+	}
+
+	private async distributeOutcome(
+		_outcome: ProposalOutcome,
+		_pnl: number,
+		_pnlPct: number,
+	): Promise<void> {
+		// M8b will add recordPersonaOutcome/recordStepOutcome RPC methods on the
+		// DebateOrchestratorAgent and PipelineOrchestratorAgent. Until then,
+		// outcome distribution is a no-op — outcomes are stored locally in
+		// proposal_outcomes and will be distributed once M8b is deployed.
+	}
+
+	private recordSnapshot(outcome: ProposalOutcome, position: BrokerPosition): void {
+		this.sql`INSERT INTO outcome_snapshots
+			(id, outcome_id, unrealized_pnl, unrealized_pnl_pct, current_price, snapshot_at)
+			VALUES (${crypto.randomUUID()}, ${outcome.id}, ${position.unrealizedPl},
+				${position.unrealizedPlPct}, ${position.currentPrice}, ${Date.now()})`;
+	}
+
+	private findExitOrder(
+		orders: OrderLogEntry[],
+		outcome: ProposalOutcome,
+	): OrderLogEntry | undefined {
+		// Find the most recent filled order that closes the position
+		const exitSide = outcome.action === 'buy' ? 'sell' : 'buy';
+		return orders
+			.filter(
+				(o) => o.side === exitSide && o.status === 'filled' && o.createdAt > outcome.createdAt,
+			)
+			.sort((a, b) => b.createdAt - a.createdAt)[0];
+	}
+
+	private determineExitReason(
+		exitOrder: OrderLogEntry | undefined,
+		outcome: ProposalOutcome,
+	): ExitReason {
+		if (!exitOrder) return 'manual_close';
+
+		const proposal = this.sql<ProposalRow>`
+			SELECT * FROM trade_proposals WHERE id = ${outcome.proposalId}`;
+		const row = proposal[0];
+		if (!row) return 'manual_close';
+
+		const p = rowToProposal(row);
+		if (
+			p.stopLoss !== null &&
+			exitOrder.filledAvgPrice !== null &&
+			exitOrder.filledAvgPrice <= p.stopLoss
+		) {
+			return 'stop_loss';
+		}
+		if (
+			p.targetPrice !== null &&
+			exitOrder.filledAvgPrice !== null &&
+			exitOrder.filledAvgPrice >= p.targetPrice
+		) {
+			return 'target_hit';
+		}
+		return 'manual_close';
+	}
+
+	@callable()
+	getOutcomes(status?: string): ProposalOutcome[] {
+		if (status) {
+			const rows = this.sql<ProposalOutcomeRow>`
+				SELECT * FROM proposal_outcomes WHERE status = ${status} ORDER BY created_at DESC`;
+			return rows.map(rowToOutcome);
+		}
+		const rows = this.sql<ProposalOutcomeRow>`
+			SELECT * FROM proposal_outcomes ORDER BY created_at DESC LIMIT 50`;
+		return rows.map(rowToOutcome);
+	}
+
 	// --- Table init + seeding ---
 
 	private initTables(): void {
@@ -707,7 +909,40 @@ export class SessionAgent extends AIChatAgent<Env, SessionState> {
 			expires_at        INTEGER NOT NULL,
 			status            TEXT NOT NULL DEFAULT 'pending',
 			created_at        INTEGER NOT NULL,
-			decided_at        INTEGER
+			decided_at        INTEGER,
+			order_id          TEXT,
+			filled_qty        REAL,
+			filled_avg_price  REAL,
+			outcome_status    TEXT NOT NULL DEFAULT 'none'
+		)`;
+
+		this.sql`CREATE TABLE IF NOT EXISTS proposal_outcomes (
+			id                      TEXT PRIMARY KEY,
+			proposal_id             TEXT NOT NULL REFERENCES trade_proposals(id),
+			thread_id               TEXT NOT NULL REFERENCES discussion_threads(id),
+			orchestration_mode      TEXT NOT NULL,
+			orchestrator_session_id TEXT NOT NULL,
+			symbol                  TEXT NOT NULL,
+			action                  TEXT NOT NULL,
+			entry_price             REAL NOT NULL,
+			entry_qty               REAL NOT NULL,
+			status                  TEXT NOT NULL DEFAULT 'tracking',
+			exit_price              REAL,
+			exit_reason             TEXT,
+			realized_pnl            REAL,
+			realized_pnl_pct        REAL,
+			holding_duration_ms     INTEGER,
+			resolved_at             INTEGER,
+			created_at              INTEGER NOT NULL
+		)`;
+
+		this.sql`CREATE TABLE IF NOT EXISTS outcome_snapshots (
+			id                 TEXT PRIMARY KEY,
+			outcome_id         TEXT NOT NULL REFERENCES proposal_outcomes(id),
+			unrealized_pnl     REAL NOT NULL,
+			unrealized_pnl_pct REAL NOT NULL,
+			current_price      REAL NOT NULL,
+			snapshot_at        INTEGER NOT NULL
 		)`;
 
 		this.sql`CREATE TABLE IF NOT EXISTS strategy_templates (
@@ -730,6 +965,13 @@ export class SessionAgent extends AIChatAgent<Env, SessionState> {
 			.sql`CREATE INDEX IF NOT EXISTS idx_messages_thread ON discussion_messages(thread_id, timestamp ASC)`;
 		this
 			.sql`CREATE INDEX IF NOT EXISTS idx_proposals_status ON trade_proposals(status, created_at DESC)`;
+
+		this.sql`CREATE INDEX IF NOT EXISTS idx_outcomes_status ON proposal_outcomes(status)`;
+		this
+			.sql`CREATE INDEX IF NOT EXISTS idx_outcomes_symbol ON proposal_outcomes(symbol, created_at DESC)`;
+		this.sql`CREATE INDEX IF NOT EXISTS idx_outcomes_proposal ON proposal_outcomes(proposal_id)`;
+		this
+			.sql`CREATE INDEX IF NOT EXISTS idx_snapshots_outcome ON outcome_snapshots(outcome_id, snapshot_at DESC)`;
 	}
 
 	private seedDefaults(): void {

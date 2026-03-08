@@ -1,4 +1,5 @@
 import type { StrategyTemplate } from '@repo/data-ops/agents/llm/types';
+import type { ExitReason, ProposalOutcome } from '@repo/data-ops/agents/memory/types';
 import type {
 	DiscussionMessage,
 	DiscussionPhase,
@@ -69,6 +70,39 @@ export interface ProposalRow {
 	status: string;
 	created_at: number;
 	decided_at: number | null;
+	order_id: string | null;
+	filled_qty: number | null;
+	filled_avg_price: number | null;
+	outcome_status: string;
+}
+
+export interface ProposalOutcomeRow {
+	id: string;
+	proposal_id: string;
+	thread_id: string;
+	orchestration_mode: string;
+	orchestrator_session_id: string;
+	symbol: string;
+	action: string;
+	entry_price: number;
+	entry_qty: number;
+	status: string;
+	exit_price: number | null;
+	exit_reason: string | null;
+	realized_pnl: number | null;
+	realized_pnl_pct: number | null;
+	holding_duration_ms: number | null;
+	resolved_at: number | null;
+	created_at: number;
+}
+
+export interface OutcomeSnapshotRow {
+	id: string;
+	outcome_id: string;
+	unrealized_pnl: number;
+	unrealized_pnl_pct: number;
+	current_price: number;
+	snapshot_at: number;
 }
 
 export interface CountRow {
@@ -141,6 +175,32 @@ export function rowToProposal(row: ProposalRow): TradeProposal {
 		status: row.status as TradeProposal['status'],
 		createdAt: row.created_at,
 		decidedAt: row.decided_at,
+		orderId: row.order_id ?? null,
+		filledQty: row.filled_qty ?? null,
+		filledAvgPrice: row.filled_avg_price ?? null,
+		outcomeStatus: (row.outcome_status ?? 'none') as TradeProposal['outcomeStatus'],
+	};
+}
+
+export function rowToOutcome(row: ProposalOutcomeRow): ProposalOutcome {
+	return {
+		id: row.id,
+		proposalId: row.proposal_id,
+		threadId: row.thread_id,
+		orchestrationMode: row.orchestration_mode as ProposalOutcome['orchestrationMode'],
+		orchestratorSessionId: row.orchestrator_session_id,
+		symbol: row.symbol,
+		action: row.action as ProposalOutcome['action'],
+		entryPrice: row.entry_price,
+		entryQty: row.entry_qty,
+		status: row.status as ProposalOutcome['status'],
+		exitPrice: row.exit_price,
+		exitReason: row.exit_reason as ExitReason | null,
+		realizedPnl: row.realized_pnl,
+		realizedPnlPct: row.realized_pnl_pct,
+		holdingDurationMs: row.holding_duration_ms,
+		resolvedAt: row.resolved_at,
+		createdAt: row.created_at,
 	};
 }
 
