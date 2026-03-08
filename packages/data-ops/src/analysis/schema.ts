@@ -26,21 +26,28 @@ export const BollingerSchema = z.object({
 	width: z.number(),
 });
 
+export const SMAResultSchema = z.object({
+	period: z.number(),
+	value: z.number().nullable(),
+});
+
+export const EMAResultSchema = z.object({
+	period: z.number(),
+	value: z.number().nullable(),
+});
+
 export const TechnicalIndicatorsSchema = z.object({
 	symbol: z.string(),
 	timestamp: z.string(),
 	price: z.number(),
-	sma_20: z.number().nullable(),
-	sma_50: z.number().nullable(),
-	sma_200: z.number().nullable(),
-	ema_12: z.number().nullable(),
-	ema_26: z.number().nullable(),
-	rsi_14: z.number().nullable(),
+	sma: z.array(SMAResultSchema),
+	ema: z.array(EMAResultSchema),
+	rsi: z.number().nullable(),
 	macd: MACDSchema.nullable(),
 	bollinger: BollingerSchema.nullable(),
-	atr_14: z.number().nullable(),
-	volume_sma_20: z.number().nullable(),
-	relative_volume: z.number().nullable(),
+	atr: z.number().nullable(),
+	volumeSma: z.number().nullable(),
+	relativeVolume: z.number().nullable(),
 });
 
 export const TechnicalSignalSchema = z.object({

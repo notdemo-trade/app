@@ -1,6 +1,12 @@
-import type { Bar, TechnicalIndicators } from '../../agents/ta/types';
+import type { Bar, EMAResult, SMAResult, TechnicalIndicators } from '../../agents/ta/types';
+import { DEFAULT_TA_CONFIG } from '../../ta-config/presets';
+import type { TechnicalAnalysisConfig } from '../../ta-config/schema';
 
-export function computeTechnicals(symbol: string, bars: Bar[]): TechnicalIndicators {
+export function computeTechnicals(
+	symbol: string,
+	bars: Bar[],
+	config: TechnicalAnalysisConfig = DEFAULT_TA_CONFIG,
+): TechnicalIndicators {
 	const closes = bars.map((b) => b.c);
 	const highs = bars.map((b) => b.h);
 	const lows = bars.map((b) => b.l);
@@ -8,21 +14,28 @@ export function computeTechnicals(symbol: string, bars: Bar[]): TechnicalIndicat
 	const latest = bars[bars.length - 1];
 	if (!latest) throw new Error('Empty bars array');
 
+	const sma: SMAResult[] = config.smaPeriods.map((period) => ({
+		period,
+		value: calculateSMA(closes, period),
+	}));
+
+	const ema: EMAResult[] = config.emaPeriods.map((period) => ({
+		period,
+		value: calculateEMA(closes, period),
+	}));
+
 	return {
 		symbol,
 		timestamp: latest.t,
 		price: latest.c,
-		sma_20: calculateSMA(closes, 20),
-		sma_50: calculateSMA(closes, 50),
-		sma_200: calculateSMA(closes, 200),
-		ema_12: calculateEMA(closes, 12),
-		ema_26: calculateEMA(closes, 26),
-		rsi_14: calculateRSI(closes, 14),
-		macd: calculateMACD(closes),
-		bollinger: calculateBollingerBands(closes, 20, 2),
-		atr_14: calculateATR(highs, lows, closes, 14),
-		volume_sma_20: calculateSMA(volumes, 20),
-		relative_volume: calculateRelativeVolume(volumes, 20),
+		sma,
+		ema,
+		rsi: calculateRSI(closes, config.rsiPeriod),
+		macd: calculateMACD(closes, config.emaPeriods, config.macdSignalPeriod),
+		bollinger: calculateBollingerBands(closes, config.bollingerPeriod, config.bollingerStdDev),
+		atr: calculateATR(highs, lows, closes, config.atrPeriod),
+		volumeSma: calculateSMA(volumes, config.volumeSmaPeriod),
+		relativeVolume: calculateRelativeVolume(volumes, config.volumeSmaPeriod),
 	};
 }
 
@@ -73,26 +86,33 @@ function calculateRSI(closes: number[], period: number): number | null {
 
 function calculateMACD(
 	closes: number[],
+	emaPeriods: number[] = [12, 26],
+	signalPeriod: number = 9,
 ): { macd: number; signal: number; histogram: number } | null {
-	const ema12 = calculateEMA(closes, 12);
-	const ema26 = calculateEMA(closes, 26);
-	if (ema12 === null || ema26 === null) return null;
+	const sorted = [...emaPeriods].sort((a, b) => a - b);
+	const fastPeriod = sorted[0];
+	const slowPeriod = sorted[1];
+	if (fastPeriod === undefined || slowPeriod === undefined) return null;
+
+	const emaFast = calculateEMA(closes, fastPeriod);
+	const emaSlow = calculateEMA(closes, slowPeriod);
+	if (emaFast === null || emaSlow === null) return null;
 
 	const macdLine: number[] = [];
-	const k12 = 2 / 13;
-	const k26 = 2 / 27;
-	let e12 = closes.slice(0, 12).reduce((a, b) => a + b, 0) / 12;
-	let e26 = closes.slice(0, 26).reduce((a, b) => a + b, 0) / 26;
+	const kFast = 2 / (fastPeriod + 1);
+	const kSlow = 2 / (slowPeriod + 1);
+	let eFast = closes.slice(0, fastPeriod).reduce((a, b) => a + b, 0) / fastPeriod;
+	let eSlow = closes.slice(0, slowPeriod).reduce((a, b) => a + b, 0) / slowPeriod;
 
-	for (let i = 26; i < closes.length; i++) {
+	for (let i = slowPeriod; i < closes.length; i++) {
 		const c = closes[i] ?? 0;
-		e12 = c * k12 + e12 * (1 - k12);
-		e26 = c * k26 + e26 * (1 - k26);
-		macdLine.push(e12 - e26);
+		eFast = c * kFast + eFast * (1 - kFast);
+		eSlow = c * kSlow + eSlow * (1 - kSlow);
+		macdLine.push(eFast - eSlow);
 	}
 
-	if (macdLine.length < 9) return null;
-	const signalLine = calculateEMA(macdLine, 9);
+	if (macdLine.length < signalPeriod) return null;
+	const signalLine = calculateEMA(macdLine, signalPeriod);
 	if (signalLine === null) return null;
 
 	const macdValue = macdLine[macdLine.length - 1] ?? 0;

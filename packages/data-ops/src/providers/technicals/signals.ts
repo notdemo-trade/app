@@ -1,22 +1,27 @@
 import type { TechnicalIndicators, TechnicalSignal } from '../../agents/ta/types';
+import { DEFAULT_TA_CONFIG } from '../../ta-config/presets';
+import type { TechnicalAnalysisConfig } from '../../ta-config/schema';
 
-export function detectSignals(ind: TechnicalIndicators): TechnicalSignal[] {
+export function detectSignals(
+	ind: TechnicalIndicators,
+	config: TechnicalAnalysisConfig = DEFAULT_TA_CONFIG,
+): TechnicalSignal[] {
 	const signals: TechnicalSignal[] = [];
 
-	if (ind.rsi_14 !== null) {
-		if (ind.rsi_14 < 30) {
+	if (ind.rsi !== null) {
+		if (ind.rsi < config.rsiOversold) {
 			signals.push({
 				type: 'rsi_oversold',
 				direction: 'bullish',
-				strength: Math.min(1, (30 - ind.rsi_14) / 30),
-				description: `RSI at ${ind.rsi_14.toFixed(1)} -- oversold`,
+				strength: Math.min(1, (config.rsiOversold - ind.rsi) / config.rsiOversold),
+				description: `RSI at ${ind.rsi.toFixed(1)} -- oversold (threshold: ${config.rsiOversold})`,
 			});
-		} else if (ind.rsi_14 > 70) {
+		} else if (ind.rsi > config.rsiOverbought) {
 			signals.push({
 				type: 'rsi_overbought',
 				direction: 'bearish',
-				strength: Math.min(1, (ind.rsi_14 - 70) / 30),
-				description: `RSI at ${ind.rsi_14.toFixed(1)} -- overbought`,
+				strength: Math.min(1, (ind.rsi - config.rsiOverbought) / (100 - config.rsiOverbought)),
+				description: `RSI at ${ind.rsi.toFixed(1)} -- overbought (threshold: ${config.rsiOverbought})`,
 			});
 		}
 	}
@@ -58,30 +63,40 @@ export function detectSignals(ind: TechnicalIndicators): TechnicalSignal[] {
 		}
 	}
 
-	if (ind.sma_50 !== null && ind.sma_200 !== null) {
-		if (ind.sma_50 > ind.sma_200) {
-			signals.push({
-				type: 'golden_cross_active',
-				direction: 'bullish',
-				strength: Math.min(1, ((ind.sma_50 - ind.sma_200) / ind.sma_200) * 10),
-				description: `Golden cross active (SMA50 ${ind.sma_50.toFixed(2)} > SMA200 ${ind.sma_200.toFixed(2)})`,
-			});
-		} else {
-			signals.push({
-				type: 'death_cross_active',
-				direction: 'bearish',
-				strength: Math.min(1, ((ind.sma_200 - ind.sma_50) / ind.sma_200) * 10),
-				description: `Death cross active (SMA50 ${ind.sma_50.toFixed(2)} < SMA200 ${ind.sma_200.toFixed(2)})`,
-			});
+	// SMA cross signals: use two longest SMA periods from config
+	const sortedSma = [...ind.sma]
+		.filter((s) => s.value !== null)
+		.sort((a, b) => a.period - b.period);
+
+	if (sortedSma.length >= 2) {
+		const medium = sortedSma[sortedSma.length - 2];
+		const long = sortedSma[sortedSma.length - 1];
+
+		if (medium && long && medium.value !== null && long.value !== null) {
+			if (medium.value > long.value) {
+				signals.push({
+					type: 'golden_cross_active',
+					direction: 'bullish',
+					strength: Math.min(1, ((medium.value - long.value) / long.value) * 10),
+					description: `Golden cross active (SMA${medium.period} ${medium.value.toFixed(2)} > SMA${long.period} ${long.value.toFixed(2)})`,
+				});
+			} else {
+				signals.push({
+					type: 'death_cross_active',
+					direction: 'bearish',
+					strength: Math.min(1, ((long.value - medium.value) / long.value) * 10),
+					description: `Death cross active (SMA${medium.period} ${medium.value.toFixed(2)} < SMA${long.period} ${long.value.toFixed(2)})`,
+				});
+			}
 		}
 	}
 
-	if (ind.relative_volume !== null && ind.relative_volume > 2.0) {
+	if (ind.relativeVolume !== null && ind.relativeVolume > config.volumeSpikeMultiplier) {
 		signals.push({
 			type: 'high_volume',
 			direction: 'neutral',
-			strength: Math.min(1, (ind.relative_volume - 1) / 4),
-			description: `Volume ${ind.relative_volume.toFixed(1)}x above 20-day average`,
+			strength: Math.min(1, (ind.relativeVolume - 1) / 4),
+			description: `Volume ${ind.relativeVolume.toFixed(1)}x above ${config.volumeSmaPeriod}-day average (threshold: ${config.volumeSpikeMultiplier}x)`,
 		});
 	}
 

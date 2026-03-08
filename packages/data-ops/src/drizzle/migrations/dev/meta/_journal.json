@@ -50,6 +50,13 @@
 			"when": 1772895511837,
 			"tag": "0006_mysterious_alex_power",
 			"breakpoints": true
+		},
+		{
+			"idx": 7,
+			"version": "7",
+			"when": 1772997128592,
+			"tag": "0007_glorious_newton_destine",
+			"breakpoints": true
 		}
 	]
 }

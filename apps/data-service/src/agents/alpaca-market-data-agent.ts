@@ -15,7 +15,7 @@ interface ParsedIdentity {
 	symbol: string;
 }
 
-const CACHE_FRESHNESS_MS = 60_000;
+const DEFAULT_CACHE_FRESHNESS_MS = 60_000;
 
 export class AlpacaMarketDataAgent extends Agent<Env, AlpacaMarketDataAgentState> {
 	initialState: AlpacaMarketDataAgentState = {
@@ -54,10 +54,13 @@ export class AlpacaMarketDataAgent extends Agent<Env, AlpacaMarketDataAgentState
 		this.sql`CREATE INDEX IF NOT EXISTS idx_bars_symbol_tf ON bars(symbol, timeframe, t DESC)`;
 	}
 
-	async fetchBars(params: MarketDataFetchParams): Promise<MarketDataResult> {
+	async fetchBars(
+		params: MarketDataFetchParams & { cacheFreshnessSec?: number },
+	): Promise<MarketDataResult> {
 		const { symbol, timeframe, limit = 250 } = params;
 
-		const cached = this.getCachedIfFresh(symbol, timeframe);
+		const cacheFreshnessMs = (params.cacheFreshnessSec ?? 60) * 1000;
+		const cached = this.getCachedIfFresh(symbol, timeframe, cacheFreshnessMs);
 		if (cached) return cached;
 
 		const { userId } = this.getIdentity();
@@ -92,14 +95,18 @@ export class AlpacaMarketDataAgent extends Agent<Env, AlpacaMarketDataAgentState
 		`;
 	}
 
-	private getCachedIfFresh(symbol: string, timeframe: string): MarketDataResult | null {
+	private getCachedIfFresh(
+		symbol: string,
+		timeframe: string,
+		cacheFreshnessMs: number = DEFAULT_CACHE_FRESHNESS_MS,
+	): MarketDataResult | null {
 		const rows = this.sql<{ fetched_at: number }>`
 			SELECT fetched_at FROM fetch_log
 			WHERE symbol = ${symbol} AND timeframe = ${timeframe}
 			ORDER BY fetched_at DESC LIMIT 1
 		`;
 		const latest = rows[0];
-		if (!latest || Date.now() - latest.fetched_at > CACHE_FRESHNESS_MS) return null;
+		if (!latest || Date.now() - latest.fetched_at > cacheFreshnessMs) return null;
 
 		const bars = this.sql<Bar>`
 			SELECT t, o, h, l, c, v, n, vw FROM bars

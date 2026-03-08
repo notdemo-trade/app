@@ -25,3 +25,8 @@ export function createEntityQueryOptions<T>(
 		...opts,
 	});
 }
+
+export const taConfigKeys = {
+	all: ['ta-config'] as const,
+	detail: () => ['ta-config', 'detail'] as const,
+};

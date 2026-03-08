@@ -2,6 +2,7 @@ import { relations } from 'drizzle-orm/relations';
 import { api_tokens } from '../api-token/table';
 import { user_credentials } from '../credential/table';
 import { llm_analyses, llm_usage } from '../llm-analysis/table';
+import { technicalAnalysisConfig } from '../ta-config/table';
 import { user_trading_config } from '../trading-config/table';
 import { auth_user } from './auth-schema';
 
@@ -9,6 +10,7 @@ export const authUserRelations = relations(auth_user, ({ many, one }) => ({
 	apiTokens: many(api_tokens),
 	credentials: many(user_credentials),
 	tradingConfig: one(user_trading_config),
+	technicalAnalysisConfig: one(technicalAnalysisConfig),
 	llmAnalyses: many(llm_analyses),
 	llmUsage: many(llm_usage),
 }));
@@ -44,6 +46,13 @@ export const llmAnalysesRelations = relations(llm_analyses, ({ one }) => ({
 export const llmUsageRelations = relations(llm_usage, ({ one }) => ({
 	user: one(auth_user, {
 		fields: [llm_usage.userId],
+		references: [auth_user.id],
+	}),
+}));
+
+export const technicalAnalysisConfigRelations = relations(technicalAnalysisConfig, ({ one }) => ({
+	user: one(auth_user, {
+		fields: [technicalAnalysisConfig.userId],
 		references: [auth_user.id],
 	}),
 }));

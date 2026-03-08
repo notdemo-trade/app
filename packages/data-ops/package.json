@@ -31,6 +31,10 @@
 			"types": "./dist/trading-config/index.d.ts",
 			"default": "./dist/trading-config/index.js"
 		},
+		"./ta-config": {
+			"types": "./dist/ta-config/index.d.ts",
+			"default": "./dist/ta-config/index.js"
+		},
 		"./providers/alpaca": {
 			"types": "./dist/providers/alpaca/index.d.ts",
 			"default": "./dist/providers/alpaca/index.js"

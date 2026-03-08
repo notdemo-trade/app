@@ -1,32 +1,35 @@
 import type { TechnicalIndicators } from '@repo/data-ops/agents/ta/types';
+import type { TechnicalAnalysisConfig } from '@repo/data-ops/ta-config';
+import { DEFAULT_TA_CONFIG } from '@repo/data-ops/ta-config';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 
 interface IndicatorPanelsProps {
 	indicators: TechnicalIndicators;
+	config?: TechnicalAnalysisConfig;
 }
 
-function rsiColor(value: number | null): string {
+function rsiColor(value: number | null, config: TechnicalAnalysisConfig): string {
 	if (value === null) return 'text-muted-foreground';
-	if (value < 30) return 'text-green-500';
-	if (value > 70) return 'text-red-500';
+	if (value < config.rsiOversold) return 'text-green-500';
+	if (value > config.rsiOverbought) return 'text-red-500';
 	return 'text-foreground';
 }
 
-function rsiLabel(value: number | null): string {
+function rsiLabel(value: number | null, config: TechnicalAnalysisConfig): string {
 	if (value === null) return '--';
-	if (value < 30) return 'Oversold';
-	if (value > 70) return 'Overbought';
+	if (value < config.rsiOversold) return 'Oversold';
+	if (value > config.rsiOverbought) return 'Overbought';
 	return 'Neutral';
 }
 
-function RSIPanel({ value }: { value: number | null }) {
+function RSIPanel({ value, config }: { value: number | null; config: TechnicalAnalysisConfig }) {
 	return (
 		<Card>
 			<CardHeader className="pb-2">
-				<CardTitle className="text-sm text-muted-foreground">RSI (14)</CardTitle>
+				<CardTitle className="text-sm text-muted-foreground">RSI ({config.rsiPeriod})</CardTitle>
 			</CardHeader>
 			<CardContent>
-				<div className={`text-2xl font-bold ${rsiColor(value)}`}>
+				<div className={`text-2xl font-bold ${rsiColor(value, config)}`}>
 					{value !== null ? value.toFixed(1) : '--'}
 				</div>
 				{value !== null && (
@@ -34,7 +37,7 @@ function RSIPanel({ value }: { value: number | null }) {
 						<div className="mt-2 h-2 rounded bg-muted overflow-hidden">
 							<div className="h-full rounded bg-primary" style={{ width: `${value}%` }} />
 						</div>
-						<p className="text-xs text-muted-foreground mt-1">{rsiLabel(value)}</p>
+						<p className="text-xs text-muted-foreground mt-1">{rsiLabel(value, config)}</p>
 					</>
 				)}
 			</CardContent>
@@ -76,11 +79,19 @@ function MACDPanel({ macd }: { macd: { macd: number; signal: number; histogram: 
 	);
 }
 
-function ATRPanel({ value, price }: { value: number | null; price: number }) {
+function ATRPanel({
+	value,
+	price,
+	config,
+}: {
+	value: number | null;
+	price: number;
+	config: TechnicalAnalysisConfig;
+}) {
 	return (
 		<Card>
 			<CardHeader className="pb-2">
-				<CardTitle className="text-sm text-muted-foreground">ATR (14)</CardTitle>
+				<CardTitle className="text-sm text-muted-foreground">ATR ({config.atrPeriod})</CardTitle>
 			</CardHeader>
 			<CardContent>
 				<div className="text-2xl font-bold text-foreground">
@@ -99,9 +110,11 @@ function ATRPanel({ value, price }: { value: number | null; price: number }) {
 function VolumePanel({
 	relativeVolume,
 	volumeSma,
+	config,
 }: {
 	relativeVolume: number | null;
 	volumeSma: number | null;
+	config: TechnicalAnalysisConfig;
 }) {
 	return (
 		<Card>
@@ -110,7 +123,7 @@ function VolumePanel({
 			</CardHeader>
 			<CardContent>
 				<div
-					className={`text-2xl font-bold ${relativeVolume !== null && relativeVolume > 2 ? 'text-yellow-500' : 'text-foreground'}`}
+					className={`text-2xl font-bold ${relativeVolume !== null && relativeVolume > config.volumeSpikeMultiplier ? 'text-yellow-500' : 'text-foreground'}`}
 				>
 					{relativeVolume !== null ? `${relativeVolume.toFixed(1)}x` : '--'}
 				</div>
@@ -124,15 +137,16 @@ function VolumePanel({
 	);
 }
 
-export function IndicatorPanels({ indicators }: IndicatorPanelsProps) {
+export function IndicatorPanels({ indicators, config = DEFAULT_TA_CONFIG }: IndicatorPanelsProps) {
 	return (
 		<div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-			<RSIPanel value={indicators.rsi_14} />
+			<RSIPanel value={indicators.rsi} config={config} />
 			<MACDPanel macd={indicators.macd} />
-			<ATRPanel value={indicators.atr_14} price={indicators.price} />
+			<ATRPanel value={indicators.atr} price={indicators.price} config={config} />
 			<VolumePanel
-				relativeVolume={indicators.relative_volume}
-				volumeSma={indicators.volume_sma_20}
+				relativeVolume={indicators.relativeVolume}
+				volumeSma={indicators.volumeSma}
+				config={config}
 			/>
 		</div>
 	);

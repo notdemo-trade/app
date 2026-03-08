@@ -6,6 +6,7 @@ import {
 	Coins,
 	Home,
 	KeyRound,
+	LineChart,
 	Menu,
 	Shield,
 	TrendingUp,
@@ -76,6 +77,11 @@ const navigationGroups: NavigationGroup[] = [
 				nameKey: 'sidebar.models',
 				icon: BrainCircuit,
 				href: '/settings/models',
+			},
+			{
+				nameKey: 'sidebar.technicalAnalysis',
+				icon: LineChart,
+				href: '/settings/technical-analysis',
 			},
 			{
 				nameKey: 'sidebar.profile',

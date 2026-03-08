@@ -101,14 +101,12 @@ export function PriceChart({ bars, indicators, height = 400 }: PriceChartProps) 
 				scaleMargins: { top: 0.8, bottom: 0 },
 			});
 
-			if (indicators.sma_20 !== null) {
-				addSMALine(chart, lc, bars, 20, colors.sma20);
-			}
-			if (indicators.sma_50 !== null) {
-				addSMALine(chart, lc, bars, 50, colors.sma50);
-			}
-			if (indicators.sma_200 !== null) {
-				addSMALine(chart, lc, bars, 200, colors.sma200);
+			const smaColors = [colors.sma20, colors.sma50, colors.sma200];
+			for (let i = 0; i < indicators.sma.length; i++) {
+				const smaResult = indicators.sma[i];
+				if (smaResult && smaResult.value !== null) {
+					addSMALine(chart, lc, bars, smaResult.period, smaColors[i] ?? colors.sma20);
+				}
 			}
 
 			renderLegend(container, colors, indicators);
@@ -151,10 +149,14 @@ function renderLegend(
 	const existing = container.querySelector('[data-chart-legend]');
 	if (existing) existing.remove();
 
+	const smaColors = [colors.sma20, colors.sma50, colors.sma200];
 	const items: { label: string; color: string }[] = [];
-	if (indicators.sma_20 !== null) items.push({ label: 'SMA 20', color: colors.sma20 });
-	if (indicators.sma_50 !== null) items.push({ label: 'SMA 50', color: colors.sma50 });
-	if (indicators.sma_200 !== null) items.push({ label: 'SMA 200', color: colors.sma200 });
+	for (let i = 0; i < indicators.sma.length; i++) {
+		const smaResult = indicators.sma[i];
+		if (smaResult && smaResult.value !== null) {
+			items.push({ label: `SMA ${smaResult.period}`, color: smaColors[i] ?? colors.sma20 });
+		}
+	}
 	if (items.length === 0) return;
 
 	const legend = document.createElement('div');

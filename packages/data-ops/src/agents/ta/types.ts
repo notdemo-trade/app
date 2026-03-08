@@ -9,21 +9,28 @@ export interface Bar {
 	vw: number;
 }
 
+export interface SMAResult {
+	period: number;
+	value: number | null;
+}
+
+export interface EMAResult {
+	period: number;
+	value: number | null;
+}
+
 export interface TechnicalIndicators {
 	symbol: string;
 	timestamp: string;
 	price: number;
-	sma_20: number | null;
-	sma_50: number | null;
-	sma_200: number | null;
-	ema_12: number | null;
-	ema_26: number | null;
-	rsi_14: number | null;
+	sma: SMAResult[];
+	ema: EMAResult[];
+	rsi: number | null;
 	macd: { macd: number; signal: number; histogram: number } | null;
 	bollinger: { upper: number; middle: number; lower: number; width: number } | null;
-	atr_14: number | null;
-	volume_sma_20: number | null;
-	relative_volume: number | null;
+	atr: number | null;
+	volumeSma: number | null;
+	relativeVolume: number | null;
 }
 
 export type SignalDirection = 'bullish' | 'bearish' | 'neutral';
@@ -57,5 +64,5 @@ export interface TAAgentState {
 export interface TAAgentRPC {
 	getSignals(since?: string): Promise<TechnicalSignal[]>;
 	getIndicators(): Promise<TechnicalIndicators | null>;
-	analyze(timeframe?: Timeframe, bars?: Bar[]): Promise<AnalysisResult>;
+	analyze(timeframe?: Timeframe, bars?: Bar[], configOverride?: unknown): Promise<AnalysisResult>;
 }

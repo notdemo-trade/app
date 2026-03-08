@@ -9,6 +9,8 @@ import type {
 import { initDatabase } from '@repo/data-ops/database/setup';
 import { computeTechnicals, detectSignals } from '@repo/data-ops/providers/technicals';
 import { insertSignal } from '@repo/data-ops/signal';
+import type { TechnicalAnalysisConfig } from '@repo/data-ops/ta-config';
+import { getTaConfig } from '@repo/data-ops/ta-config';
 import { Agent, callable, getAgentByName } from 'agents';
 import type { AlpacaMarketDataAgent } from './alpaca-market-data-agent';
 
@@ -78,26 +80,39 @@ export class TechnicalAnalysisAgent extends Agent<Env, TAAgentState> {
 	}
 
 	@callable()
-	async analyze(timeframe: Timeframe = '1Day', bars?: Bar[]): Promise<AnalysisResult> {
+	async analyze(
+		timeframe: Timeframe = '1Day',
+		bars?: Bar[],
+		configOverride?: TechnicalAnalysisConfig,
+	): Promise<AnalysisResult> {
 		const { userId, symbol } = this.getIdentity();
+
+		const config = configOverride ?? (await getTaConfig(userId));
 
 		if (!bars) {
 			const marketData = await getAgentByName<Env, AlpacaMarketDataAgent>(
 				this.env.AlpacaMarketDataAgent,
 				`${userId}:${symbol}`,
 			);
-			const result = await marketData.fetchBars({ symbol, timeframe, limit: 250 });
+			const result = await marketData.fetchBars({
+				symbol,
+				timeframe,
+				limit: config.defaultBarsToFetch,
+				cacheFreshnessSec: config.cacheFreshnessSec,
+			});
 			bars = result.bars;
 		}
 
-		if (bars.length < 50) {
-			throw new Error(`Insufficient data for ${symbol}: ${bars.length} bars`);
+		if (bars.length < config.minBarsRequired) {
+			throw new Error(
+				`Insufficient data for ${symbol}: ${bars.length} bars (need ${config.minBarsRequired})`,
+			);
 		}
 
 		this.cacheBars(bars);
 
-		const indicators = computeTechnicals(symbol, bars);
-		const signals = detectSignals(indicators);
+		const indicators = computeTechnicals(symbol, bars, config);
+		const signals = detectSignals(indicators, config);
 
 		this.sql`INSERT OR REPLACE INTO indicators (key, data, computed_at)
 			VALUES ('latest', ${JSON.stringify(indicators)}, ${new Date().toISOString()})`;

@@ -20,6 +20,7 @@ import { Route as AuthDashboardIndexRouteImport } from './routes/_auth/dashboard
 import { Route as ApiAuthSplatRouteImport } from './routes/api/auth.$'
 import { Route as AuthSettingsTradingRouteImport } from './routes/_auth/settings/trading'
 import { Route as AuthSettingsTokensRouteImport } from './routes/_auth/settings/tokens'
+import { Route as AuthSettingsTechnicalAnalysisRouteImport } from './routes/_auth/settings/technical-analysis'
 import { Route as AuthSettingsModelsRouteImport } from './routes/_auth/settings/models'
 import { Route as AuthSettingsCredentialsRouteImport } from './routes/_auth/settings/credentials'
 import { Route as AuthAnalysisSymbolRouteImport } from './routes/_auth/analysis/$symbol'
@@ -80,6 +81,12 @@ const AuthSettingsTokensRoute = AuthSettingsTokensRouteImport.update({
   path: '/settings/tokens',
   getParentRoute: () => AuthRouteRoute,
 } as any)
+const AuthSettingsTechnicalAnalysisRoute =
+  AuthSettingsTechnicalAnalysisRouteImport.update({
+    id: '/settings/technical-analysis',
+    path: '/settings/technical-analysis',
+    getParentRoute: () => AuthRouteRoute,
+  } as any)
 const AuthSettingsModelsRoute = AuthSettingsModelsRouteImport.update({
   id: '/settings/models',
   path: '/settings/models',
@@ -115,6 +122,7 @@ export interface FileRoutesByFullPath {
   '/analysis/$symbol': typeof AuthAnalysisSymbolRoute
   '/settings/credentials': typeof AuthSettingsCredentialsRoute
   '/settings/models': typeof AuthSettingsModelsRoute
+  '/settings/technical-analysis': typeof AuthSettingsTechnicalAnalysisRoute
   '/settings/tokens': typeof AuthSettingsTokensRoute
   '/settings/trading': typeof AuthSettingsTradingRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
@@ -132,6 +140,7 @@ export interface FileRoutesByTo {
   '/analysis/$symbol': typeof AuthAnalysisSymbolRoute
   '/settings/credentials': typeof AuthSettingsCredentialsRoute
   '/settings/models': typeof AuthSettingsModelsRoute
+  '/settings/technical-analysis': typeof AuthSettingsTechnicalAnalysisRoute
   '/settings/tokens': typeof AuthSettingsTokensRoute
   '/settings/trading': typeof AuthSettingsTradingRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
@@ -151,6 +160,7 @@ export interface FileRoutesById {
   '/_auth/analysis/$symbol': typeof AuthAnalysisSymbolRoute
   '/_auth/settings/credentials': typeof AuthSettingsCredentialsRoute
   '/_auth/settings/models': typeof AuthSettingsModelsRoute
+  '/_auth/settings/technical-analysis': typeof AuthSettingsTechnicalAnalysisRoute
   '/_auth/settings/tokens': typeof AuthSettingsTokensRoute
   '/_auth/settings/trading': typeof AuthSettingsTradingRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
@@ -170,6 +180,7 @@ export interface FileRouteTypes {
     | '/analysis/$symbol'
     | '/settings/credentials'
     | '/settings/models'
+    | '/settings/technical-analysis'
     | '/settings/tokens'
     | '/settings/trading'
     | '/api/auth/$'
@@ -187,6 +198,7 @@ export interface FileRouteTypes {
     | '/analysis/$symbol'
     | '/settings/credentials'
     | '/settings/models'
+    | '/settings/technical-analysis'
     | '/settings/tokens'
     | '/settings/trading'
     | '/api/auth/$'
@@ -205,6 +217,7 @@ export interface FileRouteTypes {
     | '/_auth/analysis/$symbol'
     | '/_auth/settings/credentials'
     | '/_auth/settings/models'
+    | '/_auth/settings/technical-analysis'
     | '/_auth/settings/tokens'
     | '/_auth/settings/trading'
     | '/api/auth/$'
@@ -303,6 +316,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthSettingsTokensRouteImport
       parentRoute: typeof AuthRouteRoute
     }
+    '/_auth/settings/technical-analysis': {
+      id: '/_auth/settings/technical-analysis'
+      path: '/settings/technical-analysis'
+      fullPath: '/settings/technical-analysis'
+      preLoaderRoute: typeof AuthSettingsTechnicalAnalysisRouteImport
+      parentRoute: typeof AuthRouteRoute
+    }
     '/_auth/settings/models': {
       id: '/_auth/settings/models'
       path: '/settings/models'
@@ -345,6 +365,7 @@ interface AuthRouteRouteChildren {
   AuthAnalysisSymbolRoute: typeof AuthAnalysisSymbolRoute
   AuthSettingsCredentialsRoute: typeof AuthSettingsCredentialsRoute
   AuthSettingsModelsRoute: typeof AuthSettingsModelsRoute
+  AuthSettingsTechnicalAnalysisRoute: typeof AuthSettingsTechnicalAnalysisRoute
   AuthSettingsTokensRoute: typeof AuthSettingsTokensRoute
   AuthSettingsTradingRoute: typeof AuthSettingsTradingRoute
   AuthDashboardIndexRoute: typeof AuthDashboardIndexRoute
@@ -359,6 +380,7 @@ const AuthRouteRouteChildren: AuthRouteRouteChildren = {
   AuthAnalysisSymbolRoute: AuthAnalysisSymbolRoute,
   AuthSettingsCredentialsRoute: AuthSettingsCredentialsRoute,
   AuthSettingsModelsRoute: AuthSettingsModelsRoute,
+  AuthSettingsTechnicalAnalysisRoute: AuthSettingsTechnicalAnalysisRoute,
   AuthSettingsTokensRoute: AuthSettingsTokensRoute,
   AuthSettingsTradingRoute: AuthSettingsTradingRoute,
   AuthDashboardIndexRoute: AuthDashboardIndexRoute,
