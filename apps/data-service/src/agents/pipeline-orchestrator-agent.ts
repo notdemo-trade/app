@@ -336,7 +336,7 @@ export class PipelineOrchestratorAgent extends Agent<Env, PipelineOrchestratorSt
 					broker.getAccount(),
 				]);
 
-				ctx.riskValidation = await llm.validateRisk(ctx.recommendation, {
+				ctx.riskValidation = await llm.validateRisk(ctx.symbol, ctx.recommendation, {
 					positions,
 					account,
 				});

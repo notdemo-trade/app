@@ -333,6 +333,7 @@ export class LLMAnalysisAgent extends Agent<Env, LLMAgentState> {
 
 	@callable()
 	async validateRisk(
+		symbol: string,
 		recommendation: TradeRecommendation,
 		portfolio: { positions: BrokerPosition[]; account: BrokerAccount },
 	): Promise<RiskValidation> {
@@ -341,6 +342,7 @@ export class LLMAnalysisAgent extends Agent<Env, LLMAgentState> {
 
 		const contextStr = JSON.stringify(
 			{
+				targetSymbol: symbol,
 				recommendation: {
 					action: recommendation.action,
 					confidence: recommendation.confidence,

@@ -1,5 +1,6 @@
 import type { DiscussionThread as DiscussionThreadType } from '@repo/data-ops/agents/session/types';
 import { Clock, MessageSquare } from 'lucide-react';
+import { useEffect, useRef } from 'react';
 import { useTranslations } from 'use-intl';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -47,6 +48,19 @@ export function DiscussionThread({
 }: DiscussionThreadProps) {
 	const t = useTranslations();
 	const statusConfig = STATUS_CONFIG[thread.status];
+	const scrollEndRef = useRef<HTMLDivElement>(null);
+	const prevCountRef = useRef(thread.messages.length);
+
+	if (thread.messages.length !== prevCountRef.current) {
+		prevCountRef.current = thread.messages.length;
+		queueMicrotask(() => {
+			scrollEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+		});
+	}
+
+	useEffect(() => {
+		scrollEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+	}, []);
 
 	return (
 		<Card>
@@ -79,6 +93,7 @@ export function DiscussionThread({
 						{thread.messages.map((msg) => (
 							<DiscussionMessage key={msg.id} message={msg} />
 						))}
+						<div ref={scrollEndRef} />
 					</div>
 				</ScrollArea>
 

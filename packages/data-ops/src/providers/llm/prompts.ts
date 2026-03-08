@@ -71,7 +71,12 @@ Return a JSON object with:
 - warnings: string[] of risk warnings
 - rationale: explanation of your risk assessment
 
-Consider: position concentration, portfolio correlation, available capital, existing exposure, and overall risk.
+Focus your assessment on the PROPOSED TRADE's symbol only. Evaluate whether:
+1. The proposed position size is appropriate given available capital and buying power
+2. The trade would create excessive concentration in the TARGET symbol specifically
+3. The entry/stop-loss/target prices imply acceptable risk-reward
+
+Existing positions in OTHER symbols are portfolio context for diversification — they are NOT a reason to reject a trade in a different asset. A portfolio holding BTCUSD does not make an AAPL trade risky. Only flag other positions if the proposed trade would push total portfolio leverage or margin usage to dangerous levels.
 `;
 
 export const EVENT_CLASSIFICATION_PROMPT = `Classify the following financial event. Return JSON with:
