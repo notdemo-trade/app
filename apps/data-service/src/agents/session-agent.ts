@@ -782,14 +782,43 @@ export class SessionAgent extends AIChatAgent<Env, SessionState> {
 	}
 
 	private async distributeOutcome(
-		_outcome: ProposalOutcome,
-		_pnl: number,
-		_pnlPct: number,
+		outcome: ProposalOutcome,
+		pnl: number,
+		pnlPct: number,
 	): Promise<void> {
-		// M8b will add recordPersonaOutcome/recordStepOutcome RPC methods on the
-		// DebateOrchestratorAgent and PipelineOrchestratorAgent. Until then,
-		// outcome distribution is a no-op — outcomes are stored locally in
-		// proposal_outcomes and will be distributed once M8b is deployed.
+		const resolvedOutcome = {
+			symbol: outcome.symbol,
+			realizedPnl: pnl,
+			realizedPnlPct: pnlPct,
+			action: outcome.action,
+		};
+
+		try {
+			const userId = this.name;
+			if (outcome.orchestrationMode === 'debate') {
+				const debate = await getAgentByName<Env, DebateOrchestratorAgent>(
+					this.env.DebateOrchestratorAgent,
+					userId,
+				);
+				await debate.recordPersonaOutcome(
+					outcome.proposalId,
+					outcome.orchestratorSessionId,
+					resolvedOutcome,
+				);
+			} else {
+				const pipeline = await getAgentByName<Env, PipelineOrchestratorAgent>(
+					this.env.PipelineOrchestratorAgent,
+					userId,
+				);
+				await pipeline.recordStepOutcome(
+					outcome.proposalId,
+					outcome.orchestratorSessionId,
+					resolvedOutcome,
+				);
+			}
+		} catch {
+			// Non-critical: outcome distribution failure shouldn't break tracking
+		}
 	}
 
 	private recordSnapshot(outcome: ProposalOutcome, position: BrokerPosition): void {

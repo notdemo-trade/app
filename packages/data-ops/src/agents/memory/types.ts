@@ -32,3 +32,81 @@ export interface OutcomeSnapshot {
 	currentPrice: number;
 	snapshotAt: number;
 }
+
+export interface PersonaOutcomeRecord {
+	id: string;
+	personaId: string;
+	sessionId: string;
+	proposalId: string;
+	symbol: string;
+	personaAction: string;
+	personaConfidence: number;
+	consensusAction: string;
+	realizedPnl: number;
+	realizedPnlPct: number;
+	wasCorrect: boolean;
+	resolvedAt: number;
+	createdAt: number;
+}
+
+export interface PersonaScore {
+	personaId: string;
+	windowDays: ScoreWindow;
+	totalProposals: number;
+	correctProposals: number;
+	winRate: number | null;
+	avgPnlPct: number | null;
+	stddevPnlPct: number | null;
+	sharpeRatio: number | null;
+	confidenceCalibration: number | null;
+	bestSymbol: string | null;
+	bestSymbolPnlPct: number | null;
+	worstSymbol: string | null;
+	worstSymbolPnlPct: number | null;
+	computedAt: number;
+}
+
+export interface PersonaPattern {
+	id: string;
+	personaId: string;
+	patternType: PatternType;
+	patternKey: string;
+	description: string;
+	sampleSize: number;
+	successRate: number;
+	avgPnlPct: number;
+	lastUpdatedAt: number;
+}
+
+export interface PerformanceContext {
+	personaId: string;
+	windowDays: ScoreWindow;
+	score: PersonaScore | null;
+	symbolRecord: { totalCalls: number; correctCalls: number; avgPnlPct: number } | null;
+	patterns: PersonaPattern[];
+}
+
+export interface PersonaComparisonRow {
+	personaId: string;
+	name: string;
+	winRate: number | null;
+	avgReturn: number | null;
+	sharpeRatio: number | null;
+	calibration: CalibrationRating;
+}
+
+export interface PipelineScore {
+	strategyId: string;
+	windowDays: ScoreWindow;
+	totalProposals: number;
+	correctProposals: number;
+	winRate: number | null;
+	avgPnlPct: number | null;
+	stddevPnlPct: number | null;
+	sharpeRatio: number | null;
+	bestSymbol: string | null;
+	bestSymbolPnlPct: number | null;
+	worstSymbol: string | null;
+	worstSymbolPnlPct: number | null;
+	computedAt: number;
+}

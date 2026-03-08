@@ -21,6 +21,7 @@ import type {
 	TradeRecommendation,
 	UsageSummaryResult,
 } from '@repo/data-ops/agents/llm/types';
+import type { PerformanceContext, PersonaComparisonRow } from '@repo/data-ops/agents/memory/types';
 import type { LLMCredential } from '@repo/data-ops/credential';
 import { getCredential } from '@repo/data-ops/credential';
 import { initDatabase } from '@repo/data-ops/database/setup';
@@ -244,6 +245,7 @@ export class LLMAnalysisAgent extends Agent<Env, LLMAgentState> {
 		persona: PersonaConfig,
 		data: AnalyzeAsPersonaData,
 		strategy: StrategyTemplate,
+		performanceContext?: PerformanceContext,
 	): Promise<PersonaAnalysis> {
 		const config = await this.resolveProviderConfig(this.name);
 		const llm = createLLMProvider(config);
@@ -255,8 +257,15 @@ export class LLMAnalysisAgent extends Agent<Env, LLMAgentState> {
 			2,
 		);
 
+		const perfBlock = performanceContext
+			? buildPerformanceContextBlock(performanceContext, data.symbol)
+			: '';
+		const systemPrompt = perfBlock
+			? `${persona.systemPrompt}\n\n${perfBlock}`
+			: persona.systemPrompt;
+
 		const messages: CompletionMessage[] = [
-			{ role: 'system', content: persona.systemPrompt },
+			{ role: 'system', content: systemPrompt },
 			{
 				role: 'user',
 				content: `${PERSONA_ANALYSIS_PROMPT}${contextStr}\n\nStrategy: ${strategyContext}`,
@@ -294,14 +303,20 @@ export class LLMAnalysisAgent extends Agent<Env, LLMAgentState> {
 		analyses: PersonaAnalysis[],
 		debateRounds: DebateRound[],
 		moderatorPrompt: string,
+		personaComparison?: PersonaComparisonRow[],
 	): Promise<ConsensusResult> {
 		const config = await this.resolveProviderConfig(this.name);
 		const llm = createLLMProvider(config);
 
 		const transcript = buildConsensusTranscript(analyses, debateRounds);
 
+		let enrichedPrompt = moderatorPrompt;
+		if (personaComparison && personaComparison.length > 0) {
+			enrichedPrompt = `${moderatorPrompt}\n\n${buildComparisonTable(personaComparison)}`;
+		}
+
 		const messages: CompletionMessage[] = [
-			{ role: 'system', content: moderatorPrompt },
+			{ role: 'system', content: enrichedPrompt },
 			{ role: 'user', content: `${CONSENSUS_SYNTHESIS_PROMPT}${transcript}` },
 		];
 
@@ -662,4 +677,87 @@ function parseRecommendation(content: string): TradeRecommendation {
 			risks: ['Analysis error'],
 		};
 	}
+}
+
+const PERFORMANCE_CONTEXT_MAX_CHARS = 2000;
+
+function getCalibrationRating(calibration: number | null): 'good' | 'fair' | 'poor' {
+	if (calibration === null) return 'fair';
+	if (calibration >= 0.5) return 'good';
+	if (calibration >= 0.2) return 'fair';
+	return 'poor';
+}
+
+function buildPerformanceContextBlock(context: PerformanceContext, symbol: string): string {
+	if (!context.score || context.score.totalProposals < 5) {
+		return '';
+	}
+
+	const parts: string[] = [];
+	const s = context.score;
+	const calibrationRating = getCalibrationRating(s.confidenceCalibration);
+
+	parts.push(`## Your Recent Performance (${s.windowDays}-day)`);
+	parts.push(
+		`- Win rate: ${((s.winRate ?? 0) * 100).toFixed(0)}% (${s.correctProposals}/${s.totalProposals})`,
+	);
+	parts.push(
+		`- Avg return per trade: ${(s.avgPnlPct ?? 0) >= 0 ? '+' : ''}${((s.avgPnlPct ?? 0) * 100).toFixed(1)}%`,
+	);
+	if (s.sharpeRatio !== null) {
+		parts.push(`- Sharpe ratio: ${s.sharpeRatio.toFixed(2)}`);
+	}
+	if (calibrationRating === 'poor') {
+		parts.push('- WARNING: Your confidence scores have been poorly calibrated');
+	}
+
+	if (context.symbolRecord && context.symbolRecord.totalCalls >= 3) {
+		const sr = context.symbolRecord;
+		parts.push('');
+		parts.push(`## Your track record on ${symbol}`);
+		parts.push(`- ${sr.totalCalls} previous calls, ${sr.correctCalls} correct`);
+		parts.push(`- Avg return: ${sr.avgPnlPct >= 0 ? '+' : ''}${(sr.avgPnlPct * 100).toFixed(1)}%`);
+	}
+
+	const relevantPatterns = context.patterns
+		.filter((p) => p.sampleSize >= 5)
+		.sort((a, b) => b.sampleSize - a.sampleSize);
+
+	if (relevantPatterns.length > 0) {
+		parts.push('');
+		parts.push('## Lessons from past trades');
+		for (const pattern of relevantPatterns) {
+			const line = `- ${pattern.description} (sample: ${pattern.sampleSize}, success: ${(pattern.successRate * 100).toFixed(0)}%)`;
+			const current = parts.join('\n');
+			if (current.length + line.length + 1 > PERFORMANCE_CONTEXT_MAX_CHARS) break;
+			parts.push(line);
+		}
+	}
+
+	const result = parts.join('\n');
+	return result.slice(0, PERFORMANCE_CONTEXT_MAX_CHARS);
+}
+
+function buildComparisonTable(rows: PersonaComparisonRow[]): string {
+	const lines = [
+		'## Analyst Track Records (30-day)',
+		'| Analyst | Win Rate | Avg Return | Sharpe | Calibration |',
+		'|---------|----------|------------|--------|-------------|',
+	];
+
+	for (const row of rows) {
+		const winRate = row.winRate !== null ? `${(row.winRate * 100).toFixed(0)}%` : 'N/A';
+		const avgReturn =
+			row.avgReturn !== null
+				? `${row.avgReturn >= 0 ? '+' : ''}${(row.avgReturn * 100).toFixed(1)}%`
+				: 'N/A';
+		const sharpe = row.sharpeRatio !== null ? row.sharpeRatio.toFixed(2) : 'N/A';
+		const calibration = row.calibration.charAt(0).toUpperCase() + row.calibration.slice(1);
+		lines.push(`| ${row.name} | ${winRate} | ${avgReturn} | ${sharpe} | ${calibration} |`);
+	}
+
+	lines.push('');
+	lines.push('Weight analysts with better track records more heavily.');
+
+	return lines.join('\n');
 }

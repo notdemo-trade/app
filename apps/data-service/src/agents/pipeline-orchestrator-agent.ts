@@ -1,4 +1,5 @@
 import type { StrategyTemplate } from '@repo/data-ops/agents/llm/types';
+import type { PipelineScore, ScoreWindow } from '@repo/data-ops/agents/memory/types';
 import type {
 	PipelineContext,
 	PipelineOrchestratorState,
@@ -13,7 +14,7 @@ import type {
 	TradeProposal,
 } from '@repo/data-ops/agents/session/types';
 import type { TechnicalSignal } from '@repo/data-ops/agents/ta/types';
-import { Agent, getAgentByName } from 'agents';
+import { Agent, callable, getAgentByName } from 'agents';
 import type { AlpacaBrokerAgent } from './alpaca-broker-agent';
 import type { AlpacaMarketDataAgent } from './alpaca-market-data-agent';
 import type { LLMAnalysisAgent } from './llm-analysis-agent';
@@ -74,6 +75,41 @@ export class PipelineOrchestratorAgent extends Agent<Env, PipelineOrchestratorSt
 			.sql`CREATE INDEX IF NOT EXISTS idx_pipeline_sessions_symbol ON pipeline_sessions(symbol, started_at DESC)`;
 		this
 			.sql`CREATE INDEX IF NOT EXISTS idx_pipeline_steps_session ON pipeline_steps(session_id, step_order ASC)`;
+
+		this.sql`CREATE TABLE IF NOT EXISTS pipeline_outcomes (
+			id                TEXT PRIMARY KEY,
+			session_id        TEXT NOT NULL REFERENCES pipeline_sessions(id),
+			proposal_id       TEXT NOT NULL,
+			symbol            TEXT NOT NULL,
+			action            TEXT NOT NULL,
+			confidence        REAL NOT NULL,
+			ta_signals_snapshot TEXT NOT NULL DEFAULT '[]',
+			realized_pnl      REAL NOT NULL,
+			realized_pnl_pct  REAL NOT NULL,
+			was_correct       INTEGER NOT NULL,
+			resolved_at       INTEGER NOT NULL,
+			created_at        INTEGER NOT NULL
+		)`;
+
+		this.sql`CREATE TABLE IF NOT EXISTS pipeline_scores (
+			strategy_id           TEXT NOT NULL,
+			window_days           INTEGER NOT NULL,
+			total_proposals       INTEGER NOT NULL DEFAULT 0,
+			correct_proposals     INTEGER NOT NULL DEFAULT 0,
+			win_rate              REAL,
+			avg_pnl_pct           REAL,
+			stddev_pnl_pct        REAL,
+			sharpe_ratio          REAL,
+			best_symbol           TEXT,
+			best_symbol_pnl_pct   REAL,
+			worst_symbol          TEXT,
+			worst_symbol_pnl_pct  REAL,
+			computed_at           INTEGER NOT NULL,
+			PRIMARY KEY (strategy_id, window_days)
+		)`;
+
+		this
+			.sql`CREATE INDEX IF NOT EXISTS idx_pipeline_outcomes_symbol ON pipeline_outcomes(symbol, created_at DESC)`;
 	}
 
 	async runPipeline(params: RunPipelineParams): Promise<RunPipelineResult> {
@@ -168,6 +204,48 @@ export class PipelineOrchestratorAgent extends Agent<Env, PipelineOrchestratorSt
 			const session = this.buildPipelineSession(sessionId, params, steps, context, 'failed');
 			return { session, proposal: null };
 		}
+	}
+
+	@callable()
+	async recordStepOutcome(
+		proposalId: string,
+		pipelineSessionId: string,
+		outcome: { symbol: string; realizedPnl: number; realizedPnlPct: number; action: string },
+	): Promise<void> {
+		const sessions = this.sql<{ id: string; strategy_id: string }[]>`
+			SELECT id, strategy_id FROM pipeline_sessions WHERE id = ${pipelineSessionId}`;
+		const session = sessions[0];
+		if (!session) return;
+
+		const taSteps = this.sql<{ output: string | null }[]>`
+			SELECT output FROM pipeline_steps
+			WHERE session_id = ${pipelineSessionId} AND name = 'technical_analysis'`;
+		const taStep = taSteps[0];
+
+		const taSignals = taStep?.output
+			? ((JSON.parse(taStep.output) as Record<string, unknown>).signals ?? [])
+			: [];
+		const wasCorrect =
+			outcome.action === 'buy' ? outcome.realizedPnlPct > 0 : outcome.realizedPnlPct < 0;
+		const now = Date.now();
+
+		this.sql`INSERT INTO pipeline_outcomes
+			(id, session_id, proposal_id, symbol, action, confidence,
+			 ta_signals_snapshot, realized_pnl, realized_pnl_pct,
+			 was_correct, resolved_at, created_at)
+			VALUES (${crypto.randomUUID()}, ${pipelineSessionId}, ${proposalId},
+				${outcome.symbol}, ${outcome.action}, ${0},
+				${JSON.stringify(taSignals)}, ${outcome.realizedPnl}, ${outcome.realizedPnlPct},
+				${wasCorrect ? 1 : 0}, ${now}, ${now})`;
+
+		this.recomputePipelineScores(session.strategy_id);
+	}
+
+	@callable()
+	getPipelineScores(windowDays: ScoreWindow): PipelineScore[] {
+		const rows = this.sql<PipelineScoreRow[]>`
+			SELECT * FROM pipeline_scores WHERE window_days = ${windowDays}`;
+		return rows.map(rowToPipelineScore);
 	}
 
 	private async executeStep(
@@ -316,6 +394,61 @@ export class PipelineOrchestratorAgent extends Agent<Env, PipelineOrchestratorSt
 		}
 	}
 
+	private recomputePipelineScores(strategyId: string): void {
+		const windows: ScoreWindow[] = [30, 90, 180];
+		const now = Date.now();
+
+		for (const windowDays of windows) {
+			const cutoff = now - windowDays * 24 * 60 * 60 * 1000;
+
+			const outcomes = this.sql<
+				{ was_correct: number; realized_pnl_pct: number; symbol: string }[]
+			>`
+				SELECT was_correct, realized_pnl_pct, symbol FROM pipeline_outcomes
+				WHERE session_id IN (SELECT id FROM pipeline_sessions WHERE strategy_id = ${strategyId})
+				AND resolved_at >= ${cutoff}`;
+
+			if (outcomes.length === 0) {
+				this.sql`DELETE FROM pipeline_scores
+					WHERE strategy_id = ${strategyId} AND window_days = ${windowDays}`;
+				continue;
+			}
+
+			const total = outcomes.length;
+			const correct = outcomes.filter((o) => o.was_correct === 1).length;
+			const winRate = correct / total;
+
+			const pnls = outcomes.map((o) => o.realized_pnl_pct);
+			const avgPnl = pnls.reduce((a, b) => a + b, 0) / pnls.length;
+			const stddev = Math.sqrt(pnls.reduce((sum, p) => sum + (p - avgPnl) ** 2, 0) / pnls.length);
+			const sharpe = stddev > 0 ? avgPnl / stddev : null;
+
+			const bySymbol = new Map<string, number[]>();
+			for (const o of outcomes) {
+				const arr = bySymbol.get(o.symbol) ?? [];
+				arr.push(o.realized_pnl_pct);
+				bySymbol.set(o.symbol, arr);
+			}
+
+			let best: { symbol: string; pnlPct: number } | null = null;
+			let worst: { symbol: string; pnlPct: number } | null = null;
+			for (const [symbol, symbolPnls] of bySymbol) {
+				const avg = symbolPnls.reduce((a, b) => a + b, 0) / symbolPnls.length;
+				if (!best || avg > best.pnlPct) best = { symbol, pnlPct: avg };
+				if (!worst || avg < worst.pnlPct) worst = { symbol, pnlPct: avg };
+			}
+
+			this.sql`INSERT OR REPLACE INTO pipeline_scores
+				(strategy_id, window_days, total_proposals, correct_proposals,
+				 win_rate, avg_pnl_pct, stddev_pnl_pct, sharpe_ratio,
+				 best_symbol, best_symbol_pnl_pct, worst_symbol, worst_symbol_pnl_pct, computed_at)
+				VALUES (${strategyId}, ${windowDays}, ${total}, ${correct},
+					${winRate}, ${avgPnl}, ${stddev}, ${sharpe},
+					${best?.symbol ?? null}, ${best?.pnlPct ?? null},
+					${worst?.symbol ?? null}, ${worst?.pnlPct ?? null}, ${now})`;
+		}
+	}
+
 	private buildProposal(ctx: PipelineContext, params: RunPipelineParams): TradeProposal {
 		const rec = ctx.recommendation;
 		if (!rec) throw new Error('No recommendation available for proposal');
@@ -420,4 +553,38 @@ export class PipelineOrchestratorAgent extends Agent<Env, PipelineOrchestratorSt
 	): void {
 		params.onMessage({ sender, phase, content, metadata });
 	}
+}
+
+interface PipelineScoreRow {
+	strategy_id: string;
+	window_days: number;
+	total_proposals: number;
+	correct_proposals: number;
+	win_rate: number | null;
+	avg_pnl_pct: number | null;
+	stddev_pnl_pct: number | null;
+	sharpe_ratio: number | null;
+	best_symbol: string | null;
+	best_symbol_pnl_pct: number | null;
+	worst_symbol: string | null;
+	worst_symbol_pnl_pct: number | null;
+	computed_at: number;
+}
+
+function rowToPipelineScore(row: PipelineScoreRow): PipelineScore {
+	return {
+		strategyId: row.strategy_id,
+		windowDays: row.window_days as ScoreWindow,
+		totalProposals: row.total_proposals,
+		correctProposals: row.correct_proposals,
+		winRate: row.win_rate,
+		avgPnlPct: row.avg_pnl_pct,
+		stddevPnlPct: row.stddev_pnl_pct,
+		sharpeRatio: row.sharpe_ratio,
+		bestSymbol: row.best_symbol,
+		bestSymbolPnlPct: row.best_symbol_pnl_pct,
+		worstSymbol: row.worst_symbol,
+		worstSymbolPnlPct: row.worst_symbol_pnl_pct,
+		computedAt: row.computed_at,
+	};
 }
