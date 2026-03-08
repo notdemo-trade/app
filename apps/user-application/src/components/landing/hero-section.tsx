@@ -1,5 +1,5 @@
 import { Link } from '@tanstack/react-router';
-import { LogIn, Shield, Sparkles, Zap } from 'lucide-react';
+import { Gift, LogIn, Shield, Sparkles } from 'lucide-react';
 import { useTranslations } from 'use-intl';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -16,7 +16,7 @@ export function HeroSection() {
 						{t('hero.badge.ai')}
 					</Badge>
 					<Badge variant="secondary" className="mb-4">
-						<Zap className="mr-1 h-3 w-3" />
+						<Gift className="mr-1 h-3 w-3" />
 						{t('hero.badge.monitoring')}
 					</Badge>
 					<Badge variant="secondary" className="mb-4">

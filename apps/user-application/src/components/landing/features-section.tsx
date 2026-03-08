@@ -2,12 +2,12 @@ import type { LucideIcon } from 'lucide-react';
 import {
 	BarChart3,
 	Bot,
+	CheckCircle,
+	GitBranch,
 	Key,
-	MessageSquare,
+	MessageCircle,
 	Shield,
-	Smartphone,
 	TrendingUp,
-	Zap,
 } from 'lucide-react';
 import { useTranslations } from 'use-intl';
 import { Badge } from '@/components/ui/badge';
@@ -34,16 +34,16 @@ const features: FeatureItem[] = [
 		badgeKey: 'features.multiasset.badge',
 	},
 	{
-		icon: MessageSquare,
-		titleKey: 'features.signals.title',
-		descriptionKey: 'features.signals.description',
-		badgeKey: 'features.signals.badge',
+		icon: MessageCircle,
+		titleKey: 'features.discussion.title',
+		descriptionKey: 'features.discussion.description',
+		badgeKey: 'features.discussion.badge',
 	},
 	{
-		icon: Smartphone,
-		titleKey: 'features.telegram.title',
-		descriptionKey: 'features.telegram.description',
-		badgeKey: 'features.telegram.badge',
+		icon: CheckCircle,
+		titleKey: 'features.approval.title',
+		descriptionKey: 'features.approval.description',
+		badgeKey: 'features.approval.badge',
 	},
 	{
 		icon: Shield,
@@ -53,9 +53,9 @@ const features: FeatureItem[] = [
 	},
 	{
 		icon: BarChart3,
-		titleKey: 'features.journal.title',
-		descriptionKey: 'features.journal.description',
-		badgeKey: 'features.journal.badge',
+		titleKey: 'features.performance.title',
+		descriptionKey: 'features.performance.description',
+		badgeKey: 'features.performance.badge',
 	},
 	{
 		icon: Key,
@@ -64,10 +64,10 @@ const features: FeatureItem[] = [
 		badgeKey: 'features.byok.badge',
 	},
 	{
-		icon: Zap,
-		titleKey: 'features.templates.title',
-		descriptionKey: 'features.templates.description',
-		badgeKey: 'features.templates.badge',
+		icon: GitBranch,
+		titleKey: 'features.orchestration.title',
+		descriptionKey: 'features.orchestration.description',
+		badgeKey: 'features.orchestration.badge',
 	},
 ];
 
