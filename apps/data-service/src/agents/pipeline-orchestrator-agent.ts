@@ -468,6 +468,7 @@ export class PipelineOrchestratorAgent extends Agent<Env, PipelineOrchestratorSt
 			notional: null,
 			positionSizePct,
 			risks: rec.risks,
+			warnings: ctx.riskValidation?.warnings ?? [],
 			expiresAt: Date.now() + 900_000,
 			status: 'pending',
 			createdAt: Date.now(),
@@ -541,7 +542,9 @@ export class PipelineOrchestratorAgent extends Agent<Env, PipelineOrchestratorSt
 	}
 
 	private getUserId(): string {
-		return this.name;
+		// this.name is `userId:symbol` — extract just the userId
+		const colonIndex = this.name.lastIndexOf(':');
+		return colonIndex === -1 ? this.name : this.name.substring(0, colonIndex);
 	}
 
 	private emitMessage(

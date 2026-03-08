@@ -1,6 +1,6 @@
 import { createFileRoute, Link } from '@tanstack/react-router';
-import { Bot, History, Play, RefreshCw, Send, Settings, User } from 'lucide-react';
-import { useEffect, useRef, useState } from 'react';
+import { Bot, Clock, History, Play, RefreshCw, Send, Settings, User } from 'lucide-react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { useTranslations } from 'use-intl';
 import { DiscussionThread, SessionSettings, TradeProposalCard } from '@/components/agents';
 import { Badge } from '@/components/ui/badge';
@@ -31,6 +31,30 @@ interface SessionDashboardProps {
 	userId: string;
 }
 
+function useNextCycleCountdown(enabled: boolean, lastCycleAt: number | null, intervalSec: number) {
+	const computeRemaining = useCallback(() => {
+		if (!enabled || !lastCycleAt) return null;
+		const nextAt = lastCycleAt + intervalSec * 1000;
+		const remaining = Math.max(0, Math.ceil((nextAt - Date.now()) / 1000));
+		return remaining;
+	}, [enabled, lastCycleAt, intervalSec]);
+
+	const [remaining, setRemaining] = useState(computeRemaining);
+
+	useEffect(() => {
+		setRemaining(computeRemaining());
+		if (!enabled || !lastCycleAt) return;
+		const id = setInterval(() => setRemaining(computeRemaining()), 1000);
+		return () => clearInterval(id);
+	}, [enabled, lastCycleAt, computeRemaining]);
+
+	if (remaining === null) return null;
+	if (remaining === 0) return 'Due...';
+	const mins = Math.floor(remaining / 60);
+	const secs = remaining % 60;
+	return `${mins}:${secs.toString().padStart(2, '0')}`;
+}
+
 function SessionDashboard({ userId }: SessionDashboardProps) {
 	const t = useTranslations();
 	const session = useSession(userId);
@@ -40,6 +64,11 @@ function SessionDashboard({ userId }: SessionDashboardProps) {
 	const isEnabled = session.state?.enabled ?? false;
 	const cycleCount = session.state?.cycleCount ?? 0;
 	const errorCount = session.state?.errorCount ?? 0;
+	const countdown = useNextCycleCountdown(
+		isEnabled,
+		session.state?.lastCycleAt ?? null,
+		session.state?.analysisIntervalSec ?? 120,
+	);
 	const pendingProposalCount = session.state?.pendingProposalCount ?? 0;
 	const pendingProposal =
 		session.state?.activeThread?.proposal?.status === 'pending'
@@ -94,6 +123,12 @@ function SessionDashboard({ userId }: SessionDashboardProps) {
 								Errors: <span className="font-mono text-foreground">{errorCount}</span>
 								<InfoTip content={t('session.tips.errors')} side="bottom" />
 							</div>
+							{countdown && (
+								<div className="flex items-center gap-1 text-muted-foreground">
+									<Clock className="h-3.5 w-3.5" />
+									Next: <span className="font-mono text-foreground">{countdown}</span>
+								</div>
+							)}
 							{pendingProposalCount > 0 && (
 								<div className="flex items-center gap-1">
 									<Badge variant="warning">{pendingProposalCount} pending</Badge>

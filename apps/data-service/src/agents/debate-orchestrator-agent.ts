@@ -627,7 +627,9 @@ export class DebateOrchestratorAgent extends Agent<Env, DebateOrchestratorState>
 	}
 
 	private getUserId(): string {
-		return this.name;
+		// this.name is `userId:symbol` — extract just the userId
+		const colonIndex = this.name.lastIndexOf(':');
+		return colonIndex === -1 ? this.name : this.name.substring(0, colonIndex);
 	}
 
 	private emitMessage(

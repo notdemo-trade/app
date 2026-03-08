@@ -18,6 +18,7 @@ export interface SessionState {
 	enabled: boolean;
 	lastCycleAt: number | null;
 	cycleCount: number;
+	analysisIntervalSec: number;
 	activeThreadId: string | null;
 	activeThread: DiscussionThread | null;
 	pendingProposalCount: number;

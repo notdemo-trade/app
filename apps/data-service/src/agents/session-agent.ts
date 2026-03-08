@@ -58,6 +58,7 @@ export class SessionAgent extends AIChatAgent<Env, SessionState> {
 		enabled: false,
 		lastCycleAt: null,
 		cycleCount: 0,
+		analysisIntervalSec: 120,
 		activeThreadId: null,
 		activeThread: null,
 		pendingProposalCount: 0,
@@ -75,9 +76,11 @@ export class SessionAgent extends AIChatAgent<Env, SessionState> {
 		this.initTables();
 		this.seedDefaults();
 
+		const config = this.loadConfig();
+		this.setState({ ...this.state, analysisIntervalSec: config.analysisIntervalSec });
+
 		if (this.state.enabled) {
-			const config = this.loadConfig();
-			await this.scheduleEvery(config.analysisIntervalSec, 'runScheduledCycle');
+			await this.rescheduleAnalysisCycle(config.analysisIntervalSec);
 			await this.scheduleEvery(300, 'runOutcomeTrackingCycle');
 		}
 	}
@@ -142,13 +145,28 @@ export class SessionAgent extends AIChatAgent<Env, SessionState> {
 		return result.toTextStreamResponse();
 	}
 
+	// --- Scheduling helpers ---
+
+	private async rescheduleAnalysisCycle(intervalSec: number): Promise<void> {
+		// Cancel existing analysis schedules
+		const existing = this.getSchedules({ type: 'interval' });
+		for (const s of existing) {
+			if (s.callback === 'runScheduledCycle') {
+				await this.cancelSchedule(s.id);
+			}
+		}
+		// Schedule next cycle as a one-shot, runScheduledCycle re-schedules itself
+		const nextAt = new Date(Date.now() + intervalSec * 1000);
+		await this.schedule(nextAt, 'runScheduledCycle');
+	}
+
 	// --- @callable() RPCs ---
 
 	@callable()
 	async start(): Promise<SessionState> {
 		const config = this.loadConfig();
 		this.setState({ ...this.state, enabled: true });
-		await this.scheduleEvery(config.analysisIntervalSec, 'runScheduledCycle');
+		await this.rescheduleAnalysisCycle(config.analysisIntervalSec);
 		await this.scheduleEvery(300, 'runOutcomeTrackingCycle');
 		return this.state;
 	}
@@ -156,6 +174,13 @@ export class SessionAgent extends AIChatAgent<Env, SessionState> {
 	@callable()
 	async stop(): Promise<SessionState> {
 		this.setState({ ...this.state, enabled: false });
+		// Cancel analysis schedule
+		const existing = this.getSchedules();
+		for (const s of existing) {
+			if (s.callback === 'runScheduledCycle') {
+				await this.cancelSchedule(s.id);
+			}
+		}
 		return this.state;
 	}
 
@@ -171,8 +196,11 @@ export class SessionAgent extends AIChatAgent<Env, SessionState> {
 		}
 
 		// Reschedule if interval changed and enabled
-		if (partial.analysisIntervalSec && this.state.enabled) {
-			await this.scheduleEvery(updated.analysisIntervalSec, 'runScheduledCycle');
+		if (partial.analysisIntervalSec) {
+			this.setState({ ...this.state, analysisIntervalSec: updated.analysisIntervalSec });
+			if (this.state.enabled) {
+				await this.rescheduleAnalysisCycle(updated.analysisIntervalSec);
+			}
 		}
 
 		return updated;
@@ -195,6 +223,7 @@ export class SessionAgent extends AIChatAgent<Env, SessionState> {
 
 	@callable()
 	async triggerAnalysis(): Promise<{ threadIds: string[] }> {
+		this.setState({ ...this.state, lastError: null });
 		const config = this.loadConfig();
 		const threadIds: string[] = [];
 		for (const symbol of config.watchlistSymbols) {
@@ -208,6 +237,12 @@ export class SessionAgent extends AIChatAgent<Env, SessionState> {
 			lastCycleAt: Date.now(),
 			cycleCount: this.state.cycleCount + 1,
 		});
+
+		// Reschedule so next cycle aligns with this trigger
+		if (this.state.enabled) {
+			await this.rescheduleAnalysisCycle(config.analysisIntervalSec);
+		}
+
 		return { threadIds };
 	}
 
@@ -291,11 +326,14 @@ export class SessionAgent extends AIChatAgent<Env, SessionState> {
 			this.expireProposals();
 		} catch (err) {
 			const message = err instanceof Error ? err.message : String(err);
+			const config = this.loadConfig();
 			this.setState({
 				...this.state,
+				lastCycleAt: Date.now(),
 				errorCount: this.state.errorCount + 1,
 				lastError: message,
 			});
+			await this.rescheduleAnalysisCycle(config.analysisIntervalSec);
 		}
 	}
 
@@ -461,13 +499,22 @@ export class SessionAgent extends AIChatAgent<Env, SessionState> {
 				this.env.AlpacaBrokerAgent,
 				userId,
 			);
+
+			const qty = proposal.qty ?? undefined;
+			let notional = proposal.notional ?? undefined;
+
+			if (!qty && !notional && proposal.positionSizePct) {
+				const account = await broker.getAccount();
+				notional = Math.round(account.cash * (proposal.positionSizePct / 100) * 100) / 100;
+			}
+
 			const orderResult = await broker.placeOrder({
 				symbol: proposal.symbol,
 				side: proposal.action,
 				type: 'market',
 				timeInForce: 'day',
-				qty: proposal.qty ?? undefined,
-				notional: proposal.notional ?? undefined,
+				qty,
+				notional,
 			});
 
 			this.sql`UPDATE trade_proposals SET status = 'executed' WHERE id = ${proposalId}`;
