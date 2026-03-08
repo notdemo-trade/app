@@ -23,6 +23,8 @@ import { Route as AuthSettingsTokensRouteImport } from './routes/_auth/settings/
 import { Route as AuthSettingsModelsRouteImport } from './routes/_auth/settings/models'
 import { Route as AuthSettingsCredentialsRouteImport } from './routes/_auth/settings/credentials'
 import { Route as AuthAnalysisSymbolRouteImport } from './routes/_auth/analysis/$symbol'
+import { Route as AuthSessionProposalsIndexRouteImport } from './routes/_auth/session/proposals.index'
+import { Route as AuthSessionProposalsProposalIdRouteImport } from './routes/_auth/session/proposals.$proposalId'
 
 const AuthRouteRoute = AuthRouteRouteImport.update({
   id: '/_auth',
@@ -93,6 +95,18 @@ const AuthAnalysisSymbolRoute = AuthAnalysisSymbolRouteImport.update({
   path: '/analysis/$symbol',
   getParentRoute: () => AuthRouteRoute,
 } as any)
+const AuthSessionProposalsIndexRoute =
+  AuthSessionProposalsIndexRouteImport.update({
+    id: '/session/proposals/',
+    path: '/session/proposals/',
+    getParentRoute: () => AuthRouteRoute,
+  } as any)
+const AuthSessionProposalsProposalIdRoute =
+  AuthSessionProposalsProposalIdRouteImport.update({
+    id: '/session/proposals/$proposalId',
+    path: '/session/proposals/$proposalId',
+    getParentRoute: () => AuthRouteRoute,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -108,6 +122,8 @@ export interface FileRoutesByFullPath {
   '/performance/': typeof AuthPerformanceIndexRoute
   '/profile/': typeof AuthProfileIndexRoute
   '/session/': typeof AuthSessionIndexRoute
+  '/session/proposals/$proposalId': typeof AuthSessionProposalsProposalIdRoute
+  '/session/proposals/': typeof AuthSessionProposalsIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -123,6 +139,8 @@ export interface FileRoutesByTo {
   '/performance': typeof AuthPerformanceIndexRoute
   '/profile': typeof AuthProfileIndexRoute
   '/session': typeof AuthSessionIndexRoute
+  '/session/proposals/$proposalId': typeof AuthSessionProposalsProposalIdRoute
+  '/session/proposals': typeof AuthSessionProposalsIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -140,6 +158,8 @@ export interface FileRoutesById {
   '/_auth/performance/': typeof AuthPerformanceIndexRoute
   '/_auth/profile/': typeof AuthProfileIndexRoute
   '/_auth/session/': typeof AuthSessionIndexRoute
+  '/_auth/session/proposals/$proposalId': typeof AuthSessionProposalsProposalIdRoute
+  '/_auth/session/proposals/': typeof AuthSessionProposalsIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -157,6 +177,8 @@ export interface FileRouteTypes {
     | '/performance/'
     | '/profile/'
     | '/session/'
+    | '/session/proposals/$proposalId'
+    | '/session/proposals/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -172,6 +194,8 @@ export interface FileRouteTypes {
     | '/performance'
     | '/profile'
     | '/session'
+    | '/session/proposals/$proposalId'
+    | '/session/proposals'
   id:
     | '__root__'
     | '/'
@@ -188,6 +212,8 @@ export interface FileRouteTypes {
     | '/_auth/performance/'
     | '/_auth/profile/'
     | '/_auth/session/'
+    | '/_auth/session/proposals/$proposalId'
+    | '/_auth/session/proposals/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -298,6 +324,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthAnalysisSymbolRouteImport
       parentRoute: typeof AuthRouteRoute
     }
+    '/_auth/session/proposals/': {
+      id: '/_auth/session/proposals/'
+      path: '/session/proposals'
+      fullPath: '/session/proposals/'
+      preLoaderRoute: typeof AuthSessionProposalsIndexRouteImport
+      parentRoute: typeof AuthRouteRoute
+    }
+    '/_auth/session/proposals/$proposalId': {
+      id: '/_auth/session/proposals/$proposalId'
+      path: '/session/proposals/$proposalId'
+      fullPath: '/session/proposals/$proposalId'
+      preLoaderRoute: typeof AuthSessionProposalsProposalIdRouteImport
+      parentRoute: typeof AuthRouteRoute
+    }
   }
 }
 
@@ -311,6 +351,8 @@ interface AuthRouteRouteChildren {
   AuthPerformanceIndexRoute: typeof AuthPerformanceIndexRoute
   AuthProfileIndexRoute: typeof AuthProfileIndexRoute
   AuthSessionIndexRoute: typeof AuthSessionIndexRoute
+  AuthSessionProposalsProposalIdRoute: typeof AuthSessionProposalsProposalIdRoute
+  AuthSessionProposalsIndexRoute: typeof AuthSessionProposalsIndexRoute
 }
 
 const AuthRouteRouteChildren: AuthRouteRouteChildren = {
@@ -323,6 +365,8 @@ const AuthRouteRouteChildren: AuthRouteRouteChildren = {
   AuthPerformanceIndexRoute: AuthPerformanceIndexRoute,
   AuthProfileIndexRoute: AuthProfileIndexRoute,
   AuthSessionIndexRoute: AuthSessionIndexRoute,
+  AuthSessionProposalsProposalIdRoute: AuthSessionProposalsProposalIdRoute,
+  AuthSessionProposalsIndexRoute: AuthSessionProposalsIndexRoute,
 }
 
 const AuthRouteRouteWithChildren = AuthRouteRoute._addFileChildren(

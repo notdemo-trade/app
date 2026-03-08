@@ -388,7 +388,7 @@ export class SessionAgent extends AIChatAgent<Env, SessionState> {
 
 		const consensus = result.consensus;
 		if (consensus.action !== 'hold' && consensus.confidence >= config.minConfidenceThreshold) {
-			this.createProposal(threadId, symbol, consensus, config);
+			await this.createProposal(threadId, symbol, consensus, config);
 		}
 
 		return `Debate analysis for ${symbol}: ${consensus.action} (confidence: ${consensus.confidence.toFixed(2)})`;
@@ -555,7 +555,7 @@ export class SessionAgent extends AIChatAgent<Env, SessionState> {
 		return DEFAULT_STRATEGIES[0] as StrategyTemplate;
 	}
 
-	private createProposal(
+	private async createProposal(
 		threadId: string,
 		symbol: string,
 		consensus: {
@@ -569,8 +569,29 @@ export class SessionAgent extends AIChatAgent<Env, SessionState> {
 			risks: string[];
 		},
 		config: SessionConfig,
-	): void {
+	): Promise<void> {
 		if (consensus.action === 'hold') return;
+
+		const warnings: string[] = [];
+
+		if (consensus.action === 'sell') {
+			try {
+				const userId = this.name;
+				const broker = await getAgentByName<Env, AlpacaBrokerAgent>(
+					this.env.AlpacaBrokerAgent,
+					userId,
+				);
+				const positions = await broker.getPositions();
+				const hasPosition = positions.some((p) => p.symbol === symbol && p.qty > 0);
+				if (!hasPosition) {
+					warnings.push(
+						`No ${symbol} position held — selling would require short selling or this may not be executable`,
+					);
+				}
+			} catch {
+				warnings.push('Could not verify portfolio positions — broker check failed');
+			}
+		}
 
 		const proposal: TradeProposal = {
 			id: crypto.randomUUID(),
@@ -586,6 +607,7 @@ export class SessionAgent extends AIChatAgent<Env, SessionState> {
 			notional: null,
 			positionSizePct: consensus.positionSizePct ?? config.positionSizePctOfCash,
 			risks: consensus.risks,
+			warnings,
 			expiresAt: Date.now() + config.proposalTimeoutSec * 1000,
 			status: 'pending',
 			createdAt: Date.now(),
@@ -603,11 +625,12 @@ export class SessionAgent extends AIChatAgent<Env, SessionState> {
 	private storeProposal(p: TradeProposal): void {
 		this.sql`INSERT INTO trade_proposals
 			(id, thread_id, symbol, action, confidence, rationale, entry_price, target_price,
-			 stop_loss, qty, notional, position_size_pct, risks, expires_at, status, created_at, decided_at,
+			 stop_loss, qty, notional, position_size_pct, risks, warnings, expires_at, status, created_at, decided_at,
 			 order_id, filled_qty, filled_avg_price, outcome_status)
 			VALUES (${p.id}, ${p.threadId}, ${p.symbol}, ${p.action}, ${p.confidence}, ${p.rationale},
 				${p.entryPrice}, ${p.targetPrice}, ${p.stopLoss}, ${p.qty}, ${p.notional},
-				${p.positionSizePct}, ${JSON.stringify(p.risks)}, ${p.expiresAt}, ${p.status},
+				${p.positionSizePct}, ${JSON.stringify(p.risks)}, ${JSON.stringify(p.warnings)},
+				${p.expiresAt}, ${p.status},
 				${p.createdAt}, ${p.decidedAt}, ${p.orderId}, ${p.filledQty}, ${p.filledAvgPrice},
 				${p.outcomeStatus})`;
 	}
@@ -948,6 +971,7 @@ export class SessionAgent extends AIChatAgent<Env, SessionState> {
 			notional          REAL,
 			position_size_pct REAL NOT NULL,
 			risks             TEXT NOT NULL DEFAULT '[]',
+			warnings          TEXT NOT NULL DEFAULT '[]',
 			expires_at        INTEGER NOT NULL,
 			status            TEXT NOT NULL DEFAULT 'pending',
 			created_at        INTEGER NOT NULL,
@@ -957,6 +981,8 @@ export class SessionAgent extends AIChatAgent<Env, SessionState> {
 			filled_avg_price  REAL,
 			outcome_status    TEXT NOT NULL DEFAULT 'none'
 		)`;
+
+		this.migrateTradeProposals();
 
 		this.sql`CREATE TABLE IF NOT EXISTS proposal_outcomes (
 			id                      TEXT PRIMARY KEY,
@@ -1014,6 +1040,27 @@ export class SessionAgent extends AIChatAgent<Env, SessionState> {
 		this.sql`CREATE INDEX IF NOT EXISTS idx_outcomes_proposal ON proposal_outcomes(proposal_id)`;
 		this
 			.sql`CREATE INDEX IF NOT EXISTS idx_snapshots_outcome ON outcome_snapshots(outcome_id, snapshot_at DESC)`;
+	}
+
+	private migrateTradeProposals(): void {
+		const columns = this.sql<{ name: string }>`PRAGMA table_info(trade_proposals)`;
+		const columnNames = new Set(columns.map((c) => c.name));
+
+		if (!columnNames.has('order_id')) {
+			this.sql`ALTER TABLE trade_proposals ADD COLUMN order_id TEXT`;
+		}
+		if (!columnNames.has('filled_qty')) {
+			this.sql`ALTER TABLE trade_proposals ADD COLUMN filled_qty REAL`;
+		}
+		if (!columnNames.has('filled_avg_price')) {
+			this.sql`ALTER TABLE trade_proposals ADD COLUMN filled_avg_price REAL`;
+		}
+		if (!columnNames.has('outcome_status')) {
+			this.sql`ALTER TABLE trade_proposals ADD COLUMN outcome_status TEXT NOT NULL DEFAULT 'none'`;
+		}
+		if (!columnNames.has('warnings')) {
+			this.sql`ALTER TABLE trade_proposals ADD COLUMN warnings TEXT NOT NULL DEFAULT '[]'`;
+		}
 	}
 
 	private seedDefaults(): void {

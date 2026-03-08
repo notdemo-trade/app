@@ -81,6 +81,7 @@ export interface TradeProposal {
 	notional: number | null;
 	positionSizePct: number;
 	risks: string[];
+	warnings: string[];
 	expiresAt: number;
 	status: 'pending' | 'approved' | 'rejected' | 'expired' | 'executed';
 	createdAt: number;

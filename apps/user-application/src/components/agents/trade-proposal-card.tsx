@@ -170,6 +170,20 @@ export function TradeProposalCard({ proposal, onApprove, onReject }: TradePropos
 					)}
 				</div>
 
+				{proposal.warnings && proposal.warnings.length > 0 && (
+					<div className="rounded-md border border-yellow-500/50 bg-yellow-50 p-2 dark:bg-yellow-950/30">
+						<div className="mb-1 flex items-center gap-1 text-xs font-medium text-yellow-700 dark:text-yellow-400">
+							<AlertTriangle className="h-3 w-3" />
+							Warning
+						</div>
+						<ul className="list-inside list-disc space-y-0.5 text-xs text-yellow-700 dark:text-yellow-400">
+							{proposal.warnings.map((warning) => (
+								<li key={warning}>{warning}</li>
+							))}
+						</ul>
+					</div>
+				)}
+
 				{proposal.risks.length > 0 && (
 					<div className="rounded-md bg-muted p-2">
 						<div className="mb-1 flex items-center gap-1 text-xs font-medium text-warning-foreground">

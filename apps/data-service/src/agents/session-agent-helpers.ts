@@ -70,6 +70,7 @@ export interface ProposalRow {
 	notional: number | null;
 	position_size_pct: number;
 	risks: string;
+	warnings: string;
 	expires_at: number;
 	status: string;
 	created_at: number;
@@ -175,6 +176,7 @@ export function rowToProposal(row: ProposalRow): TradeProposal {
 		notional: row.notional,
 		positionSizePct: row.position_size_pct,
 		risks: JSON.parse(row.risks) as string[],
+		warnings: JSON.parse(row.warnings || '[]') as string[],
 		expiresAt: row.expires_at,
 		status: row.status as TradeProposal['status'],
 		createdAt: row.created_at,

@@ -1,5 +1,5 @@
-import { createFileRoute } from '@tanstack/react-router';
-import { Bot, Play, RefreshCw, Send, Settings, User } from 'lucide-react';
+import { createFileRoute, Link } from '@tanstack/react-router';
+import { Bot, History, Play, RefreshCw, Send, Settings, User } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 import { useTranslations } from 'use-intl';
 import { DiscussionThread, SessionSettings, TradeProposalCard } from '@/components/agents';
@@ -177,6 +177,15 @@ function SessionDashboard({ userId }: SessionDashboardProps) {
 							</CardContent>
 						</Card>
 					)}
+
+					{/* Proposal History Link */}
+					<Link
+						to="/session/proposals"
+						className="flex items-center gap-2 rounded-md border border-border bg-card px-3 py-2 text-sm text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
+					>
+						<History className="h-4 w-4" />
+						Proposal History
+					</Link>
 
 					{/* Last Error */}
 					{session.state?.lastError && (

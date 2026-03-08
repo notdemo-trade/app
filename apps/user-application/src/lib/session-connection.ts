@@ -78,8 +78,10 @@ export function useSession(userId: string) {
 		triggerAnalysis: (symbol: string) => agentConnection.call('triggerAnalysis', [symbol]),
 		getThreads: (params?: { limit?: number; status?: string }) =>
 			agentConnection.call('getThreads', [params]) as Promise<DiscussionThread[]>,
-		getProposals: (params?: { status?: string; limit?: number }) =>
-			agentConnection.call('getProposals', [params]) as Promise<TradeProposal[]>,
+		getThread: (threadId: string) =>
+			agentConnection.call('getThread', [threadId]) as Promise<DiscussionThread | null>,
+		getProposals: (status?: string) =>
+			agentConnection.call('getProposals', [status]) as Promise<TradeProposal[]>,
 		approveProposal: (proposalId: string) =>
 			agentConnection.call('approveProposal', [proposalId]) as Promise<{
 				status: string;
