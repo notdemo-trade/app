@@ -235,9 +235,51 @@ export class SessionAgent extends AIChatAgent<Env, SessionState> {
 	async triggerAnalysis(): Promise<{ threadIds: string[] }> {
 		this.setState({ ...this.state, lastError: null });
 		const effectiveConfig = await this.loadEffectiveConfig();
+
+		// --- G1: Market hours gate ---
+		if (effectiveConfig.tradingHoursOnly) {
+			const marketOpen = await this.isMarketOpen();
+			if (!marketOpen) {
+				console.log('[triggerAnalysis] Skipped: market is closed and tradingHoursOnly is enabled');
+				return { threadIds: [] };
+			}
+		}
+
+		// --- G4: Daily loss circuit breaker ---
+		const dailyLossTriggered = await this.isDailyLossBreached(effectiveConfig.maxDailyLossPct);
+		if (dailyLossTriggered) {
+			console.log(
+				`[triggerAnalysis] Skipped: daily loss exceeds ${(effectiveConfig.maxDailyLossPct * 100).toFixed(1)}% limit`,
+			);
+			return { threadIds: [] };
+		}
+
+		// --- G5: Cooldown after loss ---
+		if (effectiveConfig.cooldownMinutesAfterLoss > 0) {
+			const cooldownActive = this.isCooldownActive(effectiveConfig.cooldownMinutesAfterLoss);
+			if (cooldownActive) {
+				console.log(
+					`[triggerAnalysis] Skipped: cooldown active (${effectiveConfig.cooldownMinutesAfterLoss} min after loss)`,
+				);
+				return { threadIds: [] };
+			}
+		}
+
+		// --- G2 + G3: Ticker filtering ---
+		const symbols = this.filterWatchlist(
+			effectiveConfig.watchlistSymbols,
+			effectiveConfig.tickerBlacklist,
+			effectiveConfig.tickerAllowlist,
+		);
+
+		if (symbols.length === 0) {
+			console.log('[triggerAnalysis] Skipped: no symbols remaining after filtering');
+			return { threadIds: [] };
+		}
+
 		const portfolioContext = await this.assemblePortfolioContext();
 		const threadIds: string[] = [];
-		for (const symbol of effectiveConfig.watchlistSymbols) {
+		for (const symbol of symbols) {
 			const result = await this.runAnalysisForSymbol(symbol, effectiveConfig, portfolioContext);
 			if (result.threadId) {
 				threadIds.push(result.threadId);
@@ -636,6 +678,7 @@ export class SessionAgent extends AIChatAgent<Env, SessionState> {
 	): Promise<{ status: string; message: string }> {
 		try {
 			const userId = this.name;
+			const effectiveConfig = await this.loadEffectiveConfig();
 			const broker = await getAgentByName<Env, AlpacaBrokerAgent>(
 				this.env.AlpacaBrokerAgent,
 				userId,
@@ -647,6 +690,62 @@ export class SessionAgent extends AIChatAgent<Env, SessionState> {
 			if (!qty && !notional && proposal.positionSizePct) {
 				const account = await broker.getAccount();
 				notional = Math.round(account.cash * (proposal.positionSizePct / 100) * 100) / 100;
+			}
+
+			// Fetch positions once for guards that need them (E3, E4)
+			let positions: BrokerPosition[] | null = null;
+			const getPositionsOnce = async () => {
+				if (!positions) {
+					positions = await broker.getPositions();
+				}
+				return positions;
+			};
+
+			// --- E4: Short selling block ---
+			if (proposal.action === 'sell' && !effectiveConfig.allowShortSelling) {
+				const pos = await getPositionsOnce();
+				const hasPosition = pos.some((p) => p.symbol === proposal.symbol && p.qty > 0);
+				if (!hasPosition) {
+					this.sql`UPDATE trade_proposals SET status = 'rejected', decided_at = ${Date.now()}
+						WHERE id = ${proposal.id}`;
+					return {
+						status: 'error',
+						message: `Short selling is disabled. No ${proposal.symbol} position held.`,
+					};
+				}
+			}
+
+			// --- E3: Max positions (buy orders only) ---
+			if (proposal.action === 'buy') {
+				const pos = await getPositionsOnce();
+				if (pos.length >= effectiveConfig.maxPositions) {
+					this.sql`UPDATE trade_proposals SET status = 'rejected', decided_at = ${Date.now()}
+						WHERE id = ${proposal.id}`;
+					return {
+						status: 'error',
+						message: `Maximum ${effectiveConfig.maxPositions} positions reached. Close a position first.`,
+					};
+				}
+			}
+
+			// --- E1: Max notional per trade ---
+			if (notional && notional > effectiveConfig.maxNotionalPerTrade) {
+				this.sql`UPDATE trade_proposals SET status = 'rejected', decided_at = ${Date.now()}
+					WHERE id = ${proposal.id}`;
+				return {
+					status: 'error',
+					message: `Trade notional $${notional.toFixed(2)} exceeds max $${effectiveConfig.maxNotionalPerTrade} per trade.`,
+				};
+			}
+
+			// --- E2: Max position value ---
+			if (notional && notional > effectiveConfig.maxPositionValue) {
+				this.sql`UPDATE trade_proposals SET status = 'rejected', decided_at = ${Date.now()}
+					WHERE id = ${proposal.id}`;
+				return {
+					status: 'error',
+					message: `Position value $${notional.toFixed(2)} exceeds max $${effectiveConfig.maxPositionValue} per position.`,
+				};
 			}
 
 			const orderResult = await broker.placeOrder({
@@ -845,6 +944,7 @@ export class SessionAgent extends AIChatAgent<Env, SessionState> {
 
 		const warnings: string[] = [];
 
+		// --- P1: Block sell proposals for unheld symbols when short selling is disabled ---
 		if (consensus.action === 'sell') {
 			try {
 				const userId = this.name;
@@ -855,6 +955,12 @@ export class SessionAgent extends AIChatAgent<Env, SessionState> {
 				const positions = await broker.getPositions();
 				const hasPosition = positions.some((p) => p.symbol === symbol && p.qty > 0);
 				if (!hasPosition) {
+					if (!config.allowShortSelling) {
+						console.log(
+							`[createProposal] Blocked sell proposal for ${symbol}: short selling disabled and no position held`,
+						);
+						return;
+					}
 					warnings.push(
 						`No ${symbol} position held — selling would require short selling or this may not be executable`,
 					);
@@ -919,6 +1025,82 @@ export class SessionAgent extends AIChatAgent<Env, SessionState> {
 		const now = Date.now();
 		this.sql`UPDATE trade_proposals SET status = 'expired', decided_at = ${now}
 			WHERE status IN ('pending', 'failed', 'approved') AND expires_at < ${now}`;
+	}
+
+	// --- Risk management helpers ---
+
+	private async isMarketOpen(): Promise<boolean> {
+		try {
+			const userId = this.name;
+			const broker = await getAgentByName<Env, AlpacaBrokerAgent>(
+				this.env.AlpacaBrokerAgent,
+				userId,
+			);
+			const clock = await broker.getClock();
+			return clock.isOpen;
+		} catch (err) {
+			// Fail-open: if broker is unreachable, allow analysis to proceed
+			console.error('[isMarketOpen] Failed to check market clock:', err);
+			return true;
+		}
+	}
+
+	private async isDailyLossBreached(maxDailyLossPct: number): Promise<boolean> {
+		try {
+			const userId = this.name;
+			const broker = await getAgentByName<Env, AlpacaBrokerAgent>(
+				this.env.AlpacaBrokerAgent,
+				userId,
+			);
+			const history = await broker.getPortfolioHistory();
+			const todayLossPct = history.profitLossPct[history.profitLossPct.length - 1] ?? 0;
+			// profitLossPct is negative for losses; maxDailyLossPct is positive (e.g., 0.02 = 2%)
+			return todayLossPct < -maxDailyLossPct;
+		} catch (err) {
+			// Fail-open: if broker is unreachable, allow analysis to proceed
+			console.error('[isDailyLossBreached] Failed to check portfolio history:', err);
+			return false;
+		}
+	}
+
+	private isCooldownActive(cooldownMinutes: number): boolean {
+		const rows = this.sql<{ resolved_at: number }>`
+			SELECT resolved_at FROM proposal_outcomes
+			WHERE status = 'resolved' AND realized_pnl < 0
+			ORDER BY resolved_at DESC LIMIT 1`;
+
+		const lastLoss = rows[0];
+		if (!lastLoss?.resolved_at) return false;
+
+		const cooldownMs = cooldownMinutes * 60 * 1000;
+		return Date.now() - lastLoss.resolved_at < cooldownMs;
+	}
+
+	private filterWatchlist(
+		symbols: string[],
+		blacklist: string[],
+		allowlist: string[] | null,
+	): string[] {
+		const blacklistSet = new Set(blacklist.map((s) => s.toUpperCase()));
+		const allowlistSet = allowlist ? new Set(allowlist.map((s) => s.toUpperCase())) : null;
+
+		return symbols.filter((symbol) => {
+			const upper = symbol.toUpperCase();
+
+			// G2: Blacklist takes priority
+			if (blacklistSet.has(upper)) {
+				console.log(`[filterWatchlist] Skipping ${symbol}: blacklisted`);
+				return false;
+			}
+
+			// G3: Allowlist (if set, only allow symbols in the list)
+			if (allowlistSet && !allowlistSet.has(upper)) {
+				console.log(`[filterWatchlist] Skipping ${symbol}: not in allowlist`);
+				return false;
+			}
+
+			return true;
+		});
 	}
 
 	private async syncLLMProvider(config: SessionConfig): Promise<void> {
