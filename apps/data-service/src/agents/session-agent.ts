@@ -43,6 +43,7 @@ import {
 	type CountRow,
 	DEFAULT_STRATEGIES,
 	type MessageRow,
+	normalizePositionSizePct,
 	type OutcomeSnapshotRow,
 	type ProposalOutcomeRow,
 	type ProposalRow,
@@ -548,6 +549,7 @@ export class SessionAgent extends AIChatAgent<Env, SessionState> {
 			proposalTimeoutSec: config.proposalTimeoutSec,
 			scoreWindows: config.scoreWindows,
 			portfolioContext,
+			positionSizePctOfCash: config.positionSizePctOfCash,
 		})) as RunPipelineResult;
 
 		if (result.proposal) {
@@ -835,7 +837,9 @@ export class SessionAgent extends AIChatAgent<Env, SessionState> {
 			stopLoss: consensus.stopLoss,
 			qty: null,
 			notional: null,
-			positionSizePct: consensus.positionSizePct ?? config.positionSizePctOfCash,
+			positionSizePct: normalizePositionSizePct(
+				consensus.positionSizePct ?? config.positionSizePctOfCash * 100,
+			),
 			risks: consensus.risks,
 			warnings,
 			expiresAt: Date.now() + config.proposalTimeoutSec * 1000,

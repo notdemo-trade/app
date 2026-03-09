@@ -252,6 +252,23 @@ export const DEFAULT_STRATEGIES: StrategyTemplate[] = [
 	},
 ];
 
+/**
+ * Normalize a position size percentage to whole-number convention (5 = 5%).
+ *
+ * TradeProposal.positionSizePct and execution math (cash * pct / 100)
+ * expect whole-number percentages. Config values use fractions (0.05 = 5%).
+ * LLM outputs typically use whole numbers but may return fractions.
+ *
+ * Heuristic: values in (0, 1) exclusive are treated as fractions and multiplied by 100.
+ * Values >= 1 are treated as already-whole-number percentages.
+ */
+export function normalizePositionSizePct(value: number): number {
+	if (value > 0 && value < 1) {
+		return value * 100;
+	}
+	return value;
+}
+
 export const SYSTEM_PROMPT = `You are a trading session assistant that helps users analyze markets and manage trades.
 You have access to tools for analyzing symbols and executing trades.
 When the user asks about a symbol, use the analyzeSymbol tool to start a full analysis cycle.

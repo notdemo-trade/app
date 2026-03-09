@@ -40,6 +40,7 @@ import {
 } from '@repo/data-ops/providers/llm';
 import { resolveTaskLLMParams } from '@repo/data-ops/trading-config';
 import { Agent, callable } from 'agents';
+import { normalizePositionSizePct } from './session-agent-helpers';
 
 const LLM_PROVIDERS: LLMProviderName[] = [
 	'openai',
@@ -655,7 +656,10 @@ function parseConsensusResult(content: string): ConsensusResult {
 			entryPrice: typeof parsed.entryPrice === 'number' ? parsed.entryPrice : null,
 			targetPrice: typeof parsed.targetPrice === 'number' ? parsed.targetPrice : null,
 			stopLoss: typeof parsed.stopLoss === 'number' ? parsed.stopLoss : null,
-			positionSizePct: typeof parsed.positionSizePct === 'number' ? parsed.positionSizePct : null,
+			positionSizePct:
+				typeof parsed.positionSizePct === 'number'
+					? normalizePositionSizePct(parsed.positionSizePct)
+					: null,
 			risks: Array.isArray(parsed.risks) ? parsed.risks.map(String) : [],
 		};
 	} catch {
@@ -679,7 +683,9 @@ function parseRiskValidation(content: string): RiskValidation {
 		return {
 			approved: parsed.approved === true,
 			adjustedPositionSize:
-				typeof parsed.adjustedPositionSize === 'number' ? parsed.adjustedPositionSize : null,
+				typeof parsed.adjustedPositionSize === 'number'
+					? normalizePositionSizePct(parsed.adjustedPositionSize)
+					: null,
 			warnings: Array.isArray(parsed.warnings) ? parsed.warnings.map(String) : [],
 			rationale: String(parsed.rationale || 'No risk rationale'),
 		};

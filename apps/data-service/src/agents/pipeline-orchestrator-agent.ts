@@ -19,6 +19,7 @@ import { Agent, callable, getAgentByName } from 'agents';
 import type { AlpacaBrokerAgent } from './alpaca-broker-agent';
 import type { AlpacaMarketDataAgent } from './alpaca-market-data-agent';
 import type { LLMAnalysisAgent } from './llm-analysis-agent';
+import { normalizePositionSizePct } from './session-agent-helpers';
 import type { TechnicalAnalysisAgent } from './technical-analysis-agent';
 
 export interface RunPipelineParams {
@@ -30,6 +31,8 @@ export interface RunPipelineParams {
 	proposalTimeoutSec?: number;
 	scoreWindows?: number[];
 	portfolioContext?: PortfolioContext;
+	/** User's configured position size as a fraction (0.0-1.0). Converted to whole-number pct internally. */
+	positionSizePctOfCash?: number;
 }
 
 export interface RunPipelineResult {
@@ -468,7 +471,11 @@ export class PipelineOrchestratorAgent extends Agent<Env, PipelineOrchestratorSt
 	private buildProposal(ctx: PipelineContext, params: RunPipelineParams): TradeProposal {
 		const rec = ctx.recommendation;
 		if (!rec) throw new Error('No recommendation available for proposal');
-		const positionSizePct = ctx.riskValidation?.adjustedPositionSize ?? rec.position_size_pct ?? 5;
+		const rawPct =
+			ctx.riskValidation?.adjustedPositionSize ??
+			rec.position_size_pct ??
+			(params.positionSizePctOfCash !== undefined ? params.positionSizePctOfCash * 100 : 5);
+		const positionSizePct = normalizePositionSizePct(rawPct);
 
 		return {
 			id: crypto.randomUUID(),
