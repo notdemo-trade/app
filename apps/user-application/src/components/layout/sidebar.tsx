@@ -51,18 +51,8 @@ const navigationGroups: NavigationGroup[] = [
 		],
 	},
 	{
-		labelKey: 'sidebar.settingsGroup',
+		labelKey: 'sidebar.strategyGroup',
 		items: [
-			{
-				nameKey: 'sidebar.credentials',
-				icon: KeyRound,
-				href: '/settings/credentials',
-			},
-			{
-				nameKey: 'sidebar.tokens',
-				icon: Shield,
-				href: '/settings/tokens',
-			},
 			{
 				nameKey: 'sidebar.trading',
 				icon: Coins,
@@ -82,6 +72,21 @@ const navigationGroups: NavigationGroup[] = [
 				nameKey: 'sidebar.debate',
 				icon: MessageSquare,
 				href: '/settings/debate',
+			},
+		],
+	},
+	{
+		labelKey: 'sidebar.accountGroup',
+		items: [
+			{
+				nameKey: 'sidebar.credentials',
+				icon: KeyRound,
+				href: '/settings/credentials',
+			},
+			{
+				nameKey: 'sidebar.tokens',
+				icon: Shield,
+				href: '/settings/tokens',
 			},
 			{
 				nameKey: 'sidebar.profile',

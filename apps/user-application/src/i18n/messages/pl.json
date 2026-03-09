@@ -164,7 +164,8 @@
 	"sidebar": {
 		"dashboard": "Panel",
 		"session": "Agent Sesji",
-		"settingsGroup": "Ustawienia",
+		"strategyGroup": "Strategia",
+		"accountGroup": "Konto",
 		"credentials": "Poświadczenia",
 		"tokens": "Tokeny API",
 		"trading": "Konfiguracja",
