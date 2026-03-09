@@ -164,7 +164,6 @@
 	"sidebar": {
 		"dashboard": "Panel",
 		"session": "Agent Sesji",
-		"analysis": "Analiza",
 		"settingsGroup": "Ustawienia",
 		"credentials": "Poświadczenia",
 		"tokens": "Tokeny API",

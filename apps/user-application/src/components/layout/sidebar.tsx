@@ -2,7 +2,6 @@ import { useNavigate, useRouterState } from '@tanstack/react-router';
 import {
 	Bot,
 	BrainCircuit,
-	ChartCandlestick,
 	Coins,
 	Home,
 	KeyRound,
@@ -43,11 +42,6 @@ const navigationGroups: NavigationGroup[] = [
 				nameKey: 'sidebar.session',
 				icon: Bot,
 				href: '/session',
-			},
-			{
-				nameKey: 'sidebar.analysis',
-				icon: ChartCandlestick,
-				href: '/analysis/AAPL',
 			},
 			{
 				nameKey: 'sidebar.performance',
@@ -146,7 +140,6 @@ export function Sidebar({ className }: SidebarProps) {
 								{group.items.map((item) => {
 									const isActive =
 										currentPath === item.href ||
-										(item.href.startsWith('/analysis') && currentPath.startsWith('/analysis')) ||
 										(item.href.startsWith('/session') && currentPath.startsWith('/session')) ||
 										(item.href.startsWith('/performance') &&
 											currentPath.startsWith('/performance'));

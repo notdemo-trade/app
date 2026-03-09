@@ -24,7 +24,6 @@ import { Route as AuthSettingsTechnicalAnalysisRouteImport } from './routes/_aut
 import { Route as AuthSettingsModelsRouteImport } from './routes/_auth/settings/models'
 import { Route as AuthSettingsDebateRouteImport } from './routes/_auth/settings/debate'
 import { Route as AuthSettingsCredentialsRouteImport } from './routes/_auth/settings/credentials'
-import { Route as AuthAnalysisSymbolRouteImport } from './routes/_auth/analysis/$symbol'
 import { Route as AuthSessionProposalsIndexRouteImport } from './routes/_auth/session/proposals.index'
 import { Route as AuthSessionProposalsProposalIdRouteImport } from './routes/_auth/session/proposals.$proposalId'
 
@@ -103,11 +102,6 @@ const AuthSettingsCredentialsRoute = AuthSettingsCredentialsRouteImport.update({
   path: '/settings/credentials',
   getParentRoute: () => AuthRouteRoute,
 } as any)
-const AuthAnalysisSymbolRoute = AuthAnalysisSymbolRouteImport.update({
-  id: '/analysis/$symbol',
-  path: '/analysis/$symbol',
-  getParentRoute: () => AuthRouteRoute,
-} as any)
 const AuthSessionProposalsIndexRoute =
   AuthSessionProposalsIndexRouteImport.update({
     id: '/session/proposals/',
@@ -125,7 +119,6 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/api/health': typeof ApiHealthRoute
   '/faq/$categoryId': typeof FaqCategoryIdRoute
-  '/analysis/$symbol': typeof AuthAnalysisSymbolRoute
   '/settings/credentials': typeof AuthSettingsCredentialsRoute
   '/settings/debate': typeof AuthSettingsDebateRoute
   '/settings/models': typeof AuthSettingsModelsRoute
@@ -144,7 +137,6 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/api/health': typeof ApiHealthRoute
   '/faq/$categoryId': typeof FaqCategoryIdRoute
-  '/analysis/$symbol': typeof AuthAnalysisSymbolRoute
   '/settings/credentials': typeof AuthSettingsCredentialsRoute
   '/settings/debate': typeof AuthSettingsDebateRoute
   '/settings/models': typeof AuthSettingsModelsRoute
@@ -165,7 +157,6 @@ export interface FileRoutesById {
   '/_auth': typeof AuthRouteRouteWithChildren
   '/api/health': typeof ApiHealthRoute
   '/faq/$categoryId': typeof FaqCategoryIdRoute
-  '/_auth/analysis/$symbol': typeof AuthAnalysisSymbolRoute
   '/_auth/settings/credentials': typeof AuthSettingsCredentialsRoute
   '/_auth/settings/debate': typeof AuthSettingsDebateRoute
   '/_auth/settings/models': typeof AuthSettingsModelsRoute
@@ -186,7 +177,6 @@ export interface FileRouteTypes {
     | '/'
     | '/api/health'
     | '/faq/$categoryId'
-    | '/analysis/$symbol'
     | '/settings/credentials'
     | '/settings/debate'
     | '/settings/models'
@@ -205,7 +195,6 @@ export interface FileRouteTypes {
     | '/'
     | '/api/health'
     | '/faq/$categoryId'
-    | '/analysis/$symbol'
     | '/settings/credentials'
     | '/settings/debate'
     | '/settings/models'
@@ -225,7 +214,6 @@ export interface FileRouteTypes {
     | '/_auth'
     | '/api/health'
     | '/faq/$categoryId'
-    | '/_auth/analysis/$symbol'
     | '/_auth/settings/credentials'
     | '/_auth/settings/debate'
     | '/_auth/settings/models'
@@ -356,13 +344,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthSettingsCredentialsRouteImport
       parentRoute: typeof AuthRouteRoute
     }
-    '/_auth/analysis/$symbol': {
-      id: '/_auth/analysis/$symbol'
-      path: '/analysis/$symbol'
-      fullPath: '/analysis/$symbol'
-      preLoaderRoute: typeof AuthAnalysisSymbolRouteImport
-      parentRoute: typeof AuthRouteRoute
-    }
     '/_auth/session/proposals/': {
       id: '/_auth/session/proposals/'
       path: '/session/proposals'
@@ -381,7 +362,6 @@ declare module '@tanstack/react-router' {
 }
 
 interface AuthRouteRouteChildren {
-  AuthAnalysisSymbolRoute: typeof AuthAnalysisSymbolRoute
   AuthSettingsCredentialsRoute: typeof AuthSettingsCredentialsRoute
   AuthSettingsDebateRoute: typeof AuthSettingsDebateRoute
   AuthSettingsModelsRoute: typeof AuthSettingsModelsRoute
@@ -397,7 +377,6 @@ interface AuthRouteRouteChildren {
 }
 
 const AuthRouteRouteChildren: AuthRouteRouteChildren = {
-  AuthAnalysisSymbolRoute: AuthAnalysisSymbolRoute,
   AuthSettingsCredentialsRoute: AuthSettingsCredentialsRoute,
   AuthSettingsDebateRoute: AuthSettingsDebateRoute,
   AuthSettingsModelsRoute: AuthSettingsModelsRoute,

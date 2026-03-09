@@ -164,7 +164,6 @@
 	"sidebar": {
 		"dashboard": "Dashboard",
 		"session": "Session Agent",
-		"analysis": "Analysis",
 		"settingsGroup": "Settings",
 		"credentials": "Credentials",
 		"tokens": "API Tokens",
