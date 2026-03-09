@@ -1,10 +1,12 @@
 import { Link } from '@tanstack/react-router';
 import { ArrowLeft, FileQuestion, Home, Search } from 'lucide-react';
 import type { ReactNode } from 'react';
+import { useTranslations } from 'use-intl';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 
 export function NotFound({ children }: { children?: ReactNode }) {
+	const t = useTranslations();
 	return (
 		<div className="min-h-[60vh] flex items-center justify-center p-4">
 			<Card className="w-full max-w-md">
@@ -17,9 +19,9 @@ export function NotFound({ children }: { children?: ReactNode }) {
 
 						{/* Heading */}
 						<div className="space-y-2">
-							<h1 className="text-2xl font-semibold tracking-tight">Page Not Found</h1>
+							<h1 className="text-2xl font-semibold tracking-tight">{t('notFound.title')}</h1>
 							<div className="text-muted-foreground">
-								{children || <p>The page you're looking for doesn't exist or has been moved.</p>}
+								{children || <p>{t('notFound.description')}</p>}
 							</div>
 						</div>
 
@@ -31,12 +33,12 @@ export function NotFound({ children }: { children?: ReactNode }) {
 								className="flex items-center gap-2"
 							>
 								<ArrowLeft className="h-4 w-4" />
-								Go Back
+								{t('common.goBack')}
 							</Button>
 							<Button variant="outline" asChild>
 								<Link to="/" className="flex items-center gap-2">
 									<Home className="h-4 w-4" />
-									Home
+									{t('common.home')}
 								</Link>
 							</Button>
 						</div>
@@ -45,7 +47,7 @@ export function NotFound({ children }: { children?: ReactNode }) {
 						<div className="pt-4 border-t w-full">
 							<div className="flex items-center gap-2 text-sm text-muted-foreground justify-center">
 								<Search className="h-4 w-4" />
-								<span>Try checking the URL or use the search functionality</span>
+								<span>{t('notFound.searchHint')}</span>
 							</div>
 						</div>
 					</div>

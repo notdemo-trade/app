@@ -8,11 +8,11 @@ interface PatternHighlightsProps {
 	personaName?: string;
 }
 
-const patternTypeLabels: Record<string, string> = {
-	indicator_outcome: 'Indicator',
-	market_regime: 'Market Regime',
-	sector: 'Sector',
-	symbol: 'Symbol',
+const patternTypeKeys: Record<string, string> = {
+	indicator_outcome: 'patternType.indicator',
+	market_regime: 'patternType.marketRegime',
+	sector: 'patternType.sector',
+	symbol: 'patternType.symbol',
 };
 
 export function PatternHighlights({ patterns, personaName }: PatternHighlightsProps) {
@@ -42,7 +42,7 @@ export function PatternHighlights({ patterns, personaName }: PatternHighlightsPr
 								<div className="flex-1">
 									<p className="text-sm text-foreground">{pattern.description}</p>
 									<div className="mt-1 flex gap-3 text-xs text-muted-foreground">
-										<span>{patternTypeLabels[pattern.patternType] ?? pattern.patternType}</span>
+										<span>{t(patternTypeKeys[pattern.patternType] ?? pattern.patternType)}</span>
 										<span>{t('sampleSize', { count: pattern.sampleSize })}</span>
 									</div>
 								</div>

@@ -2,6 +2,7 @@ import type { TradeProposal } from '@repo/data-ops/agents/session/types';
 import { createFileRoute, Link } from '@tanstack/react-router';
 import { ArrowDown, ArrowLeft, ArrowUp, Clock } from 'lucide-react';
 import { useCallback, useEffect, useState } from 'react';
+import { useTranslations } from 'use-intl';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent } from '@/components/ui/card';
 import { authClient } from '@/lib/auth-client';
@@ -14,15 +15,15 @@ export const Route = createFileRoute('/_auth/session/proposals/')({
 const STATUS_CONFIG: Record<
 	TradeProposal['status'],
 	{
-		label: string;
+		key: string;
 		variant: 'default' | 'secondary' | 'success' | 'destructive' | 'warning' | 'outline';
 	}
 > = {
-	pending: { label: 'Pending', variant: 'warning' },
-	approved: { label: 'Approved', variant: 'success' },
-	rejected: { label: 'Rejected', variant: 'destructive' },
-	expired: { label: 'Expired', variant: 'secondary' },
-	executed: { label: 'Executed', variant: 'success' },
+	pending: { key: 'proposal.status.pending', variant: 'warning' },
+	approved: { key: 'proposal.status.approved', variant: 'success' },
+	rejected: { key: 'proposal.status.rejected', variant: 'destructive' },
+	expired: { key: 'proposal.status.expired', variant: 'secondary' },
+	executed: { key: 'proposal.status.executed', variant: 'success' },
 };
 
 function ProposalHistoryPage() {
@@ -35,6 +36,7 @@ function ProposalHistoryPage() {
 }
 
 function ProposalHistoryContent({ userId }: { userId: string }) {
+	const t = useTranslations();
 	const session = useSession(userId);
 	const [proposals, setProposals] = useState<TradeProposal[]>([]);
 	const [loading, setLoading] = useState(true);
@@ -62,23 +64,21 @@ function ProposalHistoryContent({ userId }: { userId: string }) {
 					<ArrowLeft className="h-5 w-5" />
 				</Link>
 				<div>
-					<h1 className="text-2xl font-bold text-foreground">Proposal History</h1>
-					<p className="text-sm text-muted-foreground">
-						Review past trade proposals and their full analysis
-					</p>
+					<h1 className="text-2xl font-bold text-foreground">{t('sessionPage.proposalHistory')}</h1>
+					<p className="text-sm text-muted-foreground">{t('sessionPage.proposalHistoryDesc')}</p>
 				</div>
 			</div>
 
 			{loading ? (
 				<Card>
 					<CardContent className="py-8 text-center text-sm text-muted-foreground">
-						Loading proposals...
+						{t('sessionPage.loadingProposals')}
 					</CardContent>
 				</Card>
 			) : proposals.length === 0 ? (
 				<Card>
 					<CardContent className="py-8 text-center text-sm text-muted-foreground">
-						No proposals yet
+						{t('sessionPage.noProposals')}
 					</CardContent>
 				</Card>
 			) : (
@@ -93,6 +93,7 @@ function ProposalHistoryContent({ userId }: { userId: string }) {
 }
 
 function ProposalListItem({ proposal }: { proposal: TradeProposal }) {
+	const t = useTranslations();
 	const isBuy = proposal.action === 'buy';
 	const statusConfig = STATUS_CONFIG[proposal.status];
 	const hasWarnings = proposal.warnings && proposal.warnings.length > 0;
@@ -133,7 +134,7 @@ function ProposalListItem({ proposal }: { proposal: TradeProposal }) {
 
 					{hasWarnings && (
 						<Badge variant="warning" className="text-xs">
-							Warning
+							{t('common.warning')}
 						</Badge>
 					)}
 
@@ -142,7 +143,7 @@ function ProposalListItem({ proposal }: { proposal: TradeProposal }) {
 					</span>
 
 					<Badge variant={statusConfig.variant} className="text-xs">
-						{statusConfig.label}
+						{t(statusConfig.key)}
 					</Badge>
 
 					<span className="flex items-center gap-1 text-xs text-muted-foreground">

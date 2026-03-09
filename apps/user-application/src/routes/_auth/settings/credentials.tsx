@@ -4,6 +4,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { createFileRoute, Link } from '@tanstack/react-router';
 import { ArrowLeft, Eye, EyeOff, Key, Shield, Trash2 } from 'lucide-react';
 import { useState } from 'react';
+import { useTranslations } from 'use-intl';
 import { Alert, AlertTitle } from '@/components/ui/alert';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -59,6 +60,7 @@ const LLM_PROVIDERS: LLMProviderInfo[] = [
 ];
 
 function CredentialsPage() {
+	const t = useTranslations();
 	const credentialsQuery = useQuery({
 		queryKey: CREDENTIALS_QUERY_KEY,
 		queryFn: () => listUserCredentials(),
@@ -74,29 +76,27 @@ function CredentialsPage() {
 					className="inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground mb-4"
 				>
 					<ArrowLeft className="h-4 w-4" />
-					Back to Dashboard
+					{t('common.backToDashboard')}
 				</Link>
-				<h1 className="text-2xl font-bold text-foreground">API Credentials</h1>
-				<p className="text-muted-foreground text-sm mt-1">
-					Manage API keys for trading and AI providers. Keys are encrypted at rest.
-				</p>
+				<h1 className="text-2xl font-bold text-foreground">{t('credentials.title')}</h1>
+				<p className="text-muted-foreground text-sm mt-1">{t('credentials.description')}</p>
 			</div>
 
 			<section className="space-y-4">
 				<div>
-					<h2 className="text-lg font-semibold text-foreground">Alpaca</h2>
-					<p className="text-muted-foreground text-sm">
-						Required for trading. Get keys at alpaca.markets
-					</p>
+					<h2 className="text-lg font-semibold text-foreground">{t('credentials.alpaca.title')}</h2>
+					<p className="text-muted-foreground text-sm">{t('credentials.alpaca.description')}</p>
 				</div>
 				<AlpacaCredentialForm existing={alpacaCred} />
 			</section>
 
 			<section className="space-y-4">
 				<div>
-					<h2 className="text-lg font-semibold text-foreground">LLM Providers</h2>
+					<h2 className="text-lg font-semibold text-foreground">
+						{t('credentials.llmProviders.title')}
+					</h2>
 					<p className="text-muted-foreground text-sm">
-						Add API keys for AI models. At least one required.
+						{t('credentials.llmProviders.description')}
 					</p>
 				</div>
 				<div className="space-y-4">
@@ -118,6 +118,7 @@ interface AlpacaCredentialFormProps {
 }
 
 function AlpacaCredentialForm({ existing }: AlpacaCredentialFormProps) {
+	const t = useTranslations();
 	const [isEditing, setIsEditing] = useState(false);
 	const [showSecret, setShowSecret] = useState(false);
 	const queryClient = useQueryClient();
@@ -157,15 +158,21 @@ function AlpacaCredentialForm({ existing }: AlpacaCredentialFormProps) {
 					<div className="space-y-3">
 						<div className="flex items-center gap-2">
 							<Badge variant={existing.validationError ? 'destructive' : 'success'}>
-								{existing.validationError ? 'Invalid' : 'Connected'}
+								{existing.validationError
+									? t('credentials.badge.invalid')
+									: t('credentials.badge.connected')}
 							</Badge>
 							{existing.paperMode !== null && (
-								<Badge variant="outline">{existing.paperMode ? 'Paper' : 'Live'}</Badge>
+								<Badge variant="outline">
+									{existing.paperMode ? t('credentials.badge.paper') : t('credentials.badge.live')}
+								</Badge>
 							)}
 						</div>
 						{existing.lastValidatedAt && (
 							<p className="text-xs text-muted-foreground">
-								Verified {new Date(existing.lastValidatedAt).toLocaleDateString()}
+								{t('credentials.verified', {
+									date: new Date(existing.lastValidatedAt).toLocaleDateString(),
+								})}
 							</p>
 						)}
 						{existing.validationError && (
@@ -173,11 +180,11 @@ function AlpacaCredentialForm({ existing }: AlpacaCredentialFormProps) {
 						)}
 						<div className="flex gap-2">
 							<Button variant="outline" size="sm" onClick={() => setIsEditing(true)}>
-								Update Credentials
+								{t('credentials.updateCredentials')}
 							</Button>
 							<Button variant="destructive" size="sm" onClick={() => setDeleteOpen(true)}>
 								<Trash2 className="h-4 w-4 mr-1" />
-								Remove
+								{t('common.remove')}
 							</Button>
 						</div>
 					</div>
@@ -194,7 +201,7 @@ function AlpacaCredentialForm({ existing }: AlpacaCredentialFormProps) {
 							'success' in saveMutation.data &&
 							saveMutation.data.success && (
 								<Alert variant="success" className="mb-4">
-									<AlertTitle>Credentials saved and validated successfully.</AlertTitle>
+									<AlertTitle>{t('credentials.savedSuccess')}</AlertTitle>
 								</Alert>
 							)}
 
@@ -208,11 +215,11 @@ function AlpacaCredentialForm({ existing }: AlpacaCredentialFormProps) {
 								<form.Field name="apiKey">
 									{(field) => (
 										<div className="space-y-2">
-											<Label htmlFor="alpaca-key">API Key</Label>
+											<Label htmlFor="alpaca-key">{t('credentials.apiKey')}</Label>
 											<Input
 												id="alpaca-key"
 												type="text"
-												placeholder="PK..."
+												placeholder={t('credentials.placeholderKey')}
 												value={field.state.value}
 												onChange={(e) => field.handleChange(e.target.value)}
 												onBlur={field.handleBlur}
@@ -224,12 +231,12 @@ function AlpacaCredentialForm({ existing }: AlpacaCredentialFormProps) {
 								<form.Field name="apiSecret">
 									{(field) => (
 										<div className="space-y-2">
-											<Label htmlFor="alpaca-secret">API Secret</Label>
+											<Label htmlFor="alpaca-secret">{t('credentials.apiSecret')}</Label>
 											<div className="relative">
 												<Input
 													id="alpaca-secret"
 													type={showSecret ? 'text' : 'password'}
-													placeholder="Enter secret..."
+													placeholder={t('credentials.placeholderSecret')}
 													value={field.state.value}
 													onChange={(e) => field.handleChange(e.target.value)}
 													onBlur={field.handleBlur}
@@ -260,7 +267,7 @@ function AlpacaCredentialForm({ existing }: AlpacaCredentialFormProps) {
 												checked={field.state.value}
 												onCheckedChange={field.handleChange}
 											/>
-											<Label htmlFor="alpaca-paper">Paper Trading (recommended)</Label>
+											<Label htmlFor="alpaca-paper">{t('credentials.paperTrading')}</Label>
 										</div>
 									)}
 								</form.Field>
@@ -271,13 +278,15 @@ function AlpacaCredentialForm({ existing }: AlpacaCredentialFormProps) {
 									{(canSubmit) => (
 										<Button type="submit" disabled={!canSubmit || saveMutation.isPending}>
 											<Shield className="h-4 w-4 mr-1" />
-											{saveMutation.isPending ? 'Validating...' : 'Save & Validate'}
+											{saveMutation.isPending
+												? t('credentials.validating')
+												: t('credentials.saveValidate')}
 										</Button>
 									)}
 								</form.Subscribe>
 								{isEditing && (
 									<Button type="button" variant="outline" onClick={() => setIsEditing(false)}>
-										Cancel
+										{t('common.cancel')}
 									</Button>
 								)}
 							</div>
@@ -289,14 +298,12 @@ function AlpacaCredentialForm({ existing }: AlpacaCredentialFormProps) {
 			<Dialog open={deleteOpen} onOpenChange={setDeleteOpen}>
 				<DialogContent>
 					<DialogHeader>
-						<DialogTitle>Remove Alpaca credentials?</DialogTitle>
-						<DialogDescription>
-							This will delete your Alpaca API keys. Trading will stop until new keys are added.
-						</DialogDescription>
+						<DialogTitle>{t('credentials.removeAlpaca.title')}</DialogTitle>
+						<DialogDescription>{t('credentials.removeAlpaca.description')}</DialogDescription>
 					</DialogHeader>
 					<DialogFooter>
 						<Button variant="outline" onClick={() => setDeleteOpen(false)}>
-							Cancel
+							{t('common.cancel')}
 						</Button>
 						<Button
 							variant="destructive"
@@ -307,7 +314,7 @@ function AlpacaCredentialForm({ existing }: AlpacaCredentialFormProps) {
 								});
 							}}
 						>
-							{deleteMutation.isPending ? 'Removing...' : 'Remove'}
+							{deleteMutation.isPending ? t('common.removing') : t('common.remove')}
 						</Button>
 					</DialogFooter>
 				</DialogContent>
@@ -322,6 +329,7 @@ interface LLMCredentialCardProps {
 }
 
 function LLMCredentialCard({ provider, existing }: LLMCredentialCardProps) {
+	const t = useTranslations();
 	const [isEditing, setIsEditing] = useState(false);
 	const [showKey, setShowKey] = useState(false);
 	const queryClient = useQueryClient();
@@ -364,12 +372,14 @@ function LLMCredentialCard({ provider, existing }: LLMCredentialCardProps) {
 							{provider.name}
 						</CardTitle>
 						<CardDescription className="text-xs">
-							Models: {provider.models.join(', ')}
+							{t('credentials.models', { models: provider.models.join(', ') })}
 						</CardDescription>
 					</div>
 					{existing && (
 						<Badge variant={existing.validationError ? 'destructive' : 'success'}>
-							{existing.validationError ? 'Invalid' : 'Connected'}
+							{existing.validationError
+								? t('credentials.badge.invalid')
+								: t('credentials.badge.connected')}
 						</Badge>
 					)}
 				</div>
@@ -382,16 +392,18 @@ function LLMCredentialCard({ provider, existing }: LLMCredentialCardProps) {
 						)}
 						{existing.lastValidatedAt && (
 							<p className="text-xs text-muted-foreground">
-								Verified {new Date(existing.lastValidatedAt).toLocaleDateString()}
+								{t('credentials.verified', {
+									date: new Date(existing.lastValidatedAt).toLocaleDateString(),
+								})}
 							</p>
 						)}
 						<div className="flex gap-2">
 							<Button variant="outline" size="sm" onClick={() => setIsEditing(true)}>
-								Update Key
+								{t('credentials.updateKey')}
 							</Button>
 							<Button variant="destructive" size="sm" onClick={() => setDeleteOpen(true)}>
 								<Trash2 className="h-4 w-4 mr-1" />
-								Remove
+								{t('common.remove')}
 							</Button>
 						</div>
 					</div>
@@ -411,12 +423,12 @@ function LLMCredentialCard({ provider, existing }: LLMCredentialCardProps) {
 							<form.Field name="apiKey">
 								{(field) => (
 									<div className="space-y-2">
-										<Label htmlFor={`${provider.id}-key`}>API Key</Label>
+										<Label htmlFor={`${provider.id}-key`}>{t('credentials.apiKey')}</Label>
 										<div className="relative">
 											<Input
 												id={`${provider.id}-key`}
 												type={showKey ? 'text' : 'password'}
-												placeholder="Enter API key..."
+												placeholder={t('credentials.placeholderApiKey')}
 												value={field.state.value}
 												onChange={(e) => field.handleChange(e.target.value)}
 												onBlur={field.handleBlur}
@@ -438,7 +450,9 @@ function LLMCredentialCard({ provider, existing }: LLMCredentialCardProps) {
 								<form.Subscribe selector={(s) => s.canSubmit}>
 									{(canSubmit) => (
 										<Button type="submit" size="sm" disabled={!canSubmit || saveMutation.isPending}>
-											{saveMutation.isPending ? 'Validating...' : 'Save & Validate'}
+											{saveMutation.isPending
+												? t('credentials.validating')
+												: t('credentials.saveValidate')}
 										</Button>
 									)}
 								</form.Subscribe>
@@ -449,7 +463,7 @@ function LLMCredentialCard({ provider, existing }: LLMCredentialCardProps) {
 										size="sm"
 										onClick={() => setIsEditing(false)}
 									>
-										Cancel
+										{t('common.cancel')}
 									</Button>
 								)}
 							</div>
@@ -461,14 +475,16 @@ function LLMCredentialCard({ provider, existing }: LLMCredentialCardProps) {
 			<Dialog open={deleteOpen} onOpenChange={setDeleteOpen}>
 				<DialogContent>
 					<DialogHeader>
-						<DialogTitle>Remove {provider.name} API key?</DialogTitle>
+						<DialogTitle>
+							{t('credentials.removeLlm.title', { provider: provider.name })}
+						</DialogTitle>
 						<DialogDescription>
-							Models from {provider.name} will no longer be available for trading agents.
+							{t('credentials.removeLlm.description', { provider: provider.name })}
 						</DialogDescription>
 					</DialogHeader>
 					<DialogFooter>
 						<Button variant="outline" onClick={() => setDeleteOpen(false)}>
-							Cancel
+							{t('common.cancel')}
 						</Button>
 						<Button
 							variant="destructive"
@@ -479,7 +495,7 @@ function LLMCredentialCard({ provider, existing }: LLMCredentialCardProps) {
 								});
 							}}
 						>
-							{deleteMutation.isPending ? 'Removing...' : 'Remove'}
+							{deleteMutation.isPending ? t('common.removing') : t('common.remove')}
 						</Button>
 					</DialogFooter>
 				</DialogContent>

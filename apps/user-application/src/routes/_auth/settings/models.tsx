@@ -4,6 +4,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { createFileRoute, Link } from '@tanstack/react-router';
 import { ArrowLeft } from 'lucide-react';
 import { useMemo } from 'react';
+import { useTranslations } from 'use-intl';
 import { Alert } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -38,6 +39,7 @@ const PROVIDER_MODELS: Record<string, string[]> = {
 const LLM_PROVIDER_IDS: CredentialProvider[] = ['openai', 'anthropic', 'google', 'xai', 'deepseek'];
 
 function ModelsPage() {
+	const t = useTranslations();
 	const queryClient = useQueryClient();
 
 	const configQuery = useQuery({
@@ -88,13 +90,10 @@ function ModelsPage() {
 					className="inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground mb-4"
 				>
 					<ArrowLeft className="h-4 w-4" />
-					Back to Dashboard
+					{t('common.backToDashboard')}
 				</Link>
-				<h1 className="text-2xl font-bold text-foreground">AI Models</h1>
-				<p className="text-muted-foreground text-sm mt-1">
-					Select models for research and trading decisions. Add provider API keys in Credentials
-					first.
-				</p>
+				<h1 className="text-2xl font-bold text-foreground">{t('modelsPage.title')}</h1>
+				<p className="text-muted-foreground text-sm mt-1">{t('modelsPage.description')}</p>
 			</div>
 
 			{config && (
@@ -115,6 +114,7 @@ interface ModelsFormProps {
 }
 
 function ModelsForm({ config, availableModels, updateMutation }: ModelsFormProps) {
+	const t = useTranslations();
 	const form = useForm({
 		defaultValues: {
 			researchModel: (config.researchModel as string) ?? 'openai/gpt-4o-mini',
@@ -138,20 +138,18 @@ function ModelsForm({ config, availableModels, updateMutation }: ModelsFormProps
 				<Alert variant="destructive">{updateMutation.error.message}</Alert>
 			)}
 
-			{updateMutation.isSuccess && <Alert variant="success">Model selection saved.</Alert>}
+			{updateMutation.isSuccess && <Alert variant="success">{t('modelsPage.modelSaved')}</Alert>}
 
 			<Card>
 				<CardHeader>
-					<CardTitle>Research Model</CardTitle>
-					<CardDescription>
-						Used for market research and sentiment analysis. Choose a fast, cost-effective model.
-					</CardDescription>
+					<CardTitle>{t('modelsPage.researchModel.title')}</CardTitle>
+					<CardDescription>{t('modelsPage.researchModel.description')}</CardDescription>
 				</CardHeader>
 				<CardContent>
 					<form.Field name="researchModel">
 						{(field) => (
 							<div className="space-y-2">
-								<Label htmlFor="researchModel">Model</Label>
+								<Label htmlFor="researchModel">{t('modelsPage.modelLabel')}</Label>
 								<Select
 									id="researchModel"
 									value={field.state.value}
@@ -175,16 +173,14 @@ function ModelsForm({ config, availableModels, updateMutation }: ModelsFormProps
 
 			<Card>
 				<CardHeader>
-					<CardTitle>Analyst Model</CardTitle>
-					<CardDescription>
-						Used for trade decisions and analysis. Choose a capable reasoning model.
-					</CardDescription>
+					<CardTitle>{t('modelsPage.analystModel.title')}</CardTitle>
+					<CardDescription>{t('modelsPage.analystModel.description')}</CardDescription>
 				</CardHeader>
 				<CardContent>
 					<form.Field name="analystModel">
 						{(field) => (
 							<div className="space-y-2">
-								<Label htmlFor="analystModel">Model</Label>
+								<Label htmlFor="analystModel">{t('modelsPage.modelLabel')}</Label>
 								<Select
 									id="analystModel"
 									value={field.state.value}
@@ -209,7 +205,7 @@ function ModelsForm({ config, availableModels, updateMutation }: ModelsFormProps
 			<form.Subscribe selector={(s) => s.canSubmit}>
 				{(canSubmit) => (
 					<Button type="submit" disabled={!canSubmit || updateMutation.isPending}>
-						{updateMutation.isPending ? 'Saving...' : 'Save Models'}
+						{updateMutation.isPending ? t('common.saving') : t('modelsPage.saveModels')}
 					</Button>
 				)}
 			</form.Subscribe>

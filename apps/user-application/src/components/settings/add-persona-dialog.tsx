@@ -1,5 +1,6 @@
 import type { CreateDebatePersonaRequest, PersonaBias } from '@repo/data-ops/debate-persona';
 import { useForm } from '@tanstack/react-form';
+import { useTranslations } from 'use-intl';
 import { Button } from '@/components/ui/button';
 import {
 	Dialog,
@@ -26,6 +27,7 @@ export function AddPersonaDialog({
 	onSubmit,
 	isSubmitting,
 }: AddPersonaDialogProps) {
+	const t = useTranslations();
 	const form = useForm({
 		defaultValues: {
 			name: '',
@@ -43,10 +45,8 @@ export function AddPersonaDialog({
 		<Dialog open={open} onOpenChange={onOpenChange}>
 			<DialogContent>
 				<DialogHeader>
-					<DialogTitle>Add Persona</DialogTitle>
-					<DialogDescription>
-						Create a new analysis perspective for your debate sessions.
-					</DialogDescription>
+					<DialogTitle>{t('addPersonaDialog.title')}</DialogTitle>
+					<DialogDescription>{t('addPersonaDialog.description')}</DialogDescription>
 				</DialogHeader>
 
 				<form
@@ -59,14 +59,14 @@ export function AddPersonaDialog({
 					<form.Field name="name">
 						{(field) => (
 							<div className="space-y-1">
-								<Label>Identifier</Label>
+								<Label>{t('addPersonaDialog.identifier')}</Label>
 								<Input
-									placeholder="e.g., momentum_trader"
+									placeholder={t('addPersonaDialog.identifierPlaceholder')}
 									value={field.state.value}
 									onChange={(e) => field.handleChange(e.target.value)}
 								/>
 								<p className="text-xs text-muted-foreground">
-									Lowercase letters, numbers, and underscores only.
+									{t('addPersonaDialog.identifierHint')}
 								</p>
 							</div>
 						)}
@@ -75,9 +75,9 @@ export function AddPersonaDialog({
 					<form.Field name="displayName">
 						{(field) => (
 							<div className="space-y-1">
-								<Label>Display Name</Label>
+								<Label>{t('addPersonaDialog.displayName')}</Label>
 								<Input
-									placeholder="e.g., Momentum Trader"
+									placeholder={t('addPersonaDialog.displayNamePlaceholder')}
 									value={field.state.value}
 									onChange={(e) => field.handleChange(e.target.value)}
 								/>
@@ -88,9 +88,9 @@ export function AddPersonaDialog({
 					<form.Field name="role">
 						{(field) => (
 							<div className="space-y-1">
-								<Label>Role</Label>
+								<Label>{t('addPersonaDialog.role')}</Label>
 								<Input
-									placeholder="Brief description of what this persona analyzes"
+									placeholder={t('addPersonaDialog.rolePlaceholder')}
 									value={field.state.value}
 									onChange={(e) => field.handleChange(e.target.value)}
 								/>
@@ -101,14 +101,14 @@ export function AddPersonaDialog({
 					<form.Field name="bias">
 						{(field) => (
 							<div className="space-y-1">
-								<Label>Bias</Label>
+								<Label>{t('addPersonaDialog.bias')}</Label>
 								<Select
 									value={field.state.value}
 									onChange={(e) => field.handleChange(e.target.value as PersonaBias)}
 								>
-									<option value="bullish">Bullish</option>
-									<option value="bearish">Bearish</option>
-									<option value="neutral">Neutral</option>
+									<option value="bullish">{t('persona.bullish')}</option>
+									<option value="bearish">{t('persona.bearish')}</option>
+									<option value="neutral">{t('persona.neutral')}</option>
 								</Select>
 							</div>
 						)}
@@ -117,11 +117,11 @@ export function AddPersonaDialog({
 					<form.Field name="systemPrompt">
 						{(field) => (
 							<div className="space-y-1">
-								<Label>System Prompt</Label>
+								<Label>{t('addPersonaDialog.systemPrompt')}</Label>
 								<textarea
 									value={field.state.value}
 									onChange={(e) => field.handleChange(e.target.value)}
-									placeholder="Instructions for the AI persona..."
+									placeholder={t('addPersonaDialog.systemPromptPlaceholder')}
 									rows={6}
 									maxLength={2000}
 									className="w-full rounded-md border border-input bg-background px-3 py-2 font-mono text-sm text-foreground ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
@@ -135,7 +135,7 @@ export function AddPersonaDialog({
 
 					<DialogFooter>
 						<Button type="submit" disabled={isSubmitting}>
-							{isSubmitting ? 'Creating...' : 'Create Persona'}
+							{isSubmitting ? t('addPersonaDialog.creating') : t('addPersonaDialog.createPersona')}
 						</Button>
 					</DialogFooter>
 				</form>

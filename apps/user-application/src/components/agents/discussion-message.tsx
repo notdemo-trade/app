@@ -14,6 +14,7 @@ import {
 	User,
 } from 'lucide-react';
 import type { ReactNode } from 'react';
+import { useTranslations } from 'use-intl';
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
 
@@ -28,7 +29,7 @@ function getSenderDisplay(sender: MessageSender): SenderDisplay {
 		case 'system':
 			return {
 				icon: <Bot className="h-4 w-4" />,
-				name: 'System',
+				name: 'discussion.sender.system',
 				colorClass: 'text-muted-foreground bg-muted',
 			};
 		case 'data_agent':
@@ -48,7 +49,7 @@ function getSenderDisplay(sender: MessageSender): SenderDisplay {
 		case 'moderator':
 			return {
 				icon: <Gavel className="h-4 w-4" />,
-				name: 'Moderator',
+				name: 'discussion.sender.moderator',
 				colorClass: 'text-amber-600 bg-amber-100 dark:text-amber-400 dark:bg-amber-950',
 			};
 		case 'broker':
@@ -60,7 +61,7 @@ function getSenderDisplay(sender: MessageSender): SenderDisplay {
 		case 'user':
 			return {
 				icon: <User className="h-4 w-4" />,
-				name: 'You',
+				name: 'discussion.sender.you',
 				colorClass: 'text-indigo-600 bg-indigo-100 dark:text-indigo-400 dark:bg-indigo-950',
 			};
 	}
@@ -71,19 +72,19 @@ function getPersonaDisplay(persona: string): SenderDisplay {
 		case 'bull_analyst':
 			return {
 				icon: <TrendingUp className="h-4 w-4" />,
-				name: 'Bull Analyst',
+				name: 'discussion.persona.bullAnalyst',
 				colorClass: 'text-green-600 bg-green-100 dark:text-green-400 dark:bg-green-950',
 			};
 		case 'bear_analyst':
 			return {
 				icon: <TrendingDown className="h-4 w-4" />,
-				name: 'Bear Analyst',
+				name: 'discussion.persona.bearAnalyst',
 				colorClass: 'text-red-600 bg-red-100 dark:text-red-400 dark:bg-red-950',
 			};
 		case 'risk_manager':
 			return {
 				icon: <ShieldCheck className="h-4 w-4" />,
-				name: 'Risk Manager',
+				name: 'discussion.persona.riskManager',
 				colorClass: 'text-yellow-600 bg-yellow-100 dark:text-yellow-400 dark:bg-yellow-950',
 			};
 		default:
@@ -102,14 +103,14 @@ const PHASE_CONFIG: Record<
 		variant: 'default' | 'secondary' | 'outline' | 'destructive' | 'success' | 'warning';
 	}
 > = {
-	data_collection: { label: 'Data', variant: 'secondary' },
-	analysis: { label: 'Analysis', variant: 'secondary' },
-	debate_round: { label: 'Debate', variant: 'warning' },
-	consensus: { label: 'Consensus', variant: 'success' },
-	proposal: { label: 'Proposal', variant: 'default' },
-	human_decision: { label: 'Awaiting Decision', variant: 'warning' },
-	execution: { label: 'Executing', variant: 'success' },
-	completed: { label: 'Done', variant: 'outline' },
+	data_collection: { label: 'discussion.phase.dataCollection', variant: 'secondary' },
+	analysis: { label: 'discussion.phase.analysis', variant: 'secondary' },
+	debate_round: { label: 'discussion.phase.debateRound', variant: 'warning' },
+	consensus: { label: 'discussion.phase.consensus', variant: 'success' },
+	proposal: { label: 'discussion.phase.proposal', variant: 'default' },
+	human_decision: { label: 'discussion.phase.humanDecision', variant: 'warning' },
+	execution: { label: 'discussion.phase.execution', variant: 'success' },
+	completed: { label: 'discussion.phase.completed', variant: 'outline' },
 };
 
 function formatRelativeTime(timestamp: number): string {
@@ -128,6 +129,7 @@ interface DiscussionMessageProps {
 }
 
 export function DiscussionMessage({ message }: DiscussionMessageProps) {
+	const t = useTranslations();
 	const { icon, name, colorClass } = getSenderDisplay(message.sender);
 	const phaseConfig = PHASE_CONFIG[message.phase];
 
@@ -140,9 +142,9 @@ export function DiscussionMessage({ message }: DiscussionMessageProps) {
 			</div>
 			<div className="min-w-0 flex-1">
 				<div className="flex items-center gap-2">
-					<span className="text-sm font-medium text-foreground">{name}</span>
+					<span className="text-sm font-medium text-foreground">{t(name)}</span>
 					<Badge variant={phaseConfig.variant} className="text-[10px] px-1.5 py-0">
-						{phaseConfig.label}
+						{t(phaseConfig.label)}
 					</Badge>
 					<span className="text-xs text-muted-foreground">
 						{formatRelativeTime(message.timestamp)}
@@ -160,7 +162,9 @@ export function DiscussionMessage({ message }: DiscussionMessageProps) {
 						}
 						className="mt-1"
 					>
-						{((message.metadata.confidence as number) * 100).toFixed(0)}% confidence
+						{t('discussion.confidence', {
+							value: ((message.metadata.confidence as number) * 100).toFixed(0),
+						})}
 					</Badge>
 				)}
 				{message.metadata.action && (

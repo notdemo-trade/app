@@ -62,7 +62,7 @@ export function SessionSettings({ session }: SessionSettingsProps) {
 		return (
 			<Card>
 				<CardContent className="py-8 text-center text-sm text-muted-foreground">
-					Failed to load configuration.
+					{t('sessionSettings.failedToLoad')}
 				</CardContent>
 			</Card>
 		);
@@ -73,14 +73,16 @@ export function SessionSettings({ session }: SessionSettingsProps) {
 			<CardHeader>
 				<div className="flex items-center gap-2">
 					<Settings className="h-5 w-5 text-muted-foreground" />
-					<CardTitle className="text-lg">Session Settings</CardTitle>
+					<CardTitle className="text-lg">{t('sessionSettings.title')}</CardTitle>
 				</div>
 			</CardHeader>
 			<CardContent className="space-y-6">
 				{/* Orchestration Mode */}
 				<section className="space-y-2">
 					<div className="flex items-center gap-1">
-						<Label className="text-sm font-medium text-foreground">Orchestration Mode</Label>
+						<Label className="text-sm font-medium text-foreground">
+							{t('sessionSettings.orchestrationMode')}
+						</Label>
 						<InfoTip content={t('session.tips.orchestrationMode')} side="right" />
 					</div>
 					<OrchestrationModeSelector
@@ -92,7 +94,9 @@ export function SessionSettings({ session }: SessionSettingsProps) {
 				{/* LLM Provider & Model */}
 				<section className="space-y-2">
 					<div className="flex items-center gap-1">
-						<Label className="text-sm font-medium text-foreground">LLM Provider</Label>
+						<Label className="text-sm font-medium text-foreground">
+							{t('sessionSettings.llmProvider')}
+						</Label>
 						<InfoTip content={t('session.tips.llmProvider')} side="right" />
 					</div>
 					<div className="grid grid-cols-2 gap-3">
@@ -114,7 +118,7 @@ export function SessionSettings({ session }: SessionSettingsProps) {
 							<Input
 								value={config.llmModel}
 								onChange={(e) => updateField('llmModel', e.target.value)}
-								placeholder="Model name"
+								placeholder={t('sessionSettings.modelPlaceholder')}
 							/>
 							<InfoTip content={t('session.tips.llmModel')} side="left" />
 						</div>
@@ -124,14 +128,16 @@ export function SessionSettings({ session }: SessionSettingsProps) {
 				{/* Watchlist */}
 				<section className="space-y-2">
 					<div className="flex items-center gap-1">
-						<Label className="text-sm font-medium text-foreground">Watchlist Symbols</Label>
+						<Label className="text-sm font-medium text-foreground">
+							{t('sessionSettings.watchlistSymbols')}
+						</Label>
 						<InfoTip content={t('session.tips.watchlist')} side="right" />
 					</div>
 					<div className="flex gap-2">
 						<Input
 							value={watchlistInput}
 							onChange={(e) => setWatchlistInput(e.target.value)}
-							placeholder="AAPL, MSFT, GOOGL"
+							placeholder={t('sessionSettings.watchlistPlaceholder')}
 							onBlur={() => {
 								const symbols = watchlistInput
 									.split(',')
@@ -153,7 +159,9 @@ export function SessionSettings({ session }: SessionSettingsProps) {
 				{/* Broker */}
 				<section className="space-y-2">
 					<div className="flex items-center gap-1">
-						<Label className="text-sm font-medium text-foreground">Broker</Label>
+						<Label className="text-sm font-medium text-foreground">
+							{t('sessionSettings.broker')}
+						</Label>
 						<InfoTip content={t('session.tips.broker')} side="right" />
 					</div>
 					<Select
@@ -167,12 +175,16 @@ export function SessionSettings({ session }: SessionSettingsProps) {
 
 				{/* Advanced Settings */}
 				<section className="space-y-3 rounded-md border border-border p-4">
-					<h4 className="text-sm font-medium text-foreground">Advanced Settings</h4>
+					<h4 className="text-sm font-medium text-foreground">
+						{t('sessionSettings.advancedSettings')}
+					</h4>
 
 					<div className="grid grid-cols-2 gap-4">
 						<div className="space-y-1">
 							<div className="flex items-center gap-1">
-								<Label className="text-xs text-muted-foreground">Analysis Interval (sec)</Label>
+								<Label className="text-xs text-muted-foreground">
+									{t('sessionSettings.analysisInterval')}
+								</Label>
 								<InfoTip content={t('session.tips.analysisInterval')} side="top" />
 							</div>
 							<Input
@@ -185,7 +197,9 @@ export function SessionSettings({ session }: SessionSettingsProps) {
 						</div>
 						<div className="space-y-1">
 							<div className="flex items-center gap-1">
-								<Label className="text-xs text-muted-foreground">Min Confidence</Label>
+								<Label className="text-xs text-muted-foreground">
+									{t('sessionSettings.minConfidence')}
+								</Label>
 								<InfoTip content={t('session.tips.minConfidence')} side="top" />
 							</div>
 							<Input
@@ -199,7 +213,9 @@ export function SessionSettings({ session }: SessionSettingsProps) {
 						</div>
 						<div className="space-y-1">
 							<div className="flex items-center gap-1">
-								<Label className="text-xs text-muted-foreground">Position Size (% of cash)</Label>
+								<Label className="text-xs text-muted-foreground">
+									{t('sessionSettings.positionSize')}
+								</Label>
 								<InfoTip content={t('session.tips.positionSize')} side="top" />
 							</div>
 							<Input
@@ -213,7 +229,9 @@ export function SessionSettings({ session }: SessionSettingsProps) {
 						</div>
 						<div className="space-y-1">
 							<div className="flex items-center gap-1">
-								<Label className="text-xs text-muted-foreground">Debate Rounds</Label>
+								<Label className="text-xs text-muted-foreground">
+									{t('sessionSettings.debateRounds')}
+								</Label>
 								<InfoTip content={t('session.tips.debateRounds')} side="top" />
 							</div>
 							<Input
@@ -226,7 +244,9 @@ export function SessionSettings({ session }: SessionSettingsProps) {
 						</div>
 						<div className="space-y-1">
 							<div className="flex items-center gap-1">
-								<Label className="text-xs text-muted-foreground">Proposal Timeout (sec)</Label>
+								<Label className="text-xs text-muted-foreground">
+									{t('sessionSettings.proposalTimeout')}
+								</Label>
 								<InfoTip content={t('session.tips.proposalTimeout')} side="top" />
 							</div>
 							<Input
@@ -239,13 +259,15 @@ export function SessionSettings({ session }: SessionSettingsProps) {
 						</div>
 						<div className="space-y-1">
 							<div className="flex items-center gap-1">
-								<Label className="text-xs text-muted-foreground">Strategy ID</Label>
+								<Label className="text-xs text-muted-foreground">
+									{t('sessionSettings.strategyId')}
+								</Label>
 								<InfoTip content={t('session.tips.strategyId')} side="top" />
 							</div>
 							<Input
 								value={config.activeStrategyId}
 								onChange={(e) => updateField('activeStrategyId', e.target.value)}
-								placeholder="Strategy ID"
+								placeholder={t('sessionSettings.strategyPlaceholder')}
 							/>
 						</div>
 					</div>

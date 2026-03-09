@@ -1,6 +1,7 @@
 import { useForm } from '@tanstack/react-form';
 import { useMutation } from '@tanstack/react-query';
 import { useState } from 'react';
+import { useTranslations } from 'use-intl';
 import { Alert } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -10,6 +11,7 @@ import { authClient } from '@/lib/auth-client';
 type AuthMode = 'signin' | 'signup';
 
 export function EmailLogin() {
+	const t = useTranslations();
 	const [mode, setMode] = useState<AuthMode>('signin');
 
 	const mutation = useMutation({
@@ -50,10 +52,12 @@ export function EmailLogin() {
 			<Card className="w-full max-w-md">
 				<CardHeader className="text-center">
 					<CardTitle className="text-2xl font-bold">
-						{mode === 'signin' ? 'Welcome back' : 'Create account'}
+						{mode === 'signin' ? t('emailLogin.welcomeBack') : t('emailLogin.createAccount')}
 					</CardTitle>
 					<CardDescription>
-						{mode === 'signin' ? 'Sign in to your account' : 'Sign up to get started'}
+						{mode === 'signin'
+							? t('emailLogin.signInDescription')
+							: t('emailLogin.signUpDescription')}
 					</CardDescription>
 				</CardHeader>
 				<CardContent>
@@ -71,18 +75,18 @@ export function EmailLogin() {
 								name="name"
 								validators={{
 									onChange: ({ value }) =>
-										mode === 'signup' && !value ? 'Name required' : undefined,
+										mode === 'signup' && !value ? t('emailLogin.nameRequired') : undefined,
 								}}
 							>
 								{(field) => (
 									<div className="space-y-1">
 										<label htmlFor="name" className="text-sm font-medium text-foreground">
-											Name
+											{t('emailLogin.nameLabel')}
 										</label>
 										<Input
 											id="name"
 											type="text"
-											placeholder="Your name"
+											placeholder={t('emailLogin.namePlaceholder')}
 											value={field.state.value}
 											onChange={(e) => field.handleChange(e.target.value)}
 											onBlur={field.handleBlur}
@@ -98,13 +102,13 @@ export function EmailLogin() {
 						<form.Field
 							name="email"
 							validators={{
-								onChange: ({ value }) => (!value ? 'Email required' : undefined),
+								onChange: ({ value }) => (!value ? t('emailLogin.emailRequired') : undefined),
 							}}
 						>
 							{(field) => (
 								<div className="space-y-1">
 									<label htmlFor="email" className="text-sm font-medium text-foreground">
-										Email
+										{t('emailLogin.emailLabel')}
 									</label>
 									<Input
 										id="email"
@@ -125,13 +129,17 @@ export function EmailLogin() {
 							name="password"
 							validators={{
 								onChange: ({ value }) =>
-									!value ? 'Password required' : value.length < 8 ? 'Min 8 characters' : undefined,
+									!value
+										? t('emailLogin.passwordRequired')
+										: value.length < 8
+											? t('emailLogin.minChars')
+											: undefined,
 							}}
 						>
 							{(field) => (
 								<div className="space-y-1">
 									<label htmlFor="password" className="text-sm font-medium text-foreground">
-										Password
+										{t('emailLogin.passwordLabel')}
 									</label>
 									<Input
 										id="password"
@@ -155,7 +163,11 @@ export function EmailLogin() {
 									className="w-full h-12 text-base"
 									disabled={!canSubmit || mutation.isPending}
 								>
-									{mutation.isPending ? 'Loading...' : mode === 'signin' ? 'Sign In' : 'Sign Up'}
+									{mutation.isPending
+										? t('common.loading')
+										: mode === 'signin'
+											? t('emailLogin.signIn')
+											: t('emailLogin.signUp')}
 								</Button>
 							)}
 						</form.Subscribe>
@@ -163,16 +175,16 @@ export function EmailLogin() {
 						<div className="text-center text-sm text-muted-foreground">
 							{mode === 'signin' ? (
 								<>
-									No account?{' '}
+									{t('emailLogin.noAccount')}{' '}
 									<button type="button" onClick={toggleMode} className="text-primary underline">
-										Sign up
+										{t('emailLogin.signUpLink')}
 									</button>
 								</>
 							) : (
 								<>
-									Already have an account?{' '}
+									{t('emailLogin.haveAccount')}{' '}
 									<button type="button" onClick={toggleMode} className="text-primary underline">
-										Sign in
+										{t('emailLogin.signInLink')}
 									</button>
 								</>
 							)}

@@ -2,6 +2,7 @@ import { useForm } from '@tanstack/react-form';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { createFileRoute, Link } from '@tanstack/react-router';
 import { ArrowLeft, ChevronDown } from 'lucide-react';
+import { useTranslations } from 'use-intl';
 import { ConfidencePreview } from '@/components/settings/confidence-preview';
 import { ScoreWindowsEditor } from '@/components/settings/score-windows-editor';
 import { Alert } from '@/components/ui/alert';
@@ -23,6 +24,7 @@ export const Route = createFileRoute('/_auth/settings/trading')({
 const TRADING_CONFIG_QUERY_KEY = ['trading-config'] as const;
 
 function TradingConfigPage() {
+	const t = useTranslations();
 	const queryClient = useQueryClient();
 
 	const configQuery = useQuery({
@@ -55,12 +57,10 @@ function TradingConfigPage() {
 					className="inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground mb-4"
 				>
 					<ArrowLeft className="h-4 w-4" />
-					Back to Dashboard
+					{t('common.backToDashboard')}
 				</Link>
-				<h1 className="text-2xl font-bold text-foreground">Trading Configuration</h1>
-				<p className="text-muted-foreground text-sm mt-1">
-					Configure position limits, risk management, and trading hours.
-				</p>
+				<h1 className="text-2xl font-bold text-foreground">{t('tradingPage.title')}</h1>
+				<p className="text-muted-foreground text-sm mt-1">{t('tradingPage.description')}</p>
 			</div>
 
 			{config && <TradingConfigForm config={config} updateMutation={updateMutation} />}
@@ -74,6 +74,7 @@ interface TradingConfigFormProps {
 }
 
 function TradingConfigForm({ config, updateMutation }: TradingConfigFormProps) {
+	const t = useTranslations();
 	const form = useForm({
 		defaultValues: {
 			maxPositions: (config.maxPositions as number) ?? 10,
@@ -112,18 +113,18 @@ function TradingConfigForm({ config, updateMutation }: TradingConfigFormProps) {
 				<Alert variant="destructive">{updateMutation.error.message}</Alert>
 			)}
 
-			{updateMutation.isSuccess && <Alert variant="success">Configuration saved.</Alert>}
+			{updateMutation.isSuccess && <Alert variant="success">{t('tradingPage.configSaved')}</Alert>}
 
 			<Card>
 				<CardHeader>
-					<CardTitle>Position Limits</CardTitle>
-					<CardDescription>Control maximum exposure per position and overall.</CardDescription>
+					<CardTitle>{t('tradingPage.positionLimits.title')}</CardTitle>
+					<CardDescription>{t('tradingPage.positionLimits.description')}</CardDescription>
 				</CardHeader>
 				<CardContent className="space-y-4">
 					<form.Field name="maxPositions">
 						{(field) => (
 							<div className="space-y-2">
-								<Label htmlFor="maxPositions">Max Concurrent Positions</Label>
+								<Label htmlFor="maxPositions">{t('tradingPage.maxPositions')}</Label>
 								<Input
 									id="maxPositions"
 									type="number"
@@ -139,7 +140,7 @@ function TradingConfigForm({ config, updateMutation }: TradingConfigFormProps) {
 					<form.Field name="maxPositionValue">
 						{(field) => (
 							<div className="space-y-2">
-								<Label htmlFor="maxPositionValue">Max Position Value ($)</Label>
+								<Label htmlFor="maxPositionValue">{t('tradingPage.maxPositionValue')}</Label>
 								<Input
 									id="maxPositionValue"
 									type="number"
@@ -155,7 +156,7 @@ function TradingConfigForm({ config, updateMutation }: TradingConfigFormProps) {
 					<form.Field name="maxNotionalPerTrade">
 						{(field) => (
 							<div className="space-y-2">
-								<Label htmlFor="maxNotionalPerTrade">Max per Trade ($)</Label>
+								<Label htmlFor="maxNotionalPerTrade">{t('tradingPage.maxPerTrade')}</Label>
 								<Input
 									id="maxNotionalPerTrade"
 									type="number"
@@ -172,15 +173,15 @@ function TradingConfigForm({ config, updateMutation }: TradingConfigFormProps) {
 
 			<Card>
 				<CardHeader>
-					<CardTitle>Risk Management</CardTitle>
-					<CardDescription>Set stop loss, take profit, and daily loss limits.</CardDescription>
+					<CardTitle>{t('tradingPage.riskManagement.title')}</CardTitle>
+					<CardDescription>{t('tradingPage.riskManagement.description')}</CardDescription>
 				</CardHeader>
 				<CardContent className="space-y-4">
 					<form.Field name="stopLossPct">
 						{(field) => (
 							<div className="space-y-2">
 								<Label htmlFor="stopLossPct">
-									Stop Loss ({(field.state.value * 100).toFixed(1)}%)
+									{t('tradingPage.stopLoss', { pct: (field.state.value * 100).toFixed(1) })}
 								</Label>
 								<Input
 									id="stopLossPct"
@@ -191,9 +192,7 @@ function TradingConfigForm({ config, updateMutation }: TradingConfigFormProps) {
 									value={field.state.value}
 									onChange={(e) => field.handleChange(Number(e.target.value))}
 								/>
-								<p className="text-xs text-muted-foreground">
-									Auto-close position at this loss percentage
-								</p>
+								<p className="text-xs text-muted-foreground">{t('tradingPage.stopLossHelp')}</p>
 							</div>
 						)}
 					</form.Field>
@@ -202,7 +201,7 @@ function TradingConfigForm({ config, updateMutation }: TradingConfigFormProps) {
 						{(field) => (
 							<div className="space-y-2">
 								<Label htmlFor="takeProfitPct">
-									Take Profit ({(field.state.value * 100).toFixed(1)}%)
+									{t('tradingPage.takeProfit', { pct: (field.state.value * 100).toFixed(1) })}
 								</Label>
 								<Input
 									id="takeProfitPct"
@@ -213,9 +212,7 @@ function TradingConfigForm({ config, updateMutation }: TradingConfigFormProps) {
 									value={field.state.value}
 									onChange={(e) => field.handleChange(Number(e.target.value))}
 								/>
-								<p className="text-xs text-muted-foreground">
-									Auto-close position at this gain percentage
-								</p>
+								<p className="text-xs text-muted-foreground">{t('tradingPage.takeProfitHelp')}</p>
 							</div>
 						)}
 					</form.Field>
@@ -224,7 +221,7 @@ function TradingConfigForm({ config, updateMutation }: TradingConfigFormProps) {
 						{(field) => (
 							<div className="space-y-2">
 								<Label htmlFor="maxDailyLossPct">
-									Max Daily Loss ({(field.state.value * 100).toFixed(1)}%)
+									{t('tradingPage.maxDailyLoss', { pct: (field.state.value * 100).toFixed(1) })}
 								</Label>
 								<Input
 									id="maxDailyLossPct"
@@ -235,9 +232,7 @@ function TradingConfigForm({ config, updateMutation }: TradingConfigFormProps) {
 									value={field.state.value}
 									onChange={(e) => field.handleChange(Number(e.target.value))}
 								/>
-								<p className="text-xs text-muted-foreground">
-									Halt trading when daily loss exceeds this % of equity
-								</p>
+								<p className="text-xs text-muted-foreground">{t('tradingPage.maxDailyLossHelp')}</p>
 							</div>
 						)}
 					</form.Field>
@@ -246,7 +241,7 @@ function TradingConfigForm({ config, updateMutation }: TradingConfigFormProps) {
 						{(field) => (
 							<div className="space-y-2">
 								<Label htmlFor="positionSizePctOfCash">
-									Position Size ({(field.state.value * 100).toFixed(1)}% of cash)
+									{t('tradingPage.positionSize', { pct: (field.state.value * 100).toFixed(1) })}
 								</Label>
 								<Input
 									id="positionSizePctOfCash"
@@ -264,7 +259,9 @@ function TradingConfigForm({ config, updateMutation }: TradingConfigFormProps) {
 					<form.Field name="cooldownMinutesAfterLoss">
 						{(field) => (
 							<div className="space-y-2">
-								<Label htmlFor="cooldownMinutesAfterLoss">Cooldown After Loss (minutes)</Label>
+								<Label htmlFor="cooldownMinutesAfterLoss">
+									{t('tradingPage.cooldownAfterLoss')}
+								</Label>
 								<Input
 									id="cooldownMinutesAfterLoss"
 									type="number"
@@ -281,7 +278,7 @@ function TradingConfigForm({ config, updateMutation }: TradingConfigFormProps) {
 
 			<Card>
 				<CardHeader>
-					<CardTitle>Trading Hours</CardTitle>
+					<CardTitle>{t('tradingPage.tradingHours')}</CardTitle>
 				</CardHeader>
 				<CardContent className="space-y-4">
 					<form.Field name="tradingHoursOnly">
@@ -292,7 +289,7 @@ function TradingConfigForm({ config, updateMutation }: TradingConfigFormProps) {
 									checked={field.state.value}
 									onCheckedChange={field.handleChange}
 								/>
-								<Label htmlFor="tradingHoursOnly">Trade during market hours only</Label>
+								<Label htmlFor="tradingHoursOnly">{t('tradingPage.marketHoursOnly')}</Label>
 							</div>
 						)}
 					</form.Field>
@@ -305,7 +302,7 @@ function TradingConfigForm({ config, updateMutation }: TradingConfigFormProps) {
 									checked={field.state.value}
 									onCheckedChange={field.handleChange}
 								/>
-								<Label htmlFor="extendedHoursAllowed">Allow extended hours trading</Label>
+								<Label htmlFor="extendedHoursAllowed">{t('tradingPage.extendedHours')}</Label>
 							</div>
 						)}
 					</form.Field>
@@ -318,7 +315,7 @@ function TradingConfigForm({ config, updateMutation }: TradingConfigFormProps) {
 									checked={field.state.value}
 									onCheckedChange={field.handleChange}
 								/>
-								<Label htmlFor="allowShortSelling">Allow short selling</Label>
+								<Label htmlFor="allowShortSelling">{t('tradingPage.allowShortSelling')}</Label>
 							</div>
 						)}
 					</form.Field>
@@ -332,10 +329,8 @@ function TradingConfigForm({ config, updateMutation }: TradingConfigFormProps) {
 						<CollapsibleTrigger asChild>
 							<div className="flex items-center justify-between cursor-pointer">
 								<div>
-									<CardTitle>Advanced Settings</CardTitle>
-									<CardDescription>
-										Fine-tune proposal timing, AI model behavior, and display preferences.
-									</CardDescription>
+									<CardTitle>{t('tradingPage.advanced.title')}</CardTitle>
+									<CardDescription>{t('tradingPage.advanced.description')}</CardDescription>
 								</div>
 								<ChevronDown className="h-4 w-4 text-muted-foreground transition-transform" />
 							</div>
@@ -345,13 +340,16 @@ function TradingConfigForm({ config, updateMutation }: TradingConfigFormProps) {
 						<CardContent className="space-y-8">
 							{/* Proposals */}
 							<div className="space-y-4">
-								<h4 className="text-sm font-medium text-foreground">Proposals</h4>
+								<h4 className="text-sm font-medium text-foreground">
+									{t('tradingPage.proposals')}
+								</h4>
 								<form.Field name="proposalTimeoutSec">
 									{(field) => (
 										<div className="space-y-2">
 											<Label htmlFor="proposalTimeoutSec">
-												Proposal Timeout ({Math.floor(field.state.value / 60)}m{' '}
-												{field.state.value % 60}s)
+												{t('tradingPage.proposalTimeout', {
+													time: `${Math.floor(field.state.value / 60)}m ${field.state.value % 60}s`,
+												})}
 											</Label>
 											<Input
 												id="proposalTimeoutSec"
@@ -363,7 +361,7 @@ function TradingConfigForm({ config, updateMutation }: TradingConfigFormProps) {
 												onChange={(e) => field.handleChange(Number(e.target.value))}
 											/>
 											<p className="text-xs text-muted-foreground">
-												How long a trade proposal stays active before auto-expiring (60s - 3600s).
+												{t('tradingPage.proposalTimeoutHelp')}
 											</p>
 										</div>
 									)}
@@ -372,12 +370,12 @@ function TradingConfigForm({ config, updateMutation }: TradingConfigFormProps) {
 
 							{/* AI Model */}
 							<div className="space-y-4">
-								<h4 className="text-sm font-medium text-foreground">AI Model</h4>
+								<h4 className="text-sm font-medium text-foreground">{t('tradingPage.aiModel')}</h4>
 								<form.Field name="llmTemperature">
 									{(field) => (
 										<div className="space-y-2">
 											<Label htmlFor="llmTemperature">
-												Temperature ({field.state.value.toFixed(2)})
+												{t('tradingPage.temperature', { value: field.state.value.toFixed(2) })}
 											</Label>
 											<Input
 												id="llmTemperature"
@@ -390,13 +388,12 @@ function TradingConfigForm({ config, updateMutation }: TradingConfigFormProps) {
 												className="w-full"
 											/>
 											<div className="flex justify-between text-xs text-muted-foreground">
-												<span>Conservative (0.0)</span>
-												<span>Balanced (0.3)</span>
-												<span>Creative (1.0)</span>
+												<span>{t('tradingPage.conservative')}</span>
+												<span>{t('tradingPage.balanced')}</span>
+												<span>{t('tradingPage.creative')}</span>
 											</div>
 											<p className="text-xs text-muted-foreground">
-												Controls AI creativity. Lower = more deterministic, higher = more varied
-												analysis.
+												{t('tradingPage.temperatureHelp')}
 											</p>
 										</div>
 									)}
@@ -406,7 +403,7 @@ function TradingConfigForm({ config, updateMutation }: TradingConfigFormProps) {
 									{(field) => (
 										<div className="space-y-2">
 											<Label htmlFor="llmMaxTokens">
-												Max Response Length ({field.state.value} tokens)
+												{t('tradingPage.maxResponseLength', { value: field.state.value })}
 											</Label>
 											<Input
 												id="llmMaxTokens"
@@ -419,13 +416,12 @@ function TradingConfigForm({ config, updateMutation }: TradingConfigFormProps) {
 												className="w-full"
 											/>
 											<div className="flex justify-between text-xs text-muted-foreground">
-												<span>Concise (200)</span>
-												<span>Standard (1000)</span>
-												<span>Detailed (4000)</span>
+												<span>{t('tradingPage.concise')}</span>
+												<span>{t('tradingPage.standard')}</span>
+												<span>{t('tradingPage.detailed')}</span>
 											</div>
 											<p className="text-xs text-muted-foreground">
-												Maximum AI response length. Higher values allow more detailed analysis but
-												cost more tokens.
+												{t('tradingPage.maxResponseLengthHelp')}
 											</p>
 										</div>
 									)}
@@ -434,16 +430,15 @@ function TradingConfigForm({ config, updateMutation }: TradingConfigFormProps) {
 
 							{/* Display */}
 							<div className="space-y-4">
-								<h4 className="text-sm font-medium text-foreground">Display</h4>
+								<h4 className="text-sm font-medium text-foreground">{t('tradingPage.display')}</h4>
 
 								<form.Field name="scoreWindows">
 									{(field) => (
 										<div className="space-y-2">
-											<Label>Performance Windows (days)</Label>
+											<Label>{t('tradingPage.performanceWindows')}</Label>
 											<ScoreWindowsEditor value={field.state.value} onChange={field.handleChange} />
 											<p className="text-xs text-muted-foreground">
-												Time periods shown in the performance dashboard. 1-5 windows, each 7-365
-												days.
+												{t('tradingPage.performanceWindowsHelp')}
 											</p>
 										</div>
 									)}
@@ -454,7 +449,7 @@ function TradingConfigForm({ config, updateMutation }: TradingConfigFormProps) {
 									validators={{
 										onChange: ({ value, fieldApi }) => {
 											const med = fieldApi.form.getFieldValue('confidenceDisplayMed');
-											if (value <= med) return 'Must be greater than medium threshold';
+											if (value <= med) return t('tradingPage.mustBeGreaterThanMed');
 											return undefined;
 										},
 									}}
@@ -462,7 +457,9 @@ function TradingConfigForm({ config, updateMutation }: TradingConfigFormProps) {
 									{(field) => (
 										<div className="space-y-2">
 											<Label htmlFor="confidenceDisplayHigh">
-												High Confidence Threshold ({(field.state.value * 100).toFixed(0)}%)
+												{t('tradingPage.highConfidence', {
+													pct: (field.state.value * 100).toFixed(0),
+												})}
 											</Label>
 											<Input
 												id="confidenceDisplayHigh"
@@ -475,7 +472,7 @@ function TradingConfigForm({ config, updateMutation }: TradingConfigFormProps) {
 												className="w-full"
 											/>
 											<p className="text-xs text-muted-foreground">
-												Confidence at or above this value is shown in green.
+												{t('tradingPage.highConfidenceHelp')}
 											</p>
 											{field.state.meta.errors.length > 0 && (
 												<p className="text-xs text-destructive">{field.state.meta.errors[0]}</p>
@@ -489,7 +486,7 @@ function TradingConfigForm({ config, updateMutation }: TradingConfigFormProps) {
 									validators={{
 										onChange: ({ value, fieldApi }) => {
 											const high = fieldApi.form.getFieldValue('confidenceDisplayHigh');
-											if (value >= high) return 'Must be less than high threshold';
+											if (value >= high) return t('tradingPage.mustBeLessThanHigh');
 											return undefined;
 										},
 									}}
@@ -497,7 +494,9 @@ function TradingConfigForm({ config, updateMutation }: TradingConfigFormProps) {
 									{(field) => (
 										<div className="space-y-2">
 											<Label htmlFor="confidenceDisplayMed">
-												Medium Confidence Threshold ({(field.state.value * 100).toFixed(0)}%)
+												{t('tradingPage.medConfidence', {
+													pct: (field.state.value * 100).toFixed(0),
+												})}
 											</Label>
 											<Input
 												id="confidenceDisplayMed"
@@ -510,8 +509,7 @@ function TradingConfigForm({ config, updateMutation }: TradingConfigFormProps) {
 												className="w-full"
 											/>
 											<p className="text-xs text-muted-foreground">
-												Confidence at or above this (but below high) is shown in yellow. Below this
-												is red.
+												{t('tradingPage.medConfidenceHelp')}
 											</p>
 											{field.state.meta.errors.length > 0 && (
 												<p className="text-xs text-destructive">{field.state.meta.errors[0]}</p>
@@ -533,7 +531,7 @@ function TradingConfigForm({ config, updateMutation }: TradingConfigFormProps) {
 			<form.Subscribe selector={(s) => s.canSubmit}>
 				{(canSubmit) => (
 					<Button type="submit" disabled={!canSubmit || updateMutation.isPending}>
-						{updateMutation.isPending ? 'Saving...' : 'Save Configuration'}
+						{updateMutation.isPending ? t('common.saving') : t('tradingPage.saveConfiguration')}
 					</Button>
 				)}
 			</form.Subscribe>

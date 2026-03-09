@@ -16,8 +16,8 @@ function formatCurrency(value: number): string {
 	}).format(value);
 }
 
-function formatDuration(ms: number): string {
-	if (ms <= 0) return 'Expired';
+function formatDuration(ms: number): string | null {
+	if (ms <= 0) return null;
 	const seconds = Math.floor(ms / 1000);
 	if (seconds < 60) return `${seconds}s`;
 	const minutes = Math.floor(seconds / 60);
@@ -48,15 +48,15 @@ function useCountdown(expiresAt: number): number {
 const PROPOSAL_STATUS_CONFIG: Record<
 	TradeProposal['status'],
 	{
-		label: string;
+		key: string;
 		variant: 'default' | 'secondary' | 'success' | 'destructive' | 'warning' | 'outline';
 	}
 > = {
-	pending: { label: 'Pending', variant: 'warning' },
-	approved: { label: 'Approved', variant: 'success' },
-	rejected: { label: 'Rejected', variant: 'destructive' },
-	expired: { label: 'Expired', variant: 'secondary' },
-	executed: { label: 'Executed', variant: 'success' },
+	pending: { key: 'proposal.status.pending', variant: 'warning' },
+	approved: { key: 'proposal.status.approved', variant: 'success' },
+	rejected: { key: 'proposal.status.rejected', variant: 'destructive' },
+	expired: { key: 'proposal.status.expired', variant: 'secondary' },
+	executed: { key: 'proposal.status.executed', variant: 'success' },
 };
 
 interface StatProps {
@@ -143,36 +143,40 @@ export function TradeProposalCard({
 				<div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
 					{proposal.entryPrice !== null && (
 						<Stat
-							label="Entry"
+							label={t('proposal.stat.entry')}
 							value={formatCurrency(proposal.entryPrice)}
 							tip={t('session.tips.entry')}
 						/>
 					)}
 					{proposal.targetPrice !== null && (
 						<Stat
-							label="Target"
+							label={t('proposal.stat.target')}
 							value={formatCurrency(proposal.targetPrice)}
 							tip={t('session.tips.target')}
 						/>
 					)}
 					{proposal.stopLoss !== null && (
 						<Stat
-							label="Stop Loss"
+							label={t('proposal.stat.stopLoss')}
 							value={formatCurrency(proposal.stopLoss)}
 							tip={t('session.tips.stopLoss')}
 						/>
 					)}
 					<Stat
-						label="Size"
+						label={t('proposal.stat.size')}
 						value={`${(proposal.positionSizePct * 100).toFixed(1)}%`}
 						tip={t('session.tips.size')}
 					/>
 					{proposal.qty !== null && (
-						<Stat label="Qty" value={String(proposal.qty)} tip={t('session.tips.qty')} />
+						<Stat
+							label={t('proposal.stat.qty')}
+							value={String(proposal.qty)}
+							tip={t('session.tips.qty')}
+						/>
 					)}
 					{proposal.notional !== null && (
 						<Stat
-							label="Notional"
+							label={t('proposal.stat.notional')}
 							value={formatCurrency(proposal.notional)}
 							tip={t('session.tips.notional')}
 						/>
@@ -183,7 +187,7 @@ export function TradeProposalCard({
 					<div className="rounded-md border border-yellow-500/50 bg-yellow-50 p-2 dark:bg-yellow-950/30">
 						<div className="mb-1 flex items-center gap-1 text-xs font-medium text-yellow-700 dark:text-yellow-400">
 							<AlertTriangle className="h-3 w-3" />
-							Warning
+							{t('common.warning')}
 						</div>
 						<ul className="list-inside list-disc space-y-0.5 text-xs text-yellow-700 dark:text-yellow-400">
 							{proposal.warnings.map((warning) => (
@@ -197,7 +201,7 @@ export function TradeProposalCard({
 					<div className="rounded-md bg-muted p-2">
 						<div className="mb-1 flex items-center gap-1 text-xs font-medium text-warning-foreground">
 							<AlertTriangle className="h-3 w-3" />
-							Risks
+							{t('proposal.risks')}
 						</div>
 						<ul className="list-inside list-disc space-y-0.5 text-xs text-muted-foreground">
 							{proposal.risks.map((risk) => (
@@ -212,16 +216,16 @@ export function TradeProposalCard({
 				<CardFooter className="flex items-center justify-between border-t border-border pt-4">
 					<span className="flex items-center gap-1 text-xs text-muted-foreground">
 						<Clock className="h-3 w-3" />
-						{formatDuration(timeLeft)}
+						{formatDuration(timeLeft) ?? t('proposal.expired')}
 					</span>
 					<div className="flex gap-2">
 						<Button variant="outline" size="sm" onClick={onReject}>
 							<X className="h-4 w-4" />
-							Reject
+							{t('proposal.reject')}
 						</Button>
 						<Button variant={isBuy ? 'default' : 'destructive'} size="sm" onClick={onApprove}>
 							<Check className="h-4 w-4" />
-							Approve {proposal.action.toUpperCase()}
+							{t('proposal.approve', { action: proposal.action.toUpperCase() })}
 						</Button>
 					</div>
 				</CardFooter>
@@ -230,7 +234,7 @@ export function TradeProposalCard({
 			{!isPending && (
 				<CardFooter className="border-t border-border pt-4">
 					<Badge variant={PROPOSAL_STATUS_CONFIG[proposal.status].variant}>
-						{PROPOSAL_STATUS_CONFIG[proposal.status].label}
+						{t(PROPOSAL_STATUS_CONFIG[proposal.status].key)}
 					</Badge>
 					{proposal.decidedAt && (
 						<span className="ml-2 text-xs text-muted-foreground">

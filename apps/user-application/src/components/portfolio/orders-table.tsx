@@ -1,4 +1,5 @@
 import type { Order, OrderStatus } from '@repo/data-ops/providers/alpaca';
+import { useTranslations } from 'use-intl';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import {
@@ -16,14 +17,16 @@ interface OrdersTableProps {
 }
 
 export function OrdersTable({ orders }: OrdersTableProps) {
+	const t = useTranslations();
+
 	if (orders.length === 0) {
 		return (
 			<Card>
 				<CardHeader>
-					<CardTitle>Recent Orders</CardTitle>
+					<CardTitle>{t('portfolio.recentOrders')}</CardTitle>
 				</CardHeader>
 				<CardContent>
-					<p className="text-muted-foreground">No orders</p>
+					<p className="text-muted-foreground">{t('portfolio.noOrders')}</p>
 				</CardContent>
 			</Card>
 		);
@@ -32,19 +35,19 @@ export function OrdersTable({ orders }: OrdersTableProps) {
 	return (
 		<Card>
 			<CardHeader>
-				<CardTitle>Recent Orders</CardTitle>
+				<CardTitle>{t('portfolio.recentOrders')}</CardTitle>
 			</CardHeader>
 			<CardContent>
 				<Table>
 					<TableHeader>
 						<TableRow>
-							<TableHead>Symbol</TableHead>
-							<TableHead>Side</TableHead>
-							<TableHead>Type</TableHead>
-							<TableHead className="text-right">Qty</TableHead>
-							<TableHead className="text-right">Filled</TableHead>
-							<TableHead>Status</TableHead>
-							<TableHead>Time</TableHead>
+							<TableHead>{t('portfolio.symbol')}</TableHead>
+							<TableHead>{t('portfolio.side')}</TableHead>
+							<TableHead>{t('portfolio.type')}</TableHead>
+							<TableHead className="text-right">{t('portfolio.qty')}</TableHead>
+							<TableHead className="text-right">{t('portfolio.filled')}</TableHead>
+							<TableHead>{t('portfolio.status')}</TableHead>
+							<TableHead>{t('portfolio.time')}</TableHead>
 						</TableRow>
 					</TableHeader>
 					<TableBody>

@@ -1,4 +1,5 @@
 import type { Position } from '@repo/data-ops/providers/alpaca';
+import { useTranslations } from 'use-intl';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import {
@@ -17,16 +18,17 @@ interface PositionsTableProps {
 }
 
 export function PositionsTable({ positions }: PositionsTableProps) {
+	const t = useTranslations();
 	const sorted = [...positions].sort((a, b) => b.market_value - a.market_value);
 
 	if (sorted.length === 0) {
 		return (
 			<Card>
 				<CardHeader>
-					<CardTitle>Positions</CardTitle>
+					<CardTitle>{t('portfolio.positions')}</CardTitle>
 				</CardHeader>
 				<CardContent>
-					<p className="text-muted-foreground">No open positions</p>
+					<p className="text-muted-foreground">{t('portfolio.noPositions')}</p>
 				</CardContent>
 			</Card>
 		);
@@ -37,22 +39,22 @@ export function PositionsTable({ positions }: PositionsTableProps) {
 	return (
 		<Card>
 			<CardHeader>
-				<CardTitle>Positions ({positions.length})</CardTitle>
+				<CardTitle>{t('portfolio.positionsCount', { count: positions.length })}</CardTitle>
 				<p className={cn('text-sm', totalPL >= 0 ? 'text-green-600' : 'text-red-600')}>
-					Total P&L: {formatCurrency(totalPL)}
+					{t('portfolio.totalPnl', { value: formatCurrency(totalPL) })}
 				</p>
 			</CardHeader>
 			<CardContent>
 				<Table>
 					<TableHeader>
 						<TableRow>
-							<TableHead>Symbol</TableHead>
-							<TableHead className="text-right">Qty</TableHead>
-							<TableHead className="text-right">Avg Cost</TableHead>
-							<TableHead className="text-right">Price</TableHead>
-							<TableHead className="text-right">Value</TableHead>
-							<TableHead className="text-right">P&L</TableHead>
-							<TableHead className="text-right">%</TableHead>
+							<TableHead>{t('portfolio.symbol')}</TableHead>
+							<TableHead className="text-right">{t('portfolio.qty')}</TableHead>
+							<TableHead className="text-right">{t('portfolio.avgCost')}</TableHead>
+							<TableHead className="text-right">{t('portfolio.price')}</TableHead>
+							<TableHead className="text-right">{t('portfolio.value')}</TableHead>
+							<TableHead className="text-right">{t('portfolio.pnl')}</TableHead>
+							<TableHead className="text-right">{t('portfolio.pnlPct')}</TableHead>
 						</TableRow>
 					</TableHeader>
 					<TableBody>

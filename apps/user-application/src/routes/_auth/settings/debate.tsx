@@ -6,6 +6,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { createFileRoute, Link } from '@tanstack/react-router';
 import { ArrowLeft, Plus } from 'lucide-react';
 import { useState } from 'react';
+import { useTranslations } from 'use-intl';
 import { AddPersonaDialog } from '@/components/settings/add-persona-dialog';
 import { ModeratorPromptSection } from '@/components/settings/moderator-prompt-section';
 import { PersonaCard } from '@/components/settings/persona-card';
@@ -36,6 +37,7 @@ export const Route = createFileRoute('/_auth/settings/debate')({
 const DEBATE_PERSONAS_QUERY_KEY = ['debate-personas'] as const;
 
 function DebateSettingsPage() {
+	const t = useTranslations();
 	const queryClient = useQueryClient();
 	const [showAddDialog, setShowAddDialog] = useState(false);
 	const [showResetConfirm, setShowResetConfirm] = useState(false);
@@ -95,7 +97,7 @@ function DebateSettingsPage() {
 	if (personasQuery.isError) {
 		return (
 			<div className="max-w-2xl mx-auto py-12">
-				<Alert variant="destructive">Failed to load debate personas. Please try again.</Alert>
+				<Alert variant="destructive">{t('debatePage.failedToLoad')}</Alert>
 			</div>
 		);
 	}
@@ -116,12 +118,10 @@ function DebateSettingsPage() {
 					className="inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground mb-4"
 				>
 					<ArrowLeft className="h-4 w-4" />
-					Back to Dashboard
+					{t('common.backToDashboard')}
 				</Link>
-				<h1 className="text-2xl font-bold text-foreground">Debate Personas</h1>
-				<p className="text-muted-foreground text-sm mt-1">
-					Customize the AI perspectives that analyze trade opportunities in debate mode.
-				</p>
+				<h1 className="text-2xl font-bold text-foreground">{t('debatePage.title')}</h1>
+				<p className="text-muted-foreground text-sm mt-1">{t('debatePage.description')}</p>
 			</div>
 
 			{updateMutation.isError && (
@@ -154,7 +154,7 @@ function DebateSettingsPage() {
 				className="w-full text-foreground"
 			>
 				<Plus className="h-4 w-4 mr-2" />
-				{personas.length >= 5 ? 'Maximum 5 Personas Reached' : 'Add Persona'}
+				{personas.length >= 5 ? t('debatePage.maxPersonasReached') : t('debatePage.addPersona')}
 			</Button>
 
 			<ModeratorPromptSection
@@ -169,10 +169,10 @@ function DebateSettingsPage() {
 			<div className="border-t border-border pt-6">
 				<div className="flex items-center justify-between">
 					<div>
-						<h3 className="text-sm font-medium text-foreground">Reset to Defaults</h3>
-						<p className="text-xs text-muted-foreground mt-1">
-							Restore original personas and moderator prompt. Custom personas will be deleted.
-						</p>
+						<h3 className="text-sm font-medium text-foreground">
+							{t('debatePage.resetToDefaults')}
+						</h3>
+						<p className="text-xs text-muted-foreground mt-1">{t('debatePage.resetDescription')}</p>
 					</div>
 					<Button
 						variant="outline"
@@ -180,7 +180,7 @@ function DebateSettingsPage() {
 						className="text-destructive"
 						onClick={() => setShowResetConfirm(true)}
 					>
-						Reset All
+						{t('debatePage.resetAll')}
 					</Button>
 				</div>
 			</div>
@@ -200,15 +200,12 @@ function DebateSettingsPage() {
 			<Dialog open={deleteTarget !== null} onOpenChange={() => setDeleteTarget(null)}>
 				<DialogContent>
 					<DialogHeader>
-						<DialogTitle>Delete persona?</DialogTitle>
-						<DialogDescription>
-							This persona will be permanently removed. Persona performance history will be
-							preserved but may no longer reflect the current configuration.
-						</DialogDescription>
+						<DialogTitle>{t('debatePage.deletePersona.title')}</DialogTitle>
+						<DialogDescription>{t('debatePage.deletePersona.description')}</DialogDescription>
 					</DialogHeader>
 					<DialogFooter>
 						<DialogClose asChild>
-							<Button variant="outline">Cancel</Button>
+							<Button variant="outline">{t('common.cancel')}</Button>
 						</DialogClose>
 						<Button
 							variant="destructive"
@@ -220,7 +217,7 @@ function DebateSettingsPage() {
 								}
 							}}
 						>
-							{deleteMutation.isPending ? 'Deleting...' : 'Delete'}
+							{deleteMutation.isPending ? t('common.deleting') : t('common.delete')}
 						</Button>
 					</DialogFooter>
 				</DialogContent>
@@ -230,16 +227,12 @@ function DebateSettingsPage() {
 			<Dialog open={showResetConfirm} onOpenChange={setShowResetConfirm}>
 				<DialogContent>
 					<DialogHeader>
-						<DialogTitle>Reset debate configuration?</DialogTitle>
-						<DialogDescription>
-							This will delete all custom personas, restore default persona prompts, and reset the
-							moderator prompt. Persona performance history will be preserved but may no longer
-							reflect the current prompts. This action cannot be undone.
-						</DialogDescription>
+						<DialogTitle>{t('debatePage.resetConfirm.title')}</DialogTitle>
+						<DialogDescription>{t('debatePage.resetConfirm.description')}</DialogDescription>
 					</DialogHeader>
 					<DialogFooter>
 						<DialogClose asChild>
-							<Button variant="outline">Cancel</Button>
+							<Button variant="outline">{t('common.cancel')}</Button>
 						</DialogClose>
 						<Button
 							variant="destructive"
@@ -249,7 +242,9 @@ function DebateSettingsPage() {
 								resetMutation.mutate();
 							}}
 						>
-							{resetMutation.isPending ? 'Resetting...' : 'Reset to Defaults'}
+							{resetMutation.isPending
+								? t('debatePage.resetting')
+								: t('debatePage.resetToDefaults')}
 						</Button>
 					</DialogFooter>
 				</DialogContent>

@@ -18,11 +18,11 @@ function formatDuration(ms: number | null): string {
 	return `${days}d`;
 }
 
-const exitReasonLabels: Record<string, string> = {
-	stop_loss: 'Stop Loss',
-	target_hit: 'Target Hit',
-	manual_close: 'Manual',
-	time_exit: 'Time Exit',
+const exitReasonKeys: Record<string, string> = {
+	stop_loss: 'exitReason.stopLoss',
+	target_hit: 'exitReason.targetHit',
+	manual_close: 'exitReason.manualClose',
+	time_exit: 'exitReason.timeExit',
 };
 
 export function OutcomeHistoryFeed({ outcomes, onSelect }: OutcomeHistoryFeedProps) {
@@ -73,7 +73,7 @@ export function OutcomeHistoryFeed({ outcomes, onSelect }: OutcomeHistoryFeedPro
 											</Badge>
 											{outcome.exitReason && (
 												<span className="text-xs text-muted-foreground">
-													{exitReasonLabels[outcome.exitReason] ?? outcome.exitReason}
+													{t(exitReasonKeys[outcome.exitReason] ?? outcome.exitReason)}
 												</span>
 											)}
 										</div>

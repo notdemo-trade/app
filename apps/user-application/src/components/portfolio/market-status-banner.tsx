@@ -1,4 +1,5 @@
 import type { MarketClock } from '@repo/data-ops/providers/alpaca';
+import { useTranslations } from 'use-intl';
 import { formatDateTime, formatTime } from '@/lib/formatters';
 import { cn } from '@/lib/utils';
 
@@ -7,6 +8,8 @@ interface MarketStatusBannerProps {
 }
 
 export function MarketStatusBanner({ clock }: MarketStatusBannerProps) {
+	const t = useTranslations();
+
 	if (!clock) return null;
 
 	return (
@@ -19,9 +22,9 @@ export function MarketStatusBanner({ clock }: MarketStatusBannerProps) {
 			)}
 		>
 			{clock.is_open ? (
-				<span>Market Open - Closes {formatTime(clock.next_close)}</span>
+				<span>{t('portfolio.marketOpen', { time: formatTime(clock.next_close) })}</span>
 			) : (
-				<span>Market Closed - Opens {formatDateTime(clock.next_open)}</span>
+				<span>{t('portfolio.marketClosed', { time: formatDateTime(clock.next_open) })}</span>
 			)}
 		</div>
 	);

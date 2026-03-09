@@ -6,6 +6,7 @@ import type {
 import { useForm } from '@tanstack/react-form';
 import { ChevronRight, Trash2 } from 'lucide-react';
 import { useState } from 'react';
+import { useTranslations } from 'use-intl';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
@@ -36,6 +37,7 @@ export function PersonaCard({
 	isUpdating,
 	activeCount,
 }: PersonaCardProps) {
+	const t = useTranslations();
 	const [isPromptExpanded, setIsPromptExpanded] = useState(false);
 
 	const form = useForm({
@@ -76,9 +78,9 @@ export function PersonaCard({
 								onChange={(e) => field.handleChange(e.target.value as PersonaBias)}
 								className={cn('h-7 w-24 text-xs', BIAS_STYLES[field.state.value])}
 							>
-								<option value="bullish">Bullish</option>
-								<option value="bearish">Bearish</option>
-								<option value="neutral">Neutral</option>
+								<option value="bullish">{t('persona.bullish')}</option>
+								<option value="bearish">{t('persona.bearish')}</option>
+								<option value="neutral">{t('persona.neutral')}</option>
 							</Select>
 						)}
 					</form.Field>
@@ -94,7 +96,7 @@ export function PersonaCard({
 				<form.Field name="role">
 					{(field) => (
 						<div className="space-y-1">
-							<Label className="text-xs text-muted-foreground">Role</Label>
+							<Label className="text-xs text-muted-foreground">{t('persona.role')}</Label>
 							<Input
 								value={field.state.value}
 								onChange={(e) => field.handleChange(e.target.value)}
@@ -109,7 +111,7 @@ export function PersonaCard({
 						<ChevronRight
 							className={cn('h-4 w-4 transition-transform', isPromptExpanded && 'rotate-90')}
 						/>
-						System Prompt
+						{t('persona.systemPrompt')}
 						<span className="text-xs">({persona.systemPrompt.length}/2000)</span>
 					</CollapsibleTrigger>
 					<CollapsibleContent className="mt-2">
@@ -137,7 +139,7 @@ export function PersonaCard({
 									disabled={isUpdating}
 									onClick={() => form.handleSubmit()}
 								>
-									{isUpdating ? 'Saving...' : 'Save Changes'}
+									{isUpdating ? t('common.saving') : t('common.saveChanges')}
 								</Button>
 							) : (
 								<div />
@@ -153,7 +155,7 @@ export function PersonaCard({
 							onClick={() => onDelete(persona.id)}
 						>
 							<Trash2 className="h-4 w-4 mr-1" />
-							Delete
+							{t('common.delete')}
 						</Button>
 					)}
 				</div>

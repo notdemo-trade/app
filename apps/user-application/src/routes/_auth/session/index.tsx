@@ -102,34 +102,39 @@ function SessionDashboard({ userId }: SessionDashboardProps) {
 					<div className="flex items-center gap-4">
 						<div className="flex items-center gap-2">
 							<Bot className="h-5 w-5 text-muted-foreground" />
-							<span className="text-sm font-medium text-foreground">Agent</span>
+							<span className="text-sm font-medium text-foreground">{t('sessionPage.agent')}</span>
 							<Switch
 								checked={isEnabled}
 								onCheckedChange={(checked) => (checked ? session.start() : session.stop())}
 							/>
 							<Badge variant={isEnabled ? 'success' : 'secondary'}>
-								{isEnabled ? 'Running' : 'Stopped'}
+								{isEnabled ? t('sessionPage.running') : t('sessionPage.stopped')}
 							</Badge>
 							<InfoTip content={t('session.tips.agentToggle')} side="bottom" />
 						</div>
 						<div className="hidden items-center gap-4 text-sm sm:flex">
 							<div className="flex items-center gap-1 text-muted-foreground">
-								Cycles: <span className="font-mono text-foreground">{cycleCount}</span>
+								{t('sessionPage.cycles')}{' '}
+								<span className="font-mono text-foreground">{cycleCount}</span>
 								<InfoTip content={t('session.tips.cycles')} side="bottom" />
 							</div>
 							<div className="flex items-center gap-1 text-muted-foreground">
-								Errors: <span className="font-mono text-foreground">{errorCount}</span>
+								{t('sessionPage.errors')}{' '}
+								<span className="font-mono text-foreground">{errorCount}</span>
 								<InfoTip content={t('session.tips.errors')} side="bottom" />
 							</div>
 							{countdown && (
 								<div className="flex items-center gap-1 text-muted-foreground">
 									<Clock className="h-3.5 w-3.5" />
-									Next: <span className="font-mono text-foreground">{countdown}</span>
+									{t('sessionPage.next')}{' '}
+									<span className="font-mono text-foreground">{countdown}</span>
 								</div>
 							)}
 							{pendingProposalCount > 0 && (
 								<div className="flex items-center gap-1">
-									<Badge variant="warning">{pendingProposalCount} pending</Badge>
+									<Badge variant="warning">
+										{t('sessionPage.pending', { count: pendingProposalCount })}
+									</Badge>
 									<InfoTip content={t('session.tips.pending')} side="bottom" />
 								</div>
 							)}
@@ -146,7 +151,7 @@ function SessionDashboard({ userId }: SessionDashboardProps) {
 									}
 								>
 									<RefreshCw className="h-4 w-4" />
-									Trigger
+									{t('sessionPage.trigger')}
 								</Button>
 								<InfoTip content={t('session.tips.trigger')} side="left" />
 							</>
@@ -172,12 +177,14 @@ function SessionDashboard({ userId }: SessionDashboardProps) {
 						<Card>
 							<CardContent className="flex flex-col items-center justify-center py-12 text-center">
 								<Bot className="mb-3 h-10 w-10 text-muted-foreground" />
-								<h3 className="text-sm font-medium text-foreground">No active analysis</h3>
+								<h3 className="text-sm font-medium text-foreground">
+									{t('sessionPage.noActiveAnalysis')}
+								</h3>
 								<p className="mt-1 text-xs text-muted-foreground">{t('session.tips.noAnalysis')}</p>
 								{!isEnabled && (
 									<Button className="mt-4" size="sm" onClick={() => session.start()}>
 										<Play className="h-4 w-4" />
-										Start Agent
+										{t('sessionPage.startAgent')}
 									</Button>
 								)}
 							</CardContent>
@@ -188,7 +195,9 @@ function SessionDashboard({ userId }: SessionDashboardProps) {
 				{/* Sidebar: Pending Proposals */}
 				<div className="space-y-3">
 					<div className="flex items-center gap-1">
-						<h3 className="text-sm font-semibold text-muted-foreground">Pending Proposals</h3>
+						<h3 className="text-sm font-semibold text-muted-foreground">
+							{t('sessionPage.pendingProposals')}
+						</h3>
 						<InfoTip content={t('session.tips.pendingProposals')} side="left" />
 					</div>
 					{pendingProposal ? (
@@ -200,7 +209,7 @@ function SessionDashboard({ userId }: SessionDashboardProps) {
 					) : (
 						<Card>
 							<CardContent className="py-6 text-center text-sm text-muted-foreground">
-								No pending proposals
+								{t('sessionPage.noPendingProposals')}
 							</CardContent>
 						</Card>
 					)}
@@ -211,7 +220,7 @@ function SessionDashboard({ userId }: SessionDashboardProps) {
 						className="flex items-center gap-2 rounded-md border border-border bg-card px-3 py-2 text-sm text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
 					>
 						<History className="h-4 w-4" />
-						Proposal History
+						{t('sessionPage.proposalHistory')}
 					</Link>
 
 					{/* Last Error */}
@@ -219,7 +228,9 @@ function SessionDashboard({ userId }: SessionDashboardProps) {
 						<Card className="border-destructive/50">
 							<CardHeader className="pb-2">
 								<div className="flex items-center gap-1">
-									<CardTitle className="text-sm text-destructive">Last Error</CardTitle>
+									<CardTitle className="text-sm text-destructive">
+										{t('sessionPage.lastError')}
+									</CardTitle>
 									<InfoTip content={t('session.tips.lastError')} side="left" />
 								</div>
 							</CardHeader>

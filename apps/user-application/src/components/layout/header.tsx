@@ -2,6 +2,8 @@ import { Menu, Search } from 'lucide-react';
 import { useState } from 'react';
 import { useTranslations } from 'use-intl';
 import { AccountDialog } from '@/components/auth/account-dialog';
+import { LanguageToggle } from '@/components/i18n/language-toggle';
+import { ThemeToggle } from '@/components/theme/theme-toggle';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -47,8 +49,10 @@ export function Header({ className, onMobileMenuToggle }: HeaderProps) {
 				</div>
 			</div>
 
-			{/* Right side - Notifications and user menu */}
+			{/* Right side - Settings and user menu */}
 			<div className="flex items-center gap-2">
+				<LanguageToggle variant="ghost" align="end" />
+				<ThemeToggle variant="ghost" align="end" />
 				<AccountDialog>
 					<Button variant="ghost" className="flex items-center gap-2 px-3">
 						<Avatar className="h-8 w-8">

@@ -2,12 +2,14 @@ import type { ErrorComponentProps } from '@tanstack/react-router';
 import { Link, rootRouteId, useMatch, useRouter } from '@tanstack/react-router';
 import { AlertTriangle, ArrowLeft, Bug, ChevronDown, Home, Mail, RefreshCw } from 'lucide-react';
 import { useState } from 'react';
+import { useTranslations } from 'use-intl';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 
 export function DefaultCatchBoundary({ error }: ErrorComponentProps) {
+	const t = useTranslations();
 	const router = useRouter();
 	const isRoot = useMatch({
 		strict: false,
@@ -39,10 +41,8 @@ export function DefaultCatchBoundary({ error }: ErrorComponentProps) {
 							<AlertTriangle className="h-5 w-5 text-destructive" />
 						</div>
 						<div>
-							<CardTitle className="text-xl">Something went wrong</CardTitle>
-							<p className="text-sm text-muted-foreground">
-								We encountered an unexpected error. Please try again.
-							</p>
+							<CardTitle className="text-xl">{t('error.title')}</CardTitle>
+							<p className="text-sm text-muted-foreground">{t('error.description')}</p>
 						</div>
 					</div>
 				</CardHeader>
@@ -58,14 +58,14 @@ export function DefaultCatchBoundary({ error }: ErrorComponentProps) {
 					<div className="flex flex-col sm:flex-row gap-3">
 						<Button onClick={() => router.invalidate()} className="flex items-center gap-2">
 							<RefreshCw className="h-4 w-4" />
-							Try Again
+							{t('error.tryAgain')}
 						</Button>
 
 						{isRoot ? (
 							<Button variant="outline" asChild>
 								<Link to="/" className="flex items-center gap-2">
 									<Home className="h-4 w-4" />
-									Go to Home
+									{t('error.goHome')}
 								</Link>
 							</Button>
 						) : (
@@ -75,7 +75,7 @@ export function DefaultCatchBoundary({ error }: ErrorComponentProps) {
 								className="flex items-center gap-2"
 							>
 								<ArrowLeft className="h-4 w-4" />
-								Go Back
+								{t('error.goBack')}
 							</Button>
 						)}
 					</div>
@@ -90,7 +90,7 @@ export function DefaultCatchBoundary({ error }: ErrorComponentProps) {
 									className="flex items-center gap-2 text-muted-foreground hover:text-foreground"
 								>
 									<Bug className="h-4 w-4" />
-									Technical Details
+									{t('error.technicalDetails')}
 									<ChevronDown
 										className={`h-4 w-4 transition-transform duration-200 ${showDetails ? 'rotate-180' : ''}`}
 									/>
@@ -98,7 +98,7 @@ export function DefaultCatchBoundary({ error }: ErrorComponentProps) {
 							</CollapsibleTrigger>
 							<CollapsibleContent className="space-y-2">
 								<div className="rounded-lg bg-muted p-4">
-									<h4 className="text-sm font-medium mb-2">Error Stack Trace:</h4>
+									<h4 className="text-sm font-medium mb-2">{t('error.stackTrace')}</h4>
 									<pre className="text-xs text-muted-foreground whitespace-pre-wrap break-words max-h-40 overflow-y-auto">
 										{errorStack}
 									</pre>
@@ -110,9 +110,7 @@ export function DefaultCatchBoundary({ error }: ErrorComponentProps) {
 					{/* Help Section */}
 					<div className="border-t pt-4">
 						<div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
-							<div className="text-sm text-muted-foreground">
-								If this error persists, please report it to our support team.
-							</div>
+							<div className="text-sm text-muted-foreground">{t('error.persistMessage')}</div>
 							<Button
 								variant="outline"
 								size="sm"
@@ -120,7 +118,7 @@ export function DefaultCatchBoundary({ error }: ErrorComponentProps) {
 								className="flex items-center gap-2"
 							>
 								<Mail className="h-4 w-4" />
-								Report Error
+								{t('error.reportError')}
 							</Button>
 						</div>
 					</div>

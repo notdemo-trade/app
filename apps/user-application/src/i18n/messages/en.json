@@ -126,6 +126,389 @@
 	"header": {
 		"search": "Search..."
 	},
+	"common": {
+		"backToDashboard": "Back to Dashboard",
+		"loading": "Loading...",
+		"saving": "Saving...",
+		"cancel": "Cancel",
+		"remove": "Remove",
+		"removing": "Removing...",
+		"retry": "Retry",
+		"warning": "Warning",
+		"goBack": "Go Back",
+		"home": "Home",
+		"delete": "Delete",
+		"deleting": "Deleting...",
+		"saveChanges": "Save Changes"
+	},
+	"emailLogin": {
+		"welcomeBack": "Welcome back",
+		"createAccount": "Create account",
+		"signInDescription": "Sign in to your account",
+		"signUpDescription": "Sign up to get started",
+		"nameRequired": "Name required",
+		"emailRequired": "Email required",
+		"passwordRequired": "Password required",
+		"minChars": "Min 8 characters",
+		"nameLabel": "Name",
+		"emailLabel": "Email",
+		"passwordLabel": "Password",
+		"namePlaceholder": "Your name",
+		"signIn": "Sign In",
+		"signUp": "Sign Up",
+		"noAccount": "No account?",
+		"haveAccount": "Already have an account?",
+		"signInLink": "Sign in",
+		"signUpLink": "Sign up"
+	},
+	"error": {
+		"title": "Something went wrong",
+		"description": "We encountered an unexpected error. Please try again.",
+		"tryAgain": "Try Again",
+		"goHome": "Go to Home",
+		"goBack": "Go Back",
+		"technicalDetails": "Technical Details",
+		"stackTrace": "Error Stack Trace:",
+		"persistMessage": "If this error persists, please report it to our support team.",
+		"reportError": "Report Error"
+	},
+	"notFound": {
+		"title": "Page Not Found",
+		"description": "The page you're looking for doesn't exist or has been moved.",
+		"searchHint": "Try checking the URL or use the search functionality"
+	},
+	"portfolio": {
+		"connectBroker": "Connect Your Broker",
+		"connectBrokerDesc": "Add your Alpaca API credentials to view your portfolio.",
+		"addCredentials": "Add Credentials",
+		"accountOverview": "Account Overview",
+		"tradingBlocked": "Trading Blocked",
+		"equity": "Equity",
+		"cash": "Cash",
+		"buyingPower": "Buying Power",
+		"portfolioValue": "Portfolio Value",
+		"totalPnl": "Total P&L: {value}",
+		"positions": "Positions",
+		"positionsCount": "Positions ({count})",
+		"noPositions": "No open positions",
+		"symbol": "Symbol",
+		"qty": "Qty",
+		"avgCost": "Avg Cost",
+		"price": "Price",
+		"value": "Value",
+		"pnl": "P&L",
+		"pnlPct": "%",
+		"recentOrders": "Recent Orders",
+		"noOrders": "No orders",
+		"side": "Side",
+		"type": "Type",
+		"filled": "Filled",
+		"status": "Status",
+		"time": "Time",
+		"marketOpen": "Market Open - Closes {time}",
+		"marketClosed": "Market Closed - Opens {time}",
+		"credentialsInvalid": "Credentials Invalid",
+		"credentialsInvalidDesc": "Your Alpaca credentials are no longer valid.",
+		"updateCredentials": "Update Credentials",
+		"failedToLoad": "Failed to Load Portfolio"
+	},
+	"proposal": {
+		"expired": "Expired",
+		"status": {
+			"pending": "Pending",
+			"approved": "Approved",
+			"rejected": "Rejected",
+			"expired": "Expired",
+			"executed": "Executed"
+		},
+		"stat": {
+			"entry": "Entry",
+			"target": "Target",
+			"stopLoss": "Stop Loss",
+			"size": "Size",
+			"qty": "Qty",
+			"notional": "Notional"
+		},
+		"risks": "Risks",
+		"reject": "Reject",
+		"approve": "Approve {action}"
+	},
+	"discussion": {
+		"sender": {
+			"system": "System",
+			"moderator": "Moderator",
+			"you": "You"
+		},
+		"persona": {
+			"bullAnalyst": "Bull Analyst",
+			"bearAnalyst": "Bear Analyst",
+			"riskManager": "Risk Manager"
+		},
+		"phase": {
+			"dataCollection": "Data",
+			"analysis": "Analysis",
+			"debateRound": "Debate",
+			"consensus": "Consensus",
+			"proposal": "Proposal",
+			"humanDecision": "Awaiting Decision",
+			"execution": "Executing",
+			"completed": "Done"
+		},
+		"confidence": "{value}% confidence"
+	},
+	"orchestrationMode": {
+		"debate": {
+			"title": "Multi-Persona Debate",
+			"description": "3 AI personas (Bull, Bear, Risk Manager) analyze independently, then debate in rounds to reach consensus."
+		},
+		"pipeline": {
+			"title": "Sequential Pipeline",
+			"description": "Linear analysis chain: fetch data, compute indicators, LLM analysis, risk validation, generate proposal."
+		}
+	},
+	"credentials": {
+		"title": "API Credentials",
+		"description": "Manage API keys for trading and AI providers. Keys are encrypted at rest.",
+		"alpaca": {
+			"title": "Alpaca",
+			"description": "Required for trading. Get keys at alpaca.markets"
+		},
+		"llmProviders": {
+			"title": "LLM Providers",
+			"description": "Add API keys for AI models. At least one required."
+		},
+		"badge": {
+			"invalid": "Invalid",
+			"connected": "Connected",
+			"paper": "Paper",
+			"live": "Live"
+		},
+		"verified": "Verified {date}",
+		"updateCredentials": "Update Credentials",
+		"updateKey": "Update Key",
+		"validating": "Validating...",
+		"saveValidate": "Save & Validate",
+		"savedSuccess": "Credentials saved and validated successfully.",
+		"apiKey": "API Key",
+		"apiSecret": "API Secret",
+		"placeholderKey": "PK...",
+		"placeholderSecret": "Enter secret...",
+		"placeholderApiKey": "Enter API key...",
+		"paperTrading": "Paper Trading (recommended)",
+		"removeAlpaca": {
+			"title": "Remove Alpaca credentials?",
+			"description": "This will delete your Alpaca API keys. Trading will stop until new keys are added."
+		},
+		"removeLlm": {
+			"title": "Remove {provider} API key?",
+			"description": "Models from {provider} will no longer be available for trading agents."
+		},
+		"models": "Models: {models}"
+	},
+	"sessionPage": {
+		"agent": "Agent",
+		"running": "Running",
+		"stopped": "Stopped",
+		"cycles": "Cycles:",
+		"errors": "Errors:",
+		"next": "Next:",
+		"pending": "{count} pending",
+		"trigger": "Trigger",
+		"startAgent": "Start Agent",
+		"noActiveAnalysis": "No active analysis",
+		"pendingProposals": "Pending Proposals",
+		"noPendingProposals": "No pending proposals",
+		"proposalHistory": "Proposal History",
+		"proposalHistoryDesc": "Review past trade proposals and their full analysis",
+		"lastError": "Last Error",
+		"loadingProposals": "Loading proposals...",
+		"noProposals": "No proposals yet"
+	},
+	"sessionSettings": {
+		"title": "Session Settings",
+		"orchestrationMode": "Orchestration Mode",
+		"llmProvider": "LLM Provider",
+		"modelPlaceholder": "Model name",
+		"watchlistSymbols": "Watchlist Symbols",
+		"watchlistPlaceholder": "AAPL, MSFT, GOOGL",
+		"broker": "Broker",
+		"advancedSettings": "Advanced Settings",
+		"analysisInterval": "Analysis Interval (sec)",
+		"minConfidence": "Min Confidence",
+		"positionSize": "Position Size (% of cash)",
+		"debateRounds": "Debate Rounds",
+		"proposalTimeout": "Proposal Timeout (sec)",
+		"strategyId": "Strategy ID",
+		"strategyPlaceholder": "Strategy ID",
+		"failedToLoad": "Failed to load configuration."
+	},
+	"profile": {
+		"title": "Profile",
+		"accountDetails": "Account Details",
+		"name": "Name",
+		"email": "Email"
+	},
+	"modelsPage": {
+		"title": "AI Models",
+		"description": "Select models for research and trading decisions. Add provider API keys in Credentials first.",
+		"researchModel": {
+			"title": "Research Model",
+			"description": "Used for market research and sentiment analysis. Choose a fast, cost-effective model."
+		},
+		"analystModel": {
+			"title": "Analyst Model",
+			"description": "Used for trade decisions and analysis. Choose a capable reasoning model."
+		},
+		"modelLabel": "Model",
+		"saveModels": "Save Models",
+		"modelSaved": "Model selection saved."
+	},
+	"tradingPage": {
+		"title": "Trading Configuration",
+		"description": "Configure position limits, risk management, and trading hours.",
+		"positionLimits": {
+			"title": "Position Limits",
+			"description": "Control maximum exposure per position and overall."
+		},
+		"maxPositions": "Max Concurrent Positions",
+		"maxPositionValue": "Max Position Value ($)",
+		"maxPerTrade": "Max per Trade ($)",
+		"riskManagement": {
+			"title": "Risk Management",
+			"description": "Set stop loss, take profit, and daily loss limits."
+		},
+		"stopLoss": "Stop Loss ({pct}%)",
+		"stopLossHelp": "Auto-close position at this loss percentage",
+		"takeProfit": "Take Profit ({pct}%)",
+		"takeProfitHelp": "Auto-close position at this gain percentage",
+		"maxDailyLoss": "Max Daily Loss ({pct}%)",
+		"maxDailyLossHelp": "Halt trading when daily loss exceeds this % of equity",
+		"positionSize": "Position Size ({pct}% of cash)",
+		"cooldownAfterLoss": "Cooldown After Loss (minutes)",
+		"tradingHours": "Trading Hours",
+		"marketHoursOnly": "Trade during market hours only",
+		"extendedHours": "Allow extended hours trading",
+		"allowShortSelling": "Allow short selling",
+		"advanced": {
+			"title": "Advanced Settings",
+			"description": "Fine-tune proposal timing, AI model behavior, and display preferences."
+		},
+		"proposals": "Proposals",
+		"proposalTimeout": "Proposal Timeout ({time})",
+		"proposalTimeoutHelp": "How long a trade proposal stays active before auto-expiring (60s - 3600s).",
+		"aiModel": "AI Model",
+		"temperature": "Temperature ({value})",
+		"temperatureHelp": "Controls AI creativity. Lower = more deterministic, higher = more varied analysis.",
+		"conservative": "Conservative (0.0)",
+		"balanced": "Balanced (0.3)",
+		"creative": "Creative (1.0)",
+		"maxResponseLength": "Max Response Length ({value} tokens)",
+		"maxResponseLengthHelp": "Maximum AI response length. Higher values allow more detailed analysis but cost more tokens.",
+		"concise": "Concise (200)",
+		"standard": "Standard (1000)",
+		"detailed": "Detailed (4000)",
+		"display": "Display",
+		"performanceWindows": "Performance Windows (days)",
+		"performanceWindowsHelp": "Time periods shown in the performance dashboard. 1-5 windows, each 7-365 days.",
+		"highConfidence": "High Confidence Threshold ({pct}%)",
+		"highConfidenceHelp": "Confidence at or above this value is shown in green.",
+		"medConfidence": "Medium Confidence Threshold ({pct}%)",
+		"medConfidenceHelp": "Confidence at or above this (but below high) is shown in yellow. Below this is red.",
+		"mustBeGreaterThanMed": "Must be greater than medium threshold",
+		"mustBeLessThanHigh": "Must be less than high threshold",
+		"saveConfiguration": "Save Configuration",
+		"configSaved": "Configuration saved."
+	},
+	"debatePage": {
+		"title": "Debate Personas",
+		"description": "Customize the AI perspectives that analyze trade opportunities in debate mode.",
+		"failedToLoad": "Failed to load debate personas. Please try again.",
+		"addPersona": "Add Persona",
+		"maxPersonasReached": "Maximum 5 Personas Reached",
+		"resetToDefaults": "Reset to Defaults",
+		"resetDescription": "Restore original personas and moderator prompt. Custom personas will be deleted.",
+		"resetAll": "Reset All",
+		"deletePersona": {
+			"title": "Delete persona?",
+			"description": "This persona will be permanently removed. Persona performance history will be preserved but may no longer reflect the current configuration."
+		},
+		"resetConfirm": {
+			"title": "Reset debate configuration?",
+			"description": "This will delete all custom personas, restore default persona prompts, and reset the moderator prompt. Persona performance history will be preserved but may no longer reflect the current prompts. This action cannot be undone."
+		},
+		"resetting": "Resetting..."
+	},
+	"persona": {
+		"bullish": "Bullish",
+		"bearish": "Bearish",
+		"neutral": "Neutral",
+		"role": "Role",
+		"systemPrompt": "System Prompt"
+	},
+	"moderator": {
+		"title": "Moderator Prompt",
+		"custom": "Custom",
+		"description": "Controls how the moderator synthesizes debate results into a consensus recommendation.",
+		"savePrompt": "Save Prompt",
+		"resetToDefault": "Reset to Default"
+	},
+	"addPersonaDialog": {
+		"title": "Add Persona",
+		"description": "Create a new analysis perspective for your debate sessions.",
+		"identifier": "Identifier",
+		"identifierPlaceholder": "e.g., momentum_trader",
+		"identifierHint": "Lowercase letters, numbers, and underscores only.",
+		"displayName": "Display Name",
+		"displayNamePlaceholder": "e.g., Momentum Trader",
+		"role": "Role",
+		"rolePlaceholder": "Brief description of what this persona analyzes",
+		"bias": "Bias",
+		"systemPrompt": "System Prompt",
+		"systemPromptPlaceholder": "Instructions for the AI persona...",
+		"creating": "Creating...",
+		"createPersona": "Create Persona"
+	},
+	"performance": {
+		"title": "Agent Performance",
+		"description": "Track persona scores, trade outcomes, and learned patterns",
+		"personaScores": "Persona Scores",
+		"pipelineScores": "Pipeline Scores",
+		"winRate": "Win Rate",
+		"avgReturn": "Avg Return",
+		"sharpe": "Sharpe",
+		"bestSymbol": "Best",
+		"worstSymbol": "Worst",
+		"calibration": {
+			"good": "Good",
+			"fair": "Fair",
+			"poor": "Poor"
+		},
+		"outcomeHistory": "Outcome History",
+		"noOutcomes": "No resolved outcomes yet",
+		"tracking": "Tracking",
+		"live": "Live",
+		"currentPrice": "Current Price",
+		"unrealizedPnl": "Unrealized P&L",
+		"patterns": "Patterns",
+		"sampleSize": "{count} samples",
+		"activePositions": "Active Positions",
+		"coldStart": {
+			"title": "Not enough data yet",
+			"description": "{remaining} more resolved trades needed (minimum {required}) before performance metrics are displayed."
+		},
+		"exitReason": {
+			"stopLoss": "Stop Loss",
+			"targetHit": "Target Hit",
+			"manualClose": "Manual",
+			"timeExit": "Time Exit"
+		},
+		"patternType": {
+			"indicator": "Indicator",
+			"marketRegime": "Market Regime",
+			"sector": "Sector",
+			"symbol": "Symbol"
+		}
+	},
 	"session": {
 		"title": "Session Agent",
 		"subtitle": "AI-powered trade analysis and execution",
@@ -174,35 +557,6 @@
 		"performance": "Performance",
 		"technicalAnalysis": "Indicators",
 		"debate": "Debate"
-	},
-	"performance": {
-		"title": "Agent Performance",
-		"description": "Track persona scores, trade outcomes, and learned patterns",
-		"personaScores": "Persona Scores",
-		"pipelineScores": "Pipeline Scores",
-		"winRate": "Win Rate",
-		"avgReturn": "Avg Return",
-		"sharpe": "Sharpe",
-		"bestSymbol": "Best",
-		"worstSymbol": "Worst",
-		"calibration": {
-			"good": "Good",
-			"fair": "Fair",
-			"poor": "Poor"
-		},
-		"outcomeHistory": "Outcome History",
-		"noOutcomes": "No resolved outcomes yet",
-		"tracking": "Tracking",
-		"live": "Live",
-		"currentPrice": "Current Price",
-		"unrealizedPnl": "Unrealized P&L",
-		"patterns": "Patterns",
-		"sampleSize": "{count} samples",
-		"activePositions": "Active Positions",
-		"coldStart": {
-			"title": "Not enough data yet",
-			"description": "{remaining} more resolved trades needed (minimum {required}) before performance metrics are displayed."
-		}
 	},
 	"auth": {
 		"online": "Online",

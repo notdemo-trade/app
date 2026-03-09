@@ -126,6 +126,389 @@
 	"header": {
 		"search": "Szukaj..."
 	},
+	"common": {
+		"backToDashboard": "Powrót do Panelu",
+		"loading": "Ładowanie...",
+		"saving": "Zapisywanie...",
+		"cancel": "Anuluj",
+		"remove": "Usuń",
+		"removing": "Usuwanie...",
+		"retry": "Ponów",
+		"warning": "Ostrzeżenie",
+		"goBack": "Wróć",
+		"home": "Strona główna",
+		"delete": "Usuń",
+		"deleting": "Usuwanie...",
+		"saveChanges": "Zapisz zmiany"
+	},
+	"emailLogin": {
+		"welcomeBack": "Witaj ponownie",
+		"createAccount": "Utwórz konto",
+		"signInDescription": "Zaloguj się na swoje konto",
+		"signUpDescription": "Zarejestruj się, aby rozpocząć",
+		"nameRequired": "Imię jest wymagane",
+		"emailRequired": "Email jest wymagany",
+		"passwordRequired": "Hasło jest wymagane",
+		"minChars": "Min. 8 znaków",
+		"nameLabel": "Imię",
+		"emailLabel": "Email",
+		"passwordLabel": "Hasło",
+		"namePlaceholder": "Twoje imię",
+		"signIn": "Zaloguj się",
+		"signUp": "Zarejestruj się",
+		"noAccount": "Nie masz konta?",
+		"haveAccount": "Masz już konto?",
+		"signInLink": "Zaloguj się",
+		"signUpLink": "Zarejestruj się"
+	},
+	"error": {
+		"title": "Coś poszło nie tak",
+		"description": "Wystąpił nieoczekiwany błąd. Spróbuj ponownie.",
+		"tryAgain": "Spróbuj ponownie",
+		"goHome": "Strona główna",
+		"goBack": "Wróć",
+		"technicalDetails": "Szczegóły techniczne",
+		"stackTrace": "Ślad stosu błędu:",
+		"persistMessage": "Jeśli ten błąd się powtarza, zgłoś go naszemu zespołowi wsparcia.",
+		"reportError": "Zgłoś błąd"
+	},
+	"notFound": {
+		"title": "Nie znaleziono strony",
+		"description": "Strona, której szukasz, nie istnieje lub została przeniesiona.",
+		"searchHint": "Sprawdź adres URL lub skorzystaj z wyszukiwania"
+	},
+	"portfolio": {
+		"connectBroker": "Połącz brokera",
+		"connectBrokerDesc": "Dodaj swoje dane API Alpaca, aby zobaczyć portfel.",
+		"addCredentials": "Dodaj poświadczenia",
+		"accountOverview": "Przegląd konta",
+		"tradingBlocked": "Handel zablokowany",
+		"equity": "Kapitał",
+		"cash": "Gotówka",
+		"buyingPower": "Siła nabywcza",
+		"portfolioValue": "Wartość portfela",
+		"totalPnl": "Łączny P&L: {value}",
+		"positions": "Pozycje",
+		"positionsCount": "Pozycje ({count})",
+		"noPositions": "Brak otwartych pozycji",
+		"symbol": "Symbol",
+		"qty": "Ilość",
+		"avgCost": "Śr. koszt",
+		"price": "Cena",
+		"value": "Wartość",
+		"pnl": "P&L",
+		"pnlPct": "%",
+		"recentOrders": "Ostatnie zlecenia",
+		"noOrders": "Brak zleceń",
+		"side": "Strona",
+		"type": "Typ",
+		"filled": "Zrealizowano",
+		"status": "Status",
+		"time": "Czas",
+		"marketOpen": "Rynek otwarty - Zamknięcie {time}",
+		"marketClosed": "Rynek zamknięty - Otwarcie {time}",
+		"credentialsInvalid": "Poświadczenia nieprawidłowe",
+		"credentialsInvalidDesc": "Twoje poświadczenia Alpaca są już nieaktualne.",
+		"updateCredentials": "Zaktualizuj poświadczenia",
+		"failedToLoad": "Nie udało się załadować portfela"
+	},
+	"proposal": {
+		"expired": "Wygasła",
+		"status": {
+			"pending": "Oczekująca",
+			"approved": "Zatwierdzona",
+			"rejected": "Odrzucona",
+			"expired": "Wygasła",
+			"executed": "Zrealizowana"
+		},
+		"stat": {
+			"entry": "Wejście",
+			"target": "Cel",
+			"stopLoss": "Stop Loss",
+			"size": "Rozmiar",
+			"qty": "Ilość",
+			"notional": "Nominał"
+		},
+		"risks": "Ryzyka",
+		"reject": "Odrzuć",
+		"approve": "Zatwierdź {action}"
+	},
+	"discussion": {
+		"sender": {
+			"system": "System",
+			"moderator": "Moderator",
+			"you": "Ty"
+		},
+		"persona": {
+			"bullAnalyst": "Analityk Byczy",
+			"bearAnalyst": "Analityk Niedźwiedzi",
+			"riskManager": "Zarządzający Ryzykiem"
+		},
+		"phase": {
+			"dataCollection": "Dane",
+			"analysis": "Analiza",
+			"debateRound": "Debata",
+			"consensus": "Konsensus",
+			"proposal": "Propozycja",
+			"humanDecision": "Oczekiwanie na decyzję",
+			"execution": "Realizacja",
+			"completed": "Zakończono"
+		},
+		"confidence": "{value}% pewności"
+	},
+	"orchestrationMode": {
+		"debate": {
+			"title": "Debata wielu person",
+			"description": "3 persony AI (Byk, Niedźwiedź, Zarządzający Ryzykiem) analizują niezależnie, a następnie debatują w rundach, aby osiągnąć konsensus."
+		},
+		"pipeline": {
+			"title": "Sekwencyjny Pipeline",
+			"description": "Liniowy łańcuch analizy: pobieranie danych, obliczanie wskaźników, analiza LLM, walidacja ryzyka, generowanie propozycji."
+		}
+	},
+	"credentials": {
+		"title": "Poświadczenia API",
+		"description": "Zarządzaj kluczami API do handlu i dostawców AI. Klucze są szyfrowane.",
+		"alpaca": {
+			"title": "Alpaca",
+			"description": "Wymagane do handlu. Pobierz klucze na alpaca.markets"
+		},
+		"llmProviders": {
+			"title": "Dostawcy LLM",
+			"description": "Dodaj klucze API dla modeli AI. Wymagany co najmniej jeden."
+		},
+		"badge": {
+			"invalid": "Nieprawidłowy",
+			"connected": "Połączony",
+			"paper": "Paper",
+			"live": "Live"
+		},
+		"verified": "Zweryfikowano {date}",
+		"updateCredentials": "Zaktualizuj poświadczenia",
+		"updateKey": "Zaktualizuj klucz",
+		"validating": "Walidacja...",
+		"saveValidate": "Zapisz i zweryfikuj",
+		"savedSuccess": "Poświadczenia zapisane i zweryfikowane pomyślnie.",
+		"apiKey": "Klucz API",
+		"apiSecret": "Sekret API",
+		"placeholderKey": "PK...",
+		"placeholderSecret": "Wprowadź sekret...",
+		"placeholderApiKey": "Wprowadź klucz API...",
+		"paperTrading": "Handel papierowy (zalecany)",
+		"removeAlpaca": {
+			"title": "Usunąć poświadczenia Alpaca?",
+			"description": "To usunie Twoje klucze API Alpaca. Handel zostanie wstrzymany do momentu dodania nowych kluczy."
+		},
+		"removeLlm": {
+			"title": "Usunąć klucz API {provider}?",
+			"description": "Modele od {provider} nie będą już dostępne dla agentów handlowych."
+		},
+		"models": "Modele: {models}"
+	},
+	"sessionPage": {
+		"agent": "Agent",
+		"running": "Działa",
+		"stopped": "Zatrzymany",
+		"cycles": "Cykle:",
+		"errors": "Błędy:",
+		"next": "Następny:",
+		"pending": "{count} oczekujących",
+		"trigger": "Uruchom",
+		"startAgent": "Uruchom agenta",
+		"noActiveAnalysis": "Brak aktywnej analizy",
+		"pendingProposals": "Oczekujące propozycje",
+		"noPendingProposals": "Brak oczekujących propozycji",
+		"proposalHistory": "Historia propozycji",
+		"proposalHistoryDesc": "Przeglądaj wcześniejsze propozycje transakcji i ich pełną analizę",
+		"lastError": "Ostatni błąd",
+		"loadingProposals": "Ładowanie propozycji...",
+		"noProposals": "Brak propozycji"
+	},
+	"sessionSettings": {
+		"title": "Ustawienia sesji",
+		"orchestrationMode": "Tryb orkiestracji",
+		"llmProvider": "Dostawca LLM",
+		"modelPlaceholder": "Nazwa modelu",
+		"watchlistSymbols": "Obserwowane symbole",
+		"watchlistPlaceholder": "AAPL, MSFT, GOOGL",
+		"broker": "Broker",
+		"advancedSettings": "Ustawienia zaawansowane",
+		"analysisInterval": "Interwał analizy (sek)",
+		"minConfidence": "Min. pewność",
+		"positionSize": "Rozmiar pozycji (% gotówki)",
+		"debateRounds": "Rundy debaty",
+		"proposalTimeout": "Timeout propozycji (sek)",
+		"strategyId": "ID strategii",
+		"strategyPlaceholder": "ID strategii",
+		"failedToLoad": "Nie udało się załadować konfiguracji."
+	},
+	"profile": {
+		"title": "Profil",
+		"accountDetails": "Szczegóły konta",
+		"name": "Imię",
+		"email": "Email"
+	},
+	"modelsPage": {
+		"title": "Modele AI",
+		"description": "Wybierz modele do badań i decyzji handlowych. Najpierw dodaj klucze API dostawców w Poświadczeniach.",
+		"researchModel": {
+			"title": "Model badawczy",
+			"description": "Używany do badań rynkowych i analizy nastrojów. Wybierz szybki, ekonomiczny model."
+		},
+		"analystModel": {
+			"title": "Model analityczny",
+			"description": "Używany do decyzji handlowych i analizy. Wybierz model z dobrym rozumowaniem."
+		},
+		"modelLabel": "Model",
+		"saveModels": "Zapisz modele",
+		"modelSaved": "Wybór modeli zapisany."
+	},
+	"tradingPage": {
+		"title": "Konfiguracja handlu",
+		"description": "Skonfiguruj limity pozycji, zarządzanie ryzykiem i godziny handlu.",
+		"positionLimits": {
+			"title": "Limity pozycji",
+			"description": "Kontroluj maksymalną ekspozycję na pozycję i ogólną."
+		},
+		"maxPositions": "Maks. równoczesnych pozycji",
+		"maxPositionValue": "Maks. wartość pozycji ($)",
+		"maxPerTrade": "Maks. na transakcję ($)",
+		"riskManagement": {
+			"title": "Zarządzanie ryzykiem",
+			"description": "Ustaw stop loss, take profit i dzienne limity strat."
+		},
+		"stopLoss": "Stop Loss ({pct}%)",
+		"stopLossHelp": "Automatycznie zamknij pozycję przy tym procencie straty",
+		"takeProfit": "Take Profit ({pct}%)",
+		"takeProfitHelp": "Automatycznie zamknij pozycję przy tym procencie zysku",
+		"maxDailyLoss": "Maks. dzienna strata ({pct}%)",
+		"maxDailyLossHelp": "Wstrzymaj handel, gdy dzienna strata przekroczy ten % kapitału",
+		"positionSize": "Rozmiar pozycji ({pct}% gotówki)",
+		"cooldownAfterLoss": "Przerwa po stracie (minuty)",
+		"tradingHours": "Godziny handlu",
+		"marketHoursOnly": "Handel tylko w godzinach rynkowych",
+		"extendedHours": "Zezwól na handel w wydłużonych godzinach",
+		"allowShortSelling": "Zezwól na krótką sprzedaż",
+		"advanced": {
+			"title": "Ustawienia zaawansowane",
+			"description": "Dostosuj timing propozycji, zachowanie modelu AI i preferencje wyświetlania."
+		},
+		"proposals": "Propozycje",
+		"proposalTimeout": "Timeout propozycji ({time})",
+		"proposalTimeoutHelp": "Jak długo propozycja handlowa pozostaje aktywna przed automatycznym wygaśnięciem (60s - 3600s).",
+		"aiModel": "Model AI",
+		"temperature": "Temperatura ({value})",
+		"temperatureHelp": "Kontroluje kreatywność AI. Niżej = bardziej deterministycznie, wyżej = bardziej zróżnicowana analiza.",
+		"conservative": "Konserwatywna (0.0)",
+		"balanced": "Zrównoważona (0.3)",
+		"creative": "Kreatywna (1.0)",
+		"maxResponseLength": "Maks. długość odpowiedzi ({value} tokenów)",
+		"maxResponseLengthHelp": "Maksymalna długość odpowiedzi AI. Wyższe wartości pozwalają na bardziej szczegółową analizę, ale kosztują więcej tokenów.",
+		"concise": "Zwięzła (200)",
+		"standard": "Standardowa (1000)",
+		"detailed": "Szczegółowa (4000)",
+		"display": "Wyświetlanie",
+		"performanceWindows": "Okna wydajności (dni)",
+		"performanceWindowsHelp": "Okresy czasowe wyświetlane w panelu wydajności. 1-5 okien, każde 7-365 dni.",
+		"highConfidence": "Próg wysokiej pewności ({pct}%)",
+		"highConfidenceHelp": "Pewność na tym poziomie lub wyższym jest wyświetlana na zielono.",
+		"medConfidence": "Próg średniej pewności ({pct}%)",
+		"medConfidenceHelp": "Pewność na tym poziomie (ale poniżej wysokiego) jest wyświetlana na żółto. Poniżej tego — na czerwono.",
+		"mustBeGreaterThanMed": "Musi być większy niż próg średni",
+		"mustBeLessThanHigh": "Musi być mniejszy niż próg wysoki",
+		"saveConfiguration": "Zapisz konfigurację",
+		"configSaved": "Konfiguracja zapisana."
+	},
+	"debatePage": {
+		"title": "Persony debaty",
+		"description": "Dostosuj perspektywy AI, które analizują okazje handlowe w trybie debaty.",
+		"failedToLoad": "Nie udało się załadować person debaty. Spróbuj ponownie.",
+		"addPersona": "Dodaj personę",
+		"maxPersonasReached": "Osiągnięto limit 5 person",
+		"resetToDefaults": "Przywróć domyślne",
+		"resetDescription": "Przywróć oryginalne persony i prompt moderatora. Niestandardowe persony zostaną usunięte.",
+		"resetAll": "Resetuj wszystko",
+		"deletePersona": {
+			"title": "Usunąć personę?",
+			"description": "Ta persona zostanie trwale usunięta. Historia wydajności persony zostanie zachowana, ale może już nie odzwierciedlać bieżącej konfiguracji."
+		},
+		"resetConfirm": {
+			"title": "Zresetować konfigurację debaty?",
+			"description": "To usunie wszystkie niestandardowe persony, przywróci domyślne prompty person i zresetuje prompt moderatora. Historia wydajności person zostanie zachowana, ale może już nie odzwierciedlać bieżących promptów. Tej akcji nie można cofnąć."
+		},
+		"resetting": "Resetowanie..."
+	},
+	"persona": {
+		"bullish": "Byczy",
+		"bearish": "Niedźwiedzi",
+		"neutral": "Neutralny",
+		"role": "Rola",
+		"systemPrompt": "Prompt systemowy"
+	},
+	"moderator": {
+		"title": "Prompt moderatora",
+		"custom": "Niestandardowy",
+		"description": "Kontroluje jak moderator syntetyzuje wyniki debaty w rekomendację konsensusu.",
+		"savePrompt": "Zapisz prompt",
+		"resetToDefault": "Przywróć domyślny"
+	},
+	"addPersonaDialog": {
+		"title": "Dodaj personę",
+		"description": "Utwórz nową perspektywę analizy dla sesji debaty.",
+		"identifier": "Identyfikator",
+		"identifierPlaceholder": "np. momentum_trader",
+		"identifierHint": "Tylko małe litery, cyfry i podkreślenia.",
+		"displayName": "Nazwa wyświetlana",
+		"displayNamePlaceholder": "np. Trader Momentum",
+		"role": "Rola",
+		"rolePlaceholder": "Krótki opis tego, co ta persona analizuje",
+		"bias": "Nastawienie",
+		"systemPrompt": "Prompt systemowy",
+		"systemPromptPlaceholder": "Instrukcje dla persony AI...",
+		"creating": "Tworzenie...",
+		"createPersona": "Utwórz personę"
+	},
+	"performance": {
+		"title": "Wydajność Agentów",
+		"description": "Śledź wyniki person, wyniki transakcji i nauczone wzorce",
+		"personaScores": "Wyniki Person",
+		"pipelineScores": "Wyniki Pipeline",
+		"winRate": "Skuteczność",
+		"avgReturn": "Śr. Zwrot",
+		"sharpe": "Sharpe",
+		"bestSymbol": "Najlepszy",
+		"worstSymbol": "Najgorszy",
+		"calibration": {
+			"good": "Dobra",
+			"fair": "Średnia",
+			"poor": "Słaba"
+		},
+		"outcomeHistory": "Historia Wyników",
+		"noOutcomes": "Brak rozstrzygniętych wyników",
+		"tracking": "Śledzenie",
+		"live": "Na żywo",
+		"currentPrice": "Aktualna Cena",
+		"unrealizedPnl": "Niezrealizowany P&L",
+		"patterns": "Wzorce",
+		"sampleSize": "{count} próbek",
+		"activePositions": "Aktywne Pozycje",
+		"coldStart": {
+			"title": "Za mało danych",
+			"description": "Potrzebujesz jeszcze {remaining} rozstrzygniętych transakcji (minimum {required}) przed wyświetleniem metryk wydajności."
+		},
+		"exitReason": {
+			"stopLoss": "Stop Loss",
+			"targetHit": "Cel osiągnięty",
+			"manualClose": "Ręczne",
+			"timeExit": "Wyjście czasowe"
+		},
+		"patternType": {
+			"indicator": "Wskaźnik",
+			"marketRegime": "Reżim rynkowy",
+			"sector": "Sektor",
+			"symbol": "Symbol"
+		}
+	},
 	"session": {
 		"title": "Agent Sesji",
 		"subtitle": "Analiza handlowa i realizacja oparta na AI",
@@ -174,35 +557,6 @@
 		"performance": "Wydajność",
 		"technicalAnalysis": "Wskaźniki",
 		"debate": "Debata"
-	},
-	"performance": {
-		"title": "Wydajność Agentów",
-		"description": "Śledź wyniki person, wyniki transakcji i nauczone wzorce",
-		"personaScores": "Wyniki Person",
-		"pipelineScores": "Wyniki Pipeline",
-		"winRate": "Skuteczność",
-		"avgReturn": "Śr. Zwrot",
-		"sharpe": "Sharpe",
-		"bestSymbol": "Najlepszy",
-		"worstSymbol": "Najgorszy",
-		"calibration": {
-			"good": "Dobra",
-			"fair": "Średnia",
-			"poor": "Słaba"
-		},
-		"outcomeHistory": "Historia Wyników",
-		"noOutcomes": "Brak rozstrzygniętych wyników",
-		"tracking": "Śledzenie",
-		"live": "Na żywo",
-		"currentPrice": "Aktualna Cena",
-		"unrealizedPnl": "Niezrealizowany P&L",
-		"patterns": "Wzorce",
-		"sampleSize": "{count} próbek",
-		"activePositions": "Aktywne Pozycje",
-		"coldStart": {
-			"title": "Za mało danych",
-			"description": "Potrzebujesz jeszcze {remaining} rozstrzygniętych transakcji (minimum {required}) przed wyświetleniem metryk wydajności."
-		}
 	},
 	"auth": {
 		"online": "Online",

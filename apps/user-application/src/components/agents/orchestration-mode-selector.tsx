@@ -1,5 +1,6 @@
 import { GitBranch, List } from 'lucide-react';
 import type { ReactNode } from 'react';
+import { useTranslations } from 'use-intl';
 import { Card, CardContent } from '@/components/ui/card';
 import { cn } from '@/lib/utils';
 
@@ -7,24 +8,22 @@ type OrchestrationMode = 'debate' | 'pipeline';
 
 interface ModeOption {
 	value: OrchestrationMode;
-	title: string;
-	description: string;
+	titleKey: string;
+	descriptionKey: string;
 	icon: ReactNode;
 }
 
 const MODE_OPTIONS: ModeOption[] = [
 	{
 		value: 'debate',
-		title: 'Multi-Persona Debate',
-		description:
-			'3 AI personas (Bull, Bear, Risk Manager) analyze independently, then debate in rounds to reach consensus.',
+		titleKey: 'orchestrationMode.debate.title',
+		descriptionKey: 'orchestrationMode.debate.description',
 		icon: <GitBranch className="h-5 w-5" />,
 	},
 	{
 		value: 'pipeline',
-		title: 'Sequential Pipeline',
-		description:
-			'Linear analysis chain: fetch data, compute indicators, LLM analysis, risk validation, generate proposal.',
+		titleKey: 'orchestrationMode.pipeline.title',
+		descriptionKey: 'orchestrationMode.pipeline.description',
 		icon: <List className="h-5 w-5" />,
 	},
 ];
@@ -40,6 +39,7 @@ export function OrchestrationModeSelector({
 	onChange,
 	disabled,
 }: OrchestrationModeSelectorProps) {
+	const t = useTranslations();
 	return (
 		<div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
 			{MODE_OPTIONS.map((option) => {
@@ -71,8 +71,10 @@ export function OrchestrationModeSelector({
 									{option.icon}
 								</div>
 								<div>
-									<div className="text-sm font-medium text-foreground">{option.title}</div>
-									<div className="mt-0.5 text-xs text-muted-foreground">{option.description}</div>
+									<div className="text-sm font-medium text-foreground">{t(option.titleKey)}</div>
+									<div className="mt-0.5 text-xs text-muted-foreground">
+										{t(option.descriptionKey)}
+									</div>
 								</div>
 							</CardContent>
 						</Card>
