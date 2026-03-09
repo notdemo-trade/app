@@ -33,6 +33,7 @@ export interface RunPipelineParams {
 	portfolioContext?: PortfolioContext;
 	/** User's configured position size as a fraction (0.0-1.0). Converted to whole-number pct internally. */
 	positionSizePctOfCash?: number;
+	minConfidenceThreshold?: number;
 }
 
 export interface RunPipelineResult {
@@ -219,7 +220,13 @@ export class PipelineOrchestratorAgent extends Agent<Env, PipelineOrchestratorSt
 	async recordStepOutcome(
 		proposalId: string,
 		pipelineSessionId: string,
-		outcome: { symbol: string; realizedPnl: number; realizedPnlPct: number; action: string },
+		outcome: {
+			symbol: string;
+			realizedPnl: number;
+			realizedPnlPct: number;
+			action: string;
+			confidence: number;
+		},
 	): Promise<void> {
 		const sessions = this.sql<{ id: string; strategy_id: string }[]>`
 			SELECT id, strategy_id FROM pipeline_sessions WHERE id = ${pipelineSessionId}`;
@@ -243,7 +250,7 @@ export class PipelineOrchestratorAgent extends Agent<Env, PipelineOrchestratorSt
 			 ta_signals_snapshot, realized_pnl, realized_pnl_pct,
 			 was_correct, resolved_at, created_at)
 			VALUES (${crypto.randomUUID()}, ${pipelineSessionId}, ${proposalId},
-				${outcome.symbol}, ${outcome.action}, ${0},
+				${outcome.symbol}, ${outcome.action}, ${outcome.confidence},
 				${JSON.stringify(taSignals)}, ${outcome.realizedPnl}, ${outcome.realizedPnlPct},
 				${wasCorrect ? 1 : 0}, ${now}, ${now})`;
 
@@ -396,6 +403,18 @@ export class PipelineOrchestratorAgent extends Agent<Env, PipelineOrchestratorSt
 						{ type: 'system' },
 						'proposal',
 						'Recommendation is hold. No proposal generated.',
+					);
+					return;
+				}
+
+				// Confidence gate: match debate mode behavior
+				const threshold = params.minConfidenceThreshold ?? 0.7;
+				if (ctx.recommendation.confidence < threshold) {
+					this.emitMessage(
+						params,
+						{ type: 'system' },
+						'proposal',
+						`Confidence ${ctx.recommendation.confidence.toFixed(2)} below threshold ${threshold.toFixed(2)}. No proposal generated.`,
 					);
 					return;
 				}

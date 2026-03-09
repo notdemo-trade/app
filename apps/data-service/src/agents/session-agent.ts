@@ -550,6 +550,7 @@ export class SessionAgent extends AIChatAgent<Env, SessionState> {
 			scoreWindows: config.scoreWindows,
 			portfolioContext,
 			positionSizePctOfCash: config.positionSizePctOfCash,
+			minConfidenceThreshold: config.minConfidenceThreshold,
 		})) as RunPipelineResult;
 
 		if (result.proposal) {
@@ -1066,13 +1067,19 @@ export class SessionAgent extends AIChatAgent<Env, SessionState> {
 		this.sql`UPDATE trade_proposals SET outcome_status = 'resolved'
 			WHERE id = ${outcome.proposalId}`;
 
-		await this.distributeOutcome(outcome, pnl, pnlPct);
+		// Look up the proposal's confidence for outcome recording
+		const proposalRows = this.sql<ProposalRow>`
+			SELECT * FROM trade_proposals WHERE id = ${outcome.proposalId}`;
+		const proposalConfidence = proposalRows[0]?.confidence ?? 0;
+
+		await this.distributeOutcome(outcome, pnl, pnlPct, proposalConfidence);
 	}
 
 	private async distributeOutcome(
 		outcome: ProposalOutcome,
 		pnl: number,
 		pnlPct: number,
+		confidence: number,
 	): Promise<void> {
 		const resolvedOutcome = {
 			symbol: outcome.symbol,
@@ -1098,11 +1105,10 @@ export class SessionAgent extends AIChatAgent<Env, SessionState> {
 					this.env.PipelineOrchestratorAgent,
 					`${userId}:${outcome.symbol}`,
 				);
-				await pipeline.recordStepOutcome(
-					outcome.proposalId,
-					outcome.orchestratorSessionId,
-					resolvedOutcome,
-				);
+				await pipeline.recordStepOutcome(outcome.proposalId, outcome.orchestratorSessionId, {
+					...resolvedOutcome,
+					confidence,
+				});
 			}
 		} catch {
 			// Non-critical: outcome distribution failure shouldn't break tracking
