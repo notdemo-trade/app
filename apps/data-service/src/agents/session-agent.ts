@@ -488,6 +488,18 @@ export class SessionAgent extends AIChatAgent<Env, SessionState> {
 		config: EffectiveConfig,
 		portfolioContext?: PortfolioContext,
 	): Promise<{ threadId: string; summary: string }> {
+		// Dedup guard: skip if pending or approved proposal already exists for this symbol
+		const existingActive = this.sql<CountRow>`
+			SELECT COUNT(*) as cnt FROM trade_proposals
+			WHERE symbol = ${symbol} AND status IN ('pending', 'approved')`;
+		if ((existingActive[0]?.cnt ?? 0) > 0) {
+			console.log(`[SessionAgent] Skipped analysis for ${symbol}: active proposal exists`);
+			return {
+				threadId: '',
+				summary: `Skipped ${symbol}: active proposal already exists`,
+			};
+		}
+
 		const threadId = crypto.randomUUID();
 		const now = Date.now();
 
@@ -628,13 +640,14 @@ export class SessionAgent extends AIChatAgent<Env, SessionState> {
 			portfolioContext,
 			positionSizePctOfCash: config.positionSizePctOfCash,
 			minConfidenceThreshold: config.minConfidenceThreshold,
+			threadId,
 		})) as RunPipelineResult;
 
 		if (result.proposal) {
 			const orchestratorSessionId = result.session.id;
-			const proposal = { ...result.proposal, threadId, orchestratorSessionId };
-			this.storeProposal(proposal);
-			this.sql`UPDATE discussion_threads SET proposal_id = ${proposal.id} WHERE id = ${threadId}`;
+			this.storeProposal({ ...result.proposal, orchestratorSessionId });
+			this
+				.sql`UPDATE discussion_threads SET proposal_id = ${result.proposal.id} WHERE id = ${threadId}`;
 		}
 
 		const status = result.session.status;
@@ -1439,13 +1452,13 @@ export class SessionAgent extends AIChatAgent<Env, SessionState> {
 		orders: OrderLogEntry[],
 		outcome: ProposalOutcome,
 	): OrderLogEntry | undefined {
-		// Find the most recent filled order that closes the position
+		// Find the earliest filled exit-side order after the entry
 		const exitSide = outcome.action === 'buy' ? 'sell' : 'buy';
 		return orders
 			.filter(
 				(o) => o.side === exitSide && o.status === 'filled' && o.createdAt > outcome.createdAt,
 			)
-			.sort((a, b) => b.createdAt - a.createdAt)[0];
+			.sort((a, b) => a.createdAt - b.createdAt)[0];
 	}
 
 	private determineExitReason(

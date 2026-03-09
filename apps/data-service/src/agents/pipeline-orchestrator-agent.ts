@@ -34,6 +34,7 @@ export interface RunPipelineParams {
 	/** User's configured position size as a fraction (0.0-1.0). Converted to whole-number pct internally. */
 	positionSizePctOfCash?: number;
 	minConfidenceThreshold?: number;
+	threadId: string;
 }
 
 export interface RunPipelineResult {
@@ -498,7 +499,7 @@ export class PipelineOrchestratorAgent extends Agent<Env, PipelineOrchestratorSt
 
 		return {
 			id: crypto.randomUUID(),
-			threadId: '',
+			threadId: params.threadId,
 			symbol: params.symbol,
 			action: rec.action as 'buy' | 'sell',
 			confidence: rec.confidence,
