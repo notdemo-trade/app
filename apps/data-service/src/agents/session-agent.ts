@@ -1373,14 +1373,15 @@ export class SessionAgent extends AIChatAgent<Env, SessionState> {
 		position: BrokerPosition,
 		trigger: 'stop_loss' | 'target_hit',
 	): Promise<void> {
-		// Dedup guard: skip if pending sell proposal already exists for this symbol
+		const exitAction = position.side === 'long' ? 'sell' : 'buy';
+
+		// Dedup guard: skip if a pending exit proposal already exists for this symbol
 		const existingPending = this.sql<CountRow>`
 			SELECT COUNT(*) as cnt FROM trade_proposals
-			WHERE symbol = ${outcome.symbol} AND action = 'sell' AND status = 'pending'`;
+			WHERE symbol = ${outcome.symbol} AND action = ${exitAction} AND status = 'pending'`;
 		if ((existingPending[0]?.cnt ?? 0) > 0) return;
 
 		const config = this.loadConfig();
-		const exitAction = position.side === 'long' ? 'sell' : 'buy';
 		const lossPct = ((position.currentPrice - outcome.entryPrice) / outcome.entryPrice) * 100;
 		const rationale =
 			trigger === 'stop_loss'
@@ -1459,19 +1460,40 @@ export class SessionAgent extends AIChatAgent<Env, SessionState> {
 		if (!row) return 'manual_close';
 
 		const p = rowToProposal(row);
-		if (
-			p.stopLoss !== null &&
-			exitOrder.filledAvgPrice !== null &&
-			exitOrder.filledAvgPrice <= p.stopLoss
-		) {
-			return 'stop_loss';
-		}
-		if (
-			p.targetPrice !== null &&
-			exitOrder.filledAvgPrice !== null &&
-			exitOrder.filledAvgPrice >= p.targetPrice
-		) {
-			return 'target_hit';
+		const isLong = outcome.action === 'buy';
+
+		if (isLong) {
+			// Long: stop-loss when price drops to/below stop, target when price rises to/above target
+			if (
+				p.stopLoss !== null &&
+				exitOrder.filledAvgPrice !== null &&
+				exitOrder.filledAvgPrice <= p.stopLoss
+			) {
+				return 'stop_loss';
+			}
+			if (
+				p.targetPrice !== null &&
+				exitOrder.filledAvgPrice !== null &&
+				exitOrder.filledAvgPrice >= p.targetPrice
+			) {
+				return 'target_hit';
+			}
+		} else {
+			// Short: stop-loss when price rises to/above stop, target when price drops to/below target
+			if (
+				p.stopLoss !== null &&
+				exitOrder.filledAvgPrice !== null &&
+				exitOrder.filledAvgPrice >= p.stopLoss
+			) {
+				return 'stop_loss';
+			}
+			if (
+				p.targetPrice !== null &&
+				exitOrder.filledAvgPrice !== null &&
+				exitOrder.filledAvgPrice <= p.targetPrice
+			) {
+				return 'target_hit';
+			}
 		}
 		return 'manual_close';
 	}

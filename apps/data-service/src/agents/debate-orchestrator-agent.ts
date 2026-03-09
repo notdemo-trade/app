@@ -267,7 +267,13 @@ export class DebateOrchestratorAgent extends Agent<Env, DebateOrchestratorState>
 				totalDebates: this.state.totalDebates + 1,
 			});
 
-			const session = this.getDebateSession(sessionId, analyses, debateRounds, consensus);
+			const session = this.getDebateSession(
+				sessionId,
+				analyses,
+				debateRounds,
+				consensus,
+				params.symbol,
+			);
 			return { session, consensus };
 		} catch (error) {
 			const errorMessage = error instanceof Error ? error.message : 'Unknown debate error';
@@ -455,10 +461,11 @@ export class DebateOrchestratorAgent extends Agent<Env, DebateOrchestratorState>
 		analyses: PersonaAnalysis[],
 		debateRounds: DebateRound[],
 		consensus: ConsensusResult,
+		symbol: string,
 	): DebateSession {
 		return {
 			id: sessionId,
-			symbol: '',
+			symbol,
 			status: 'completed',
 			initialAnalyses: analyses,
 			debateRounds,
