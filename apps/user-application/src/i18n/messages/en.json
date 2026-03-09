@@ -219,8 +219,13 @@
 			"approved": "Approved",
 			"rejected": "Rejected",
 			"expired": "Expired",
-			"executed": "Executed"
+			"executed": "Executed",
+			"failed": "Failed"
 		},
+		"retryAvailable": "Retry Available",
+		"retryExecution": "Retry Execution",
+		"retrying": "Retrying...",
+		"executionFailed": "Order execution failed. You can retry or wait for the proposal to expire.",
 		"stat": {
 			"entry": "Entry",
 			"target": "Target",

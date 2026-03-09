@@ -57,6 +57,7 @@ const PROPOSAL_STATUS_CONFIG: Record<
 	rejected: { key: 'proposal.status.rejected', variant: 'destructive' },
 	expired: { key: 'proposal.status.expired', variant: 'secondary' },
 	executed: { key: 'proposal.status.executed', variant: 'success' },
+	failed: { key: 'proposal.status.failed', variant: 'destructive' },
 };
 
 interface StatProps {
@@ -81,6 +82,7 @@ interface TradeProposalCardProps {
 	proposal: TradeProposal;
 	onApprove?: () => void;
 	onReject?: () => void;
+	onRetry?: () => void;
 	confidenceThresholds?: {
 		high: number;
 		med: number;
@@ -91,11 +93,13 @@ export function TradeProposalCard({
 	proposal,
 	onApprove,
 	onReject,
+	onRetry,
 	confidenceThresholds,
 }: TradeProposalCardProps) {
 	const t = useTranslations();
 	const timeLeft = useCountdown(proposal.expiresAt);
 	const isPending = proposal.status === 'pending';
+	const isFailed = proposal.status === 'failed';
 	const isBuy = proposal.action === 'buy';
 
 	return (
@@ -231,7 +235,21 @@ export function TradeProposalCard({
 				</CardFooter>
 			)}
 
-			{!isPending && (
+			{isFailed && onRetry && (
+				<CardFooter className="flex items-center justify-between border-t border-border pt-4">
+					<div className="flex items-center gap-2">
+						<Badge variant={PROPOSAL_STATUS_CONFIG[proposal.status].variant}>
+							{t(PROPOSAL_STATUS_CONFIG[proposal.status].key)}
+						</Badge>
+						<span className="text-xs text-destructive">{t('proposal.executionFailed')}</span>
+					</div>
+					<Button variant="default" size="sm" onClick={onRetry}>
+						{t('proposal.retryExecution')}
+					</Button>
+				</CardFooter>
+			)}
+
+			{!isPending && !(isFailed && onRetry) && (
 				<CardFooter className="border-t border-border pt-4">
 					<Badge variant={PROPOSAL_STATUS_CONFIG[proposal.status].variant}>
 						{t(PROPOSAL_STATUS_CONFIG[proposal.status].key)}

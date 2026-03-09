@@ -68,10 +68,9 @@ function SessionDashboard({ userId }: SessionDashboardProps) {
 		session.state?.analysisIntervalSec ?? 120,
 	);
 	const pendingProposalCount = session.state?.pendingProposalCount ?? 0;
-	const pendingProposal =
-		session.state?.activeThread?.proposal?.status === 'pending'
-			? session.state.activeThread.proposal
-			: null;
+	const activeProposal = session.state?.activeThread?.proposal ?? null;
+	const pendingProposal = activeProposal?.status === 'pending' ? activeProposal : null;
+	const failedProposal = activeProposal?.status === 'failed' ? activeProposal : null;
 
 	return (
 		<div className="space-y-4">
@@ -172,6 +171,7 @@ function SessionDashboard({ userId }: SessionDashboardProps) {
 							thread={feed.thread}
 							onApproveProposal={(id) => session.approveProposal(id)}
 							onRejectProposal={(id) => session.rejectProposal(id)}
+							onRetryProposal={(id) => session.retryProposal(id)}
 						/>
 					) : (
 						<Card>
@@ -205,6 +205,11 @@ function SessionDashboard({ userId }: SessionDashboardProps) {
 							proposal={pendingProposal}
 							onApprove={() => session.approveProposal(pendingProposal.id)}
 							onReject={() => session.rejectProposal(pendingProposal.id)}
+						/>
+					) : failedProposal ? (
+						<TradeProposalCard
+							proposal={failedProposal}
+							onRetry={() => session.retryProposal(failedProposal.id)}
 						/>
 					) : (
 						<Card>

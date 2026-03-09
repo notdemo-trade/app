@@ -219,8 +219,13 @@
 			"approved": "Zatwierdzona",
 			"rejected": "Odrzucona",
 			"expired": "Wygasła",
-			"executed": "Zrealizowana"
+			"executed": "Zrealizowana",
+			"failed": "Nieudana"
 		},
+		"retryAvailable": "Można ponowić",
+		"retryExecution": "Ponów realizację",
+		"retrying": "Ponawianie...",
+		"executionFailed": "Realizacja zlecenia nie powiodła się. Możesz ponowić próbę lub poczekać na wygaśnięcie propozycji.",
 		"stat": {
 			"entry": "Wejście",
 			"target": "Cel",

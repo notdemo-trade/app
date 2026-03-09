@@ -163,7 +163,7 @@ export interface TradeProposal {
 	risks: string[];
 	warnings: string[];
 	expiresAt: number;
-	status: 'pending' | 'approved' | 'rejected' | 'expired' | 'executed';
+	status: 'pending' | 'approved' | 'rejected' | 'expired' | 'executed' | 'failed';
 	createdAt: number;
 	decidedAt: number | null;
 	orderId: string | null;

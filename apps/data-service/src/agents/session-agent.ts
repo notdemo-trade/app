@@ -311,6 +311,36 @@ export class SessionAgent extends AIChatAgent<Env, SessionState> {
 	}
 
 	@callable()
+	async retryProposal(proposalId: string): Promise<{ status: string; message: string }> {
+		const rows = this.sql<ProposalRow>`SELECT * FROM trade_proposals WHERE id = ${proposalId}`;
+		const row = rows[0];
+		if (!row) return { status: 'error', message: 'Proposal not found' };
+
+		const proposal = rowToProposal(row);
+		if (proposal.status !== 'failed') {
+			return {
+				status: 'error',
+				message: `Can only retry failed proposals, current status: ${proposal.status}`,
+			};
+		}
+
+		if (proposal.expiresAt < Date.now()) {
+			this.sql`UPDATE trade_proposals SET status = 'expired', decided_at = ${Date.now()}
+				WHERE id = ${proposalId}`;
+			return { status: 'expired', message: 'Proposal has expired since failure' };
+		}
+
+		const result = await this.executeApprovedProposal(proposal);
+
+		this.broadcastThread(
+			this.sql<ThreadRow>`SELECT * FROM discussion_threads WHERE proposal_id = ${proposalId}`[0]
+				?.id ?? '',
+		);
+
+		return result;
+	}
+
+	@callable()
 	async resetData(): Promise<ResetResult> {
 		if (this.state.enabled) {
 			return {
@@ -323,7 +353,7 @@ export class SessionAgent extends AIChatAgent<Env, SessionState> {
 		// Expire pending/approved proposals and resolve tracking outcomes before clearing
 		const now = Date.now();
 		this.sql`UPDATE trade_proposals SET status = 'expired', decided_at = ${now}
-			WHERE status IN ('pending', 'approved')`;
+			WHERE status IN ('pending', 'approved', 'failed')`;
 		this.sql`UPDATE proposal_outcomes SET status = 'resolved', resolved_at = ${now}
 			WHERE status = 'tracking'`;
 		this.sql`UPDATE trade_proposals SET outcome_status = 'resolved'
@@ -595,6 +625,15 @@ export class SessionAgent extends AIChatAgent<Env, SessionState> {
 		this
 			.sql`UPDATE trade_proposals SET status = 'approved', decided_at = ${decidedAt} WHERE id = ${proposalId}`;
 
+		// Execute the order -- on failure, status transitions to 'failed'
+		return this.executeApprovedProposal(proposal);
+	}
+
+	// --- Helpers ---
+
+	private async executeApprovedProposal(
+		proposal: TradeProposal,
+	): Promise<{ status: string; message: string }> {
 		try {
 			const userId = this.name;
 			const broker = await getAgentByName<Env, AlpacaBrokerAgent>(
@@ -619,7 +658,7 @@ export class SessionAgent extends AIChatAgent<Env, SessionState> {
 				notional,
 			});
 
-			this.sql`UPDATE trade_proposals SET status = 'executed' WHERE id = ${proposalId}`;
+			this.sql`UPDATE trade_proposals SET status = 'executed' WHERE id = ${proposal.id}`;
 			this.createOutcomeTracking(proposal, orderResult);
 			return {
 				status: 'executed',
@@ -627,11 +666,10 @@ export class SessionAgent extends AIChatAgent<Env, SessionState> {
 			};
 		} catch (err) {
 			const message = err instanceof Error ? err.message : String(err);
-			return { status: 'error', message: `Execution failed: ${message}` };
+			this.sql`UPDATE trade_proposals SET status = 'failed' WHERE id = ${proposal.id}`;
+			return { status: 'failed', message: `Execution failed: ${message}` };
 		}
 	}
-
-	// --- Helpers ---
 
 	private broadcastThread(threadId: string): void {
 		const thread = this.getThread(threadId);
@@ -880,7 +918,7 @@ export class SessionAgent extends AIChatAgent<Env, SessionState> {
 	private expireProposals(): void {
 		const now = Date.now();
 		this.sql`UPDATE trade_proposals SET status = 'expired', decided_at = ${now}
-			WHERE status = 'pending' AND expires_at < ${now}`;
+			WHERE status IN ('pending', 'failed', 'approved') AND expires_at < ${now}`;
 	}
 
 	private async syncLLMProvider(config: SessionConfig): Promise<void> {

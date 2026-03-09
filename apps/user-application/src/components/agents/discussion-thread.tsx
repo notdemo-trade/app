@@ -39,12 +39,14 @@ interface DiscussionThreadProps {
 	thread: DiscussionThreadType;
 	onApproveProposal?: (proposalId: string) => void;
 	onRejectProposal?: (proposalId: string) => void;
+	onRetryProposal?: (proposalId: string) => void;
 }
 
 export function DiscussionThread({
 	thread,
 	onApproveProposal,
 	onRejectProposal,
+	onRetryProposal,
 }: DiscussionThreadProps) {
 	const t = useTranslations();
 	const statusConfig = STATUS_CONFIG[thread.status];
@@ -106,6 +108,9 @@ export function DiscussionThread({
 							}
 							onReject={
 								onRejectProposal ? () => onRejectProposal(thread.proposal?.id ?? '') : undefined
+							}
+							onRetry={
+								onRetryProposal ? () => onRetryProposal(thread.proposal?.id ?? '') : undefined
 							}
 						/>
 					</div>

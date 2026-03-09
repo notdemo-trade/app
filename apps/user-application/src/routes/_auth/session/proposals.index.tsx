@@ -24,6 +24,7 @@ const STATUS_CONFIG: Record<
 	rejected: { key: 'proposal.status.rejected', variant: 'destructive' },
 	expired: { key: 'proposal.status.expired', variant: 'secondary' },
 	executed: { key: 'proposal.status.executed', variant: 'success' },
+	failed: { key: 'proposal.status.failed', variant: 'destructive' },
 };
 
 function ProposalHistoryPage() {
@@ -97,6 +98,7 @@ function ProposalListItem({ proposal }: { proposal: TradeProposal }) {
 	const isBuy = proposal.action === 'buy';
 	const statusConfig = STATUS_CONFIG[proposal.status];
 	const hasWarnings = proposal.warnings && proposal.warnings.length > 0;
+	const isFailed = proposal.status === 'failed';
 
 	return (
 		<Link
@@ -145,6 +147,12 @@ function ProposalListItem({ proposal }: { proposal: TradeProposal }) {
 					<Badge variant={statusConfig.variant} className="text-xs">
 						{t(statusConfig.key)}
 					</Badge>
+
+					{isFailed && (
+						<Badge variant="outline" className="text-xs">
+							{t('proposal.retryAvailable')}
+						</Badge>
+					)}
 
 					<span className="flex items-center gap-1 text-xs text-muted-foreground">
 						<Clock className="h-3 w-3" />
