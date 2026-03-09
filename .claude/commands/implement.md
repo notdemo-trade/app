@@ -11,7 +11,7 @@ Implement design doc phase: $ARGUMENTS
 ## Instructions
 
 1. Parse "$ARGUMENTS":
-   - **Single doc** (`025`): look for `docs/design-docs/025/` or `docs/design-docs/done/025/`
+   - **Single doc** (`025`): look for `docs/design-docs/025/`, `docs/design-docs/done/025/`, or `docs/roadmap/025/`
    - **Range** (`025-032`): expand to all docs in that range, implement in dependency order (see quick reference)
    - **Multiple** (`025 026`): implement each in the listed order
    - **Phased** (`020 M2`): scope to specific migration/phase within the doc

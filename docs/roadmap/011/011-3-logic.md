@@ -1,99 +1,15 @@
 # Phase 11: Telegram Approvals — Part 3: Business Logic
-> Split from `011-phase-11-telegram-approvals.md`. See other parts in this directory.
 
 ## Query Functions
 
 ```ts
-// packages/data-ops/src/queries/telegram-approvals.ts
+// packages/data-ops/src/queries/notification-settings.ts
 
-import { eq, and, lt, desc } from "drizzle-orm"
-import { pending_approvals, notification_settings } from "../drizzle/schema"
+import { eq } from "drizzle-orm"
+import { notification_settings } from "../drizzle/schema"
 import type { Database } from "../database/setup"
-import type { NewPendingApproval, PendingApprovalRecord } from "../drizzle/schema"
+import type { NotificationSettingsRecord } from "../drizzle/schema"
 
-export async function createPendingApproval(
-  db: Database,
-  data: Omit<NewPendingApproval, "id" | "createdAt">
-): Promise<PendingApprovalRecord> {
-  const [result] = await db
-    .insert(pending_approvals)
-    .values(data)
-    .returning()
-  return result
-}
-
-export async function getPendingApprovalById(
-  db: Database,
-  id: string
-): Promise<PendingApprovalRecord | null> {
-  const [result] = await db
-    .select()
-    .from(pending_approvals)
-    .where(eq(pending_approvals.id, id))
-    .limit(1)
-  return result ?? null
-}
-
-export async function getPendingApprovalsByUser(
-  db: Database,
-  userId: string
-): Promise<PendingApprovalRecord[]> {
-  return db
-    .select()
-    .from(pending_approvals)
-    .where(
-      and(
-        eq(pending_approvals.userId, userId),
-        eq(pending_approvals.status, "pending")
-      )
-    )
-    .orderBy(desc(pending_approvals.createdAt))
-}
-
-export async function updateApprovalStatus(
-  db: Database,
-  id: string,
-  status: "approved" | "rejected" | "expired",
-  reason?: string
-): Promise<void> {
-  const now = new Date()
-  await db
-    .update(pending_approvals)
-    .set({
-      status,
-      ...(status === "approved" && { approvedAt: now }),
-      ...(status === "rejected" && { rejectedAt: now, rejectedReason: reason }),
-      ...(status === "expired" && { rejectedAt: now, rejectedReason: "Approval timeout" }),
-    })
-    .where(eq(pending_approvals.id, id))
-}
-
-export async function setTelegramMessageId(
-  db: Database,
-  approvalId: string,
-  messageId: number
-): Promise<void> {
-  await db
-    .update(pending_approvals)
-    .set({ telegramMessageId: messageId })
-    .where(eq(pending_approvals.id, approvalId))
-}
-
-export async function getExpiredApprovals(
-  db: Database
-): Promise<PendingApprovalRecord[]> {
-  return db
-    .select()
-    .from(pending_approvals)
-    .where(
-      and(
-        eq(pending_approvals.status, "pending"),
-        lt(pending_approvals.expiresAt, new Date())
-      )
-    )
-}
-
-// Notification settings queries
 export async function getNotificationSettings(
   db: Database,
   userId: string
@@ -123,13 +39,12 @@ export async function upsertNotificationSettings(
 
 ---
 
-
 ## Telegram Service
 
 ```ts
 // packages/data-ops/src/services/telegram-service.ts
 
-import type { TelegramMessage, TelegramUpdate, TelegramInlineKeyboard } from "../telegram/types"
+import type { TelegramMessage, TelegramInlineKeyboard } from "../telegram/types"
 
 const TELEGRAM_API = "https://api.telegram.org/bot"
 
@@ -199,7 +114,6 @@ export class TelegramService {
     })
   }
 
-  // Test bot connection
   async testConnection(): Promise<{ ok: boolean; username?: string }> {
     const res = await fetch(`${this.baseUrl}/getMe`)
     if (!res.ok) return { ok: false }
@@ -218,42 +132,49 @@ export class TelegramApiError extends Error {
 
 ---
 
-
 ## Notification Message Builders
+
+Adapted to use the existing `TradeProposal` type from `packages/data-ops/src/agents/session/types.ts`.
 
 ```ts
 // packages/data-ops/src/services/telegram-messages.ts
 
 import type { TelegramInlineKeyboard } from "../telegram/types"
-import type { PendingApprovalRecord } from "../drizzle/schema"
+import type { TradeProposal } from "../agents/session/types"
 
-export function buildApprovalMessage(approval: PendingApprovalRecord): {
+export function buildProposalMessage(proposal: TradeProposal): {
   text: string
   keyboard: TelegramInlineKeyboard
 } {
-  const emoji = approval.action === "buy" ? "📈" : "📉"
-  const actionText = approval.action.toUpperCase()
-  const expiresIn = Math.round((approval.expiresAt.getTime() - Date.now()) / 60000)
-  const totalValue = (approval.quantity * approval.estimatedPrice).toFixed(2)
+  const actionEmoji = proposal.action === "buy" ? "📈" : "📉"
+  const actionText = proposal.action.toUpperCase()
+  const expiresIn = Math.round((proposal.expiresAt - Date.now()) / 60000)
+  const totalValue = proposal.notional
+    ? `$${proposal.notional.toFixed(2)}`
+    : proposal.qty && proposal.entryPrice
+      ? `$${(proposal.qty * proposal.entryPrice).toFixed(2)}`
+      : "N/A"
 
-  const text = `${emoji} <b>Trade Approval Required</b>
+  const text = `${actionEmoji} <b>Trade Proposal</b>
 
-<b>Symbol:</b> ${approval.symbol}
+<b>Symbol:</b> ${proposal.symbol}
 <b>Action:</b> ${actionText}
-<b>Quantity:</b> ${approval.quantity}
-<b>Est. Price:</b> $${approval.estimatedPrice.toFixed(2)}
-<b>Total Value:</b> $${totalValue}
-<b>Confidence:</b> ${(approval.confidence * 100).toFixed(0)}%
+<b>Qty:</b> ${proposal.qty ?? "TBD"}
+<b>Est. Price:</b> ${proposal.entryPrice ? `$${proposal.entryPrice.toFixed(2)}` : "market"}
+<b>Notional:</b> ${totalValue}
+<b>Confidence:</b> ${(proposal.confidence * 100).toFixed(0)}%
 
 <b>Rationale:</b>
-${approval.rationale}
+${proposal.rationale}
+${proposal.risks.length > 0 ? `\n<b>Risks:</b> ${proposal.risks.join(", ")}` : ""}
+${proposal.warnings.length > 0 ? `\n<b>Warnings:</b> ${proposal.warnings.join(", ")}` : ""}
 
 <i>Expires in ${expiresIn} minutes</i>`
 
   const keyboard: TelegramInlineKeyboard = {
     inline_keyboard: [[
-      { text: "✅ Approve", callback_data: `approve:${approval.id}` },
-      { text: "❌ Reject", callback_data: `reject:${approval.id}` },
+      { text: "Approve", callback_data: `approve:${proposal.id}` },
+      { text: "Reject", callback_data: `reject:${proposal.id}` },
     ]],
   }
 
@@ -263,19 +184,18 @@ ${approval.rationale}
 export function buildTradeExecutedMessage(params: {
   symbol: string
   action: "buy" | "sell"
-  quantity: number
-  fillPrice: number
+  filledQty: number
+  filledAvgPrice: number
   orderId: string
 }): string {
-  const emoji = params.action === "buy" ? "🟢" : "🔴"
-  const totalValue = (params.quantity * params.fillPrice).toFixed(2)
+  const emoji = params.action === "buy" ? "BUY" : "SELL"
+  const totalValue = (params.filledQty * params.filledAvgPrice).toFixed(2)
 
-  return `${emoji} <b>Trade Executed</b>
+  return `<b>Trade Executed — ${emoji}</b>
 
 <b>Symbol:</b> ${params.symbol}
-<b>Action:</b> ${params.action.toUpperCase()}
-<b>Quantity:</b> ${params.quantity}
-<b>Fill Price:</b> $${params.fillPrice.toFixed(2)}
+<b>Qty:</b> ${params.filledQty}
+<b>Fill Price:</b> $${params.filledAvgPrice.toFixed(2)}
 <b>Total Value:</b> $${totalValue}
 <b>Order ID:</b> <code>${params.orderId}</code>`
 }
@@ -285,11 +205,23 @@ export function buildTradeRejectedMessage(params: {
   action: "buy" | "sell"
   reason: string
 }): string {
-  return `⛔ <b>Trade Rejected</b>
+  return `<b>Trade Rejected</b>
 
 <b>Symbol:</b> ${params.symbol}
 <b>Action:</b> ${params.action.toUpperCase()}
 <b>Reason:</b> ${params.reason}`
+}
+
+export function buildTradeFailedMessage(params: {
+  symbol: string
+  action: "buy" | "sell"
+  error: string
+}): string {
+  return `<b>Trade Failed</b>
+
+<b>Symbol:</b> ${params.symbol}
+<b>Action:</b> ${params.action.toUpperCase()}
+<b>Error:</b> ${params.error}`
 }
 
 export function buildDailySummaryMessage(params: {
@@ -301,13 +233,12 @@ export function buildDailySummaryMessage(params: {
   pnlPct: number
   equity: number
 }): string {
-  const emoji = params.pnlUsd >= 0 ? "📈" : "📉"
   const pnlSign = params.pnlUsd >= 0 ? "+" : ""
   const winRate = params.totalTrades > 0
     ? ((params.wins / params.totalTrades) * 100).toFixed(0)
     : "0"
 
-  return `${emoji} <b>Daily Summary - ${params.date}</b>
+  return `<b>Daily Summary — ${params.date}</b>
 
 <b>Trades:</b> ${params.totalTrades}
 <b>Win Rate:</b> ${winRate}% (${params.wins}W/${params.losses}L)
@@ -321,10 +252,10 @@ export function buildRiskAlertMessage(params: {
   details?: string
 }): string {
   const title = params.type === "daily_loss_limit"
-    ? "⚠️ Daily Loss Limit Reached"
-    : "🛑 Kill Switch Activated"
+    ? "Daily Loss Limit Reached"
+    : "Kill Switch Activated"
 
-  let text = `${title}
+  let text = `<b>${title}</b>
 
 <b>Reason:</b> ${params.reason}`
 
@@ -336,65 +267,36 @@ export function buildRiskAlertMessage(params: {
   return text
 }
 
-export function buildPositionUpdateMessage(params: {
-  positions: Array<{
-    symbol: string
-    qty: number
-    avgPrice: number
-    currentPrice: number
-    pnlUsd: number
-    pnlPct: number
-  }>
-  totalPnl: number
-}): string {
-  if (params.positions.length === 0) {
-    return "📊 <b>Position Update</b>\n\nNo open positions."
-  }
-
-  let text = "📊 <b>Position Update</b>\n\n"
-
-  for (const pos of params.positions) {
-    const emoji = pos.pnlUsd >= 0 ? "🟢" : "🔴"
-    const pnlSign = pos.pnlUsd >= 0 ? "+" : ""
-    text += `${emoji} <b>${pos.symbol}</b>: ${pos.qty} @ $${pos.currentPrice.toFixed(2)} (${pnlSign}${pos.pnlPct.toFixed(1)}%)\n`
-  }
-
-  const totalEmoji = params.totalPnl >= 0 ? "📈" : "📉"
-  const totalSign = params.totalPnl >= 0 ? "+" : ""
-  text += `\n${totalEmoji} <b>Total P&L:</b> ${totalSign}$${params.totalPnl.toFixed(2)}`
-
-  return text
-}
-
-export function buildApprovalUpdatedMessage(
-  approval: PendingApprovalRecord,
+export function buildProposalUpdatedMessage(
+  proposal: TradeProposal,
   status: "approved" | "rejected" | "expired"
 ): string {
-  const emoji = status === "approved" ? "✅" : "❌"
-  const statusText = status === "expired" ? "Expired" : status.charAt(0).toUpperCase() + status.slice(1)
+  const statusText = status.charAt(0).toUpperCase() + status.slice(1)
 
-  return `${emoji} <b>Trade ${statusText}</b>
+  return `<b>Trade ${statusText}</b>
 
-<b>Symbol:</b> ${approval.symbol}
-<b>Action:</b> ${approval.action.toUpperCase()}
-<b>Quantity:</b> ${approval.quantity}
-<b>Est. Price:</b> $${approval.estimatedPrice.toFixed(2)}`
+<b>Symbol:</b> ${proposal.symbol}
+<b>Action:</b> ${proposal.action.toUpperCase()}
+<b>Qty:</b> ${proposal.qty ?? "N/A"}
+<b>Est. Price:</b> ${proposal.entryPrice ? `$${proposal.entryPrice.toFixed(2)}` : "market"}`
 }
 ```
 
 ---
 
-
 ## Notification Dispatcher
+
+Central dispatch function that checks user preferences + quiet hours before sending.
 
 ```ts
 // packages/data-ops/src/services/notification-dispatcher.ts
 
 import { TelegramService } from "./telegram-service"
-import { getNotificationSettings } from "../queries/telegram-approvals"
-import { getTelegramCredential } from "../queries/credentials"
+import { getNotificationSettings } from "../queries/notification-settings"
+import { getCredential } from "../credential/queries"
 import type { Database } from "../database/setup"
-import type { NotificationType } from "../telegram/types"
+import type { NotificationType, TelegramInlineKeyboard } from "../telegram/types"
+import type { TelegramCredential } from "../credential/schema"
 
 interface DispatcherConfig {
   db: Database
@@ -406,39 +308,38 @@ export async function dispatchNotification(
   config: DispatcherConfig,
   type: NotificationType,
   message: string,
-  keyboard?: import("../telegram/types").TelegramInlineKeyboard
+  keyboard?: TelegramInlineKeyboard
 ): Promise<{ sent: boolean; messageId?: number; reason?: string }> {
+  // Load preferences
   const settings = await getNotificationSettings(config.db, config.userId)
 
-  // Check if notification type enabled
   if (settings) {
-    if (type === "trade_approval" && !settings.enableTradeApprovals) {
-      return { sent: false, reason: "disabled" }
+    const enabledMap: Record<NotificationType, boolean> = {
+      trade_proposal: settings.enableTradeProposals,
+      trade_executed: settings.enableTradeResults,
+      trade_rejected: settings.enableTradeResults,
+      trade_failed: settings.enableTradeResults,
+      daily_summary: settings.enableDailySummary,
+      risk_alert: settings.enableRiskAlerts,
     }
-    if (type === "trade_executed" && !settings.enableTradeResults) {
-      return { sent: false, reason: "disabled" }
-    }
-    if (type === "daily_summary" && !settings.enableDailySummary) {
-      return { sent: false, reason: "disabled" }
-    }
-    if (type === "risk_alert" && !settings.enableRiskAlerts) {
-      return { sent: false, reason: "disabled" }
-    }
-    if (type === "position_update" && !settings.enablePositionUpdates) {
+
+    if (!enabledMap[type]) {
       return { sent: false, reason: "disabled" }
     }
 
-    // Check quiet hours (skip for risk alerts)
-    if (type !== "risk_alert" && type !== "trade_approval") {
+    // Skip quiet hours for proposals and risk alerts
+    if (type !== "risk_alert" && type !== "trade_proposal") {
       if (isQuietHours(settings.quietHoursStart, settings.quietHoursEnd)) {
         return { sent: false, reason: "quiet_hours" }
       }
     }
   }
 
-  // Get Telegram credentials
-  const cred = await getTelegramCredential(config.db, config.userId, config.masterKey)
-  if (!cred) {
+  // Load Telegram credential
+  const cred = await getCredential<TelegramCredential>(
+    config.db, config.userId, "telegram", config.masterKey
+  )
+  if (!cred || !cred.chatId) {
     return { sent: false, reason: "no_credentials" }
   }
 
@@ -457,9 +358,7 @@ function isQuietHours(start: string | null, end: string | null): boolean {
   if (!start || !end) return false
 
   const now = new Date()
-  const hours = now.getHours()
-  const minutes = now.getMinutes()
-  const currentMins = hours * 60 + minutes
+  const currentMins = now.getHours() * 60 + now.getMinutes()
 
   const [startH, startM] = start.split(":").map(Number)
   const [endH, endM] = end.split(":").map(Number)
@@ -468,307 +367,105 @@ function isQuietHours(start: string | null, end: string | null): boolean {
 
   if (startMins <= endMins) {
     return currentMins >= startMins && currentMins < endMins
-  } else {
-    // Spans midnight
-    return currentMins >= startMins || currentMins < endMins
   }
+  // Spans midnight
+  return currentMins >= startMins || currentMins < endMins
 }
 ```
 
 ---
 
+## SessionAgent Integration
 
-## Webhook Handler
+Add notification dispatch hooks to SessionAgent at key lifecycle points. These are additions to `apps/data-service/src/agents/session-agent.ts`.
+
+### Hook 1: After proposal creation
+
+In `storeProposal()` or after `createProposal()`, dispatch the trade proposal notification:
 
 ```ts
-// apps/data-service/src/hono/handlers/telegram-webhook-handlers.ts
+// After storing proposal in DO SQLite trade_proposals table:
 
-import { Hono } from "hono"
-import { zValidator } from "@hono/zod-validator"
-import { z } from "zod"
-import { TelegramWebhookUpdateSchema } from "@repo/data-ops/telegram"
-import {
-  getPendingApprovalById,
-  updateApprovalStatus,
-  getNotificationSettings,
-} from "@repo/data-ops/telegram-approvals"
-import { getTelegramCredential, saveUserChatId } from "@repo/data-ops/credentials"
-import { TelegramService } from "@repo/data-ops/services/telegram-service"
-import { buildApprovalUpdatedMessage } from "@repo/data-ops/services/telegram-messages"
-
-const telegramWebhook = new Hono<{ Bindings: Env }>()
-
-// Webhook receives Telegram updates for a specific user
-// Route: POST /api/telegram/webhook/:userId
-telegramWebhook.post(
-  "/webhook/:userId",
-  zValidator("param", z.object({ userId: z.string() })),
-  async (c) => {
-    const { userId } = c.req.valid("param")
-
-    // Parse update
-    let update: z.infer<typeof TelegramWebhookUpdateSchema>
-    try {
-      update = TelegramWebhookUpdateSchema.parse(await c.req.json())
-    } catch {
-      return c.json({ ok: false, error: "Invalid update" }, 400)
-    }
-
-    // Handle /start command - capture chat_id
-    if (update.message?.text === "/start") {
-      const chatId = String(update.message.chat.id)
-      await saveUserChatId(c.get("db"), userId, chatId, c.env.CREDENTIALS_ENCRYPTION_KEY)
-
-      const cred = await getTelegramCredential(c.get("db"), userId, c.env.CREDENTIALS_ENCRYPTION_KEY)
-      if (cred) {
-        const telegram = new TelegramService(cred)
-        await telegram.sendMessage(
-          "✅ <b>Setup Complete!</b>\n\nYou'll now receive trade approvals and notifications here."
-        )
-      }
-
-      return c.json({ ok: true })
-    }
-
-    // Handle callback queries (button clicks)
-    if (update.callback_query) {
-      const { id: callbackId, data } = update.callback_query
-
-      // Parse callback data: "approve:uuid" or "reject:uuid"
-      const [action, approvalId] = data.split(":")
-      if (!approvalId || (action !== "approve" && action !== "reject")) {
-        return c.json({ ok: true }) // Ignore invalid callback
-      }
-
-      // Get approval
-      const approval = await getPendingApprovalById(c.get("db"), approvalId)
-      if (!approval) {
-        return c.json({ ok: true })
-      }
-
-      // Verify user owns this approval
-      if (approval.userId !== userId) {
-        return c.json({ ok: true })
-      }
-
-      // Check not already processed
-      if (approval.status !== "pending") {
-        const cred = await getTelegramCredential(c.get("db"), userId, c.env.CREDENTIALS_ENCRYPTION_KEY)
-        if (cred) {
-          const telegram = new TelegramService(cred)
-          await telegram.answerCallbackQuery(callbackId, "This approval has already been processed")
-        }
-        return c.json({ ok: true })
-      }
-
-      // Check not expired
-      if (new Date() > approval.expiresAt) {
-        await updateApprovalStatus(c.get("db"), approvalId, "expired")
-        const cred = await getTelegramCredential(c.get("db"), userId, c.env.CREDENTIALS_ENCRYPTION_KEY)
-        if (cred) {
-          const telegram = new TelegramService(cred)
-          await telegram.answerCallbackQuery(callbackId, "This approval has expired")
-        }
-        return c.json({ ok: true })
-      }
-
-      // Process action
-      const status = action === "approve" ? "approved" : "rejected"
-      await updateApprovalStatus(c.get("db"), approvalId, status)
-
-      // Update message and answer callback
-      const cred = await getTelegramCredential(c.get("db"), userId, c.env.CREDENTIALS_ENCRYPTION_KEY)
-      if (cred && approval.telegramMessageId) {
-        const telegram = new TelegramService(cred)
-
-        // Update the message to show new status (removes buttons)
-        const updatedApproval = { ...approval, status }
-        await telegram.editMessage(
-          approval.telegramMessageId,
-          buildApprovalUpdatedMessage(updatedApproval, status)
-        )
-
-        await telegram.answerCallbackQuery(
-          callbackId,
-          status === "approved" ? "Trade approved!" : "Trade rejected"
-        )
-      }
-
-      // If approved, trigger order execution via Agent RPC
-      if (status === "approved") {
-        const { getAgentByName } = await import("agents")
-        const agent = await getAgentByName<TradingAgent>(c.env.TradingAgent, userId)
-        await agent.executeApproval(approvalId)
-      }
-
-      return c.json({ ok: true })
-    }
-
-    return c.json({ ok: true })
-  }
+const { text, keyboard } = buildProposalMessage(proposal)
+const result = await dispatchNotification(
+  { db: this.pgDb, userId: this.userId, masterKey: this.env.CREDENTIALS_ENCRYPTION_KEY },
+  "trade_proposal",
+  text,
+  keyboard
 )
 
-// Test Telegram connection
-telegramWebhook.post(
-  "/test",
-  async (c) => {
-    const userId = c.get("userId")
-    const cred = await getTelegramCredential(c.get("db"), userId, c.env.CREDENTIALS_ENCRYPTION_KEY)
-
-    if (!cred) {
-      return c.json({ success: false, error: "No Telegram credentials configured" }, 400)
-    }
-
-    const telegram = new TelegramService(cred)
-
-    try {
-      await telegram.sendMessage("🔔 <b>Test Notification</b>\n\nYour Telegram is configured correctly!")
-      return c.json({ success: true })
-    } catch (err) {
-      return c.json({ success: false, error: String(err) }, 400)
-    }
-  }
-)
-
-// Get Telegram bot status
-telegramWebhook.get(
-  "/status",
-  async (c) => {
-    const userId = c.get("userId")
-    const cred = await getTelegramCredential(c.get("db"), userId, c.env.CREDENTIALS_ENCRYPTION_KEY)
-
-    if (!cred) {
-      return c.json({ connected: false, reason: "no_credentials" })
-    }
-
-    const telegram = new TelegramService(cred)
-    const result = await telegram.testConnection()
-
-    return c.json({
-      connected: result.ok,
-      botUsername: result.username,
-      chatId: cred.chatId,
-    })
-  }
-)
-
-export { telegramWebhook }
+if (result.sent && result.messageId) {
+  // Optionally store for later message editing
+  this.sql`UPDATE trade_proposals SET telegram_message_id = ${result.messageId} WHERE id = ${proposal.id}`
+}
 ```
 
----
+### Hook 2: After successful execution
 
-
-## TradingAgent Integration (Agents SDK)
-
-Update TradingAgent (Agents SDK, see Phase 12) to use approval flow. Agent uses `this.sql` for approval timeouts and `getAgentByName()` RPC for webhook→agent communication.
+In `executeApprovedProposal()`, after broker confirms order:
 
 ```ts
-// apps/data-service/src/agents/trading-agent.ts (additions)
-
-import { createPendingApproval, setTelegramMessageId, updateApprovalStatus, getPendingApprovalById } from "@repo/data-ops/telegram-approvals"
-import { dispatchNotification } from "@repo/data-ops/services/notification-dispatcher"
-import { buildApprovalMessage, buildTradeExecutedMessage } from "@repo/data-ops/services/telegram-messages"
-
-// In TradingAgent class (extends Agent<Env, AgentState>):
-
-private async proposeTradeFromRecommendation(
-  rec: { symbol: string; action: "buy" | "sell"; confidence: number; rationale: string },
-  config: AgentConfig
-): Promise<void> {
-  const { symbol, action, confidence, rationale } = rec
-  const userId = this.name // Agent name = userId
-
-  const quantity = await this.calculatePositionSize(symbol, config)
-  const estimatedPrice = await this.getEstimatedPrice(symbol)
-  const notional = quantity * estimatedPrice
-
-  if (config.autoApproveEnabled && notional <= config.autoApproveMaxNotional) {
-    await this.executeOrder({ symbol, action, quantity, estimatedPrice })
-    return
-  }
-
-  // Create pending approval in PostgreSQL (shared with Telegram webhook)
-  const expiresAt = new Date(Date.now() + 15 * 60 * 1000) // 15 min
-  const approval = await createPendingApproval(this.env.DB, {
-    userId,
-    symbol,
-    action,
-    quantity,
-    estimatedPrice,
-    rationale,
-    confidence,
-    status: "pending",
-    expiresAt,
+await dispatchNotification(
+  { db: this.pgDb, userId: this.userId, masterKey: this.env.CREDENTIALS_ENCRYPTION_KEY },
+  "trade_executed",
+  buildTradeExecutedMessage({
+    symbol: proposal.symbol,
+    action: proposal.action,
+    filledQty: orderResult.filledQty,
+    filledAvgPrice: orderResult.filledAvgPrice,
+    orderId: orderResult.orderId,
   })
+)
+```
 
-  // Send Telegram approval request
-  const { text, keyboard } = buildApprovalMessage(approval)
-  const result = await dispatchNotification(
-    { db: this.env.DB, userId, masterKey: this.env.CREDENTIALS_ENCRYPTION_KEY },
-    "trade_approval",
-    text,
-    keyboard
-  )
+### Hook 3: After execution failure
 
-  if (result.sent && result.messageId) {
-    await setTelegramMessageId(this.env.DB, approval.id, result.messageId)
-  }
+When broker throws or execution guard rejects:
 
-  // Track approval timeout in SQLite (checked by scheduleEvery(60, "processExpiredApprovals"))
-  const expiresAtStr = expiresAt.toISOString()
-  this.sql`INSERT INTO approval_timeouts (approval_id, expires_at) VALUES (${approval.id}, ${expiresAtStr})`
-
-  this.logActivity("trade_proposed", symbol, {
-    action, confidence, quantity, estimatedPrice,
+```ts
+await dispatchNotification(
+  { db: this.pgDb, userId: this.userId, masterKey: this.env.CREDENTIALS_ENCRYPTION_KEY },
+  "trade_failed",
+  buildTradeFailedMessage({
+    symbol: proposal.symbol,
+    action: proposal.action,
+    error: guardViolation ?? brokerError.message,
   })
-}
+)
+```
 
-// Scheduled every 60s via scheduleEvery() — replaces alarm-based timeout checking
-async processExpiredApprovals(): Promise<void> {
-  const now = new Date().toISOString()
-  const expired = this.sql<{ approval_id: string }>`
-    SELECT approval_id FROM approval_timeouts WHERE expires_at <= ${now}
-  `
-  for (const row of expired) {
-    await updateApprovalStatus(this.env.DB, row.approval_id, "expired")
-    this.logActivity("trade_rejected", undefined, { approvalId: row.approval_id, reason: "timeout" })
-  }
-  if (expired.length > 0) {
-    this.sql`DELETE FROM approval_timeouts WHERE expires_at <= ${now}`
-  }
-}
+### Hook 4: On risk alert
 
-// Called from Telegram webhook via getAgentByName() RPC (NOT @callable — server-only)
-async executeApproval(approvalId: string): Promise<{ success: true; orderId: string }> {
-  const approval = await getPendingApprovalById(this.env.DB, approvalId)
-  if (!approval || approval.status !== "approved") {
-    throw new Error("Invalid approval")
-  }
+When `isDailyLossBreached()` returns true or session is force-stopped:
 
-  const result = await this.executeOrder({
-    symbol: approval.symbol,
-    action: approval.action,
-    quantity: approval.quantity,
-    estimatedPrice: approval.estimatedPrice,
+```ts
+await dispatchNotification(
+  { db: this.pgDb, userId: this.userId, masterKey: this.env.CREDENTIALS_ENCRYPTION_KEY },
+  "risk_alert",
+  buildRiskAlertMessage({
+    type: "daily_loss_limit",
+    reason: "Daily loss limit exceeded",
+    details: `Loss: ${currentLoss.toFixed(2)}% (limit: ${config.maxDailyLossPct}%)`,
   })
+)
+```
 
-  const userId = this.name
+### Hook 5: After proposal expiration
+
+In `expireProposals()`, after marking proposals expired:
+
+```ts
+for (const expired of expiredProposals) {
   await dispatchNotification(
-    { db: this.env.DB, userId, masterKey: this.env.CREDENTIALS_ENCRYPTION_KEY },
-    "trade_executed",
-    buildTradeExecutedMessage({
-      symbol: approval.symbol,
-      action: approval.action,
-      quantity: approval.quantity,
-      fillPrice: result.fillPrice,
-      orderId: result.orderId,
-    })
+    { db: this.pgDb, userId: this.userId, masterKey: this.env.CREDENTIALS_ENCRYPTION_KEY },
+    "trade_rejected",
+    buildProposalUpdatedMessage(expired, "expired")
   )
-
-  this.sql`DELETE FROM approval_timeouts WHERE approval_id = ${approvalId}`
-  return { success: true, orderId: result.orderId }
 }
 ```
 
----
+### PG database access
 
+SessionAgent needs access to the Postgres database for `getNotificationSettings()` and `getCredential()`. This is already available via `this.env.DATABASE_URL` (Neon Postgres) — create a lightweight DB connection in the notification path, or pass via the existing `createDatabase()` utility.
+
+---
