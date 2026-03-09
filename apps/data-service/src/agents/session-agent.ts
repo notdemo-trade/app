@@ -88,6 +88,9 @@ export class SessionAgent extends AIChatAgent<Env, SessionState> {
 		const config = this.loadConfig();
 		this.setState({ ...this.state, analysisIntervalSec: config.analysisIntervalSec });
 
+		// Clean slate: cancel any orphaned schedules from a previous DO instance
+		await this.cancelAllSchedules();
+
 		if (this.state.enabled) {
 			await this.rescheduleAnalysisCycle(config.analysisIntervalSec);
 			await this.scheduleEvery(300, 'runOutcomeTrackingCycle');
@@ -170,12 +173,20 @@ export class SessionAgent extends AIChatAgent<Env, SessionState> {
 		await this.schedule(nextAt, 'runScheduledCycle');
 	}
 
+	private async cancelAllSchedules(): Promise<void> {
+		const existing = this.getSchedules();
+		for (const s of existing) {
+			await this.cancelSchedule(s.id);
+		}
+	}
+
 	// --- @callable() RPCs ---
 
 	@callable()
 	async start(): Promise<SessionState> {
 		const config = this.loadConfig();
 		this.setState({ ...this.state, enabled: true });
+		await this.cancelAllSchedules();
 		await this.rescheduleAnalysisCycle(config.analysisIntervalSec);
 		await this.scheduleEvery(300, 'runOutcomeTrackingCycle');
 		return this.state;
@@ -184,13 +195,7 @@ export class SessionAgent extends AIChatAgent<Env, SessionState> {
 	@callable()
 	async stop(): Promise<SessionState> {
 		this.setState({ ...this.state, enabled: false });
-		// Cancel analysis schedule
-		const existing = this.getSchedules();
-		for (const s of existing) {
-			if (s.callback === 'runScheduledCycle') {
-				await this.cancelSchedule(s.id);
-			}
-		}
+		await this.cancelAllSchedules();
 		return this.state;
 	}
 
@@ -1199,6 +1204,8 @@ export class SessionAgent extends AIChatAgent<Env, SessionState> {
 	}
 
 	async runOutcomeTrackingCycle(): Promise<void> {
+		if (!this.state.enabled) return;
+
 		try {
 			const userId = this.name;
 			const broker = await getAgentByName<Env, AlpacaBrokerAgent>(
