@@ -340,7 +340,22 @@
 		"proposalTimeout": "Proposal Timeout (sec)",
 		"strategyId": "Strategy ID",
 		"strategyPlaceholder": "Strategy ID",
-		"failedToLoad": "Failed to load configuration."
+		"failedToLoad": "Failed to load configuration.",
+		"resetData": {
+			"button": "Reset Session Data",
+			"title": "Reset Session Data",
+			"description": "This will permanently delete all discussion threads, trade proposals, outcomes, and chat history from this session. This action cannot be undone.",
+			"confirm": "Reset Data",
+			"cancel": "Cancel",
+			"success": "Session data has been reset successfully.",
+			"error": "Failed to reset session data.",
+			"mustStop": "Stop the session before resetting data.",
+			"willClear": "Will be cleared:",
+			"willPreserve": "Will be preserved:",
+			"clearList": "Discussion threads and messages, All trade proposals (pending ones expired), All outcomes and snapshots, Strategy templates (re-seeded), Chat history",
+			"preserveList": "Session configuration"
+		},
+		"dangerZone": "Danger Zone"
 	},
 	"profile": {
 		"title": "Profile",

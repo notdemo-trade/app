@@ -10,6 +10,7 @@ import { Label } from '@/components/ui/label';
 import { Select } from '@/components/ui/select';
 import type { useSession } from '@/lib/session-connection';
 import { OrchestrationModeSelector } from './orchestration-mode-selector';
+import { SessionResetDialog } from './session-reset-dialog';
 
 interface SessionSettingsProps {
 	session: ReturnType<typeof useSession>;
@@ -270,6 +271,19 @@ export function SessionSettings({ session }: SessionSettingsProps) {
 								placeholder={t('sessionSettings.strategyPlaceholder')}
 							/>
 						</div>
+					</div>
+				</section>
+
+				{/* Danger Zone */}
+				<section className="space-y-3 rounded-md border border-destructive/30 p-4">
+					<h4 className="text-sm font-medium text-destructive">
+						{t('sessionSettings.dangerZone')}
+					</h4>
+					<div className="flex items-center justify-between">
+						<p className="text-xs text-muted-foreground">
+							{t('sessionSettings.resetData.description')}
+						</p>
+						<SessionResetDialog session={session} />
 					</div>
 				</section>
 			</CardContent>

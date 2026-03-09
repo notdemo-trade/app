@@ -107,6 +107,18 @@ export interface DiscussionThread {
 	proposal: TradeProposal | null;
 }
 
+export interface ResetResult {
+	status: 'success' | 'error';
+	message: string;
+	cleared: {
+		threads: number;
+		messages: number;
+		proposals: number;
+		outcomes: number;
+		snapshots: number;
+	};
+}
+
 export interface TradeProposal {
 	id: string;
 	threadId: string;

@@ -18,6 +18,7 @@ import type {
 	DiscussionMessage,
 	DiscussionThread,
 	EffectiveConfig,
+	ResetResult,
 	SessionConfig,
 	SessionState,
 	TradeProposal,
@@ -301,6 +302,79 @@ export class SessionAgent extends AIChatAgent<Env, SessionState> {
 				?.id ?? '',
 		);
 		return result;
+	}
+
+	@callable()
+	async resetData(): Promise<ResetResult> {
+		if (this.state.enabled) {
+			return {
+				status: 'error',
+				message: 'Session must be stopped before resetting data',
+				cleared: { threads: 0, messages: 0, proposals: 0, outcomes: 0, snapshots: 0 },
+			};
+		}
+
+		// Expire pending/approved proposals and resolve tracking outcomes before clearing
+		const now = Date.now();
+		this.sql`UPDATE trade_proposals SET status = 'expired', decided_at = ${now}
+			WHERE status IN ('pending', 'approved')`;
+		this.sql`UPDATE proposal_outcomes SET status = 'resolved', resolved_at = ${now}
+			WHERE status = 'tracking'`;
+		this.sql`UPDATE trade_proposals SET outcome_status = 'resolved'
+			WHERE outcome_status = 'tracking'`;
+
+		// Delete in FK-safe order
+		const snapshots = this.sql<CountRow>`SELECT COUNT(*) as cnt FROM outcome_snapshots`;
+		this.sql`DELETE FROM outcome_snapshots`;
+
+		const messages = this.sql<CountRow>`SELECT COUNT(*) as cnt FROM discussion_messages`;
+		this.sql`DELETE FROM discussion_messages`;
+
+		const outcomes = this.sql<CountRow>`SELECT COUNT(*) as cnt FROM proposal_outcomes`;
+		this.sql`DELETE FROM proposal_outcomes`;
+
+		const proposals = this.sql<CountRow>`SELECT COUNT(*) as cnt FROM trade_proposals`;
+		this.sql`DELETE FROM trade_proposals`;
+
+		const threads = this.sql<CountRow>`SELECT COUNT(*) as cnt FROM discussion_threads`;
+		this.sql`DELETE FROM discussion_threads`;
+
+		this.sql`DELETE FROM strategy_templates`;
+		this.sql`DELETE FROM personas`;
+
+		// Re-seed strategy templates
+		for (let idx = 0; idx < DEFAULT_STRATEGIES.length; idx++) {
+			const s = DEFAULT_STRATEGIES[idx] as StrategyTemplate;
+			this.sql`INSERT OR IGNORE INTO strategy_templates (id, name, data, is_default, created_at)
+				VALUES (${s.id}, ${s.name}, ${JSON.stringify(s)}, ${idx === 1 ? 1 : 0}, ${new Date().toISOString()})`;
+		}
+
+		// Clear chat history (server-side persisted messages)
+		await this.saveMessages([]);
+
+		// Reset in-memory state
+		this.setState({
+			...this.state,
+			cycleCount: 0,
+			errorCount: 0,
+			lastError: null,
+			lastCycleAt: null,
+			activeThreadId: null,
+			activeThread: null,
+			pendingProposalCount: 0,
+		});
+
+		return {
+			status: 'success',
+			message: 'Session data has been reset',
+			cleared: {
+				threads: threads[0]?.cnt ?? 0,
+				messages: messages[0]?.cnt ?? 0,
+				proposals: proposals[0]?.cnt ?? 0,
+				outcomes: outcomes[0]?.cnt ?? 0,
+				snapshots: snapshots[0]?.cnt ?? 0,
+			},
+		};
 	}
 
 	// --- Scheduled analysis ---

@@ -1,6 +1,7 @@
 import { useAgentChat } from '@cloudflare/ai-chat/react';
 import type {
 	DiscussionThread,
+	ResetResult,
 	SessionConfig,
 	SessionState,
 	TradeProposal,
@@ -92,5 +93,6 @@ export function useSession(userId: string) {
 				status: string;
 				message: string;
 			}>,
+		resetData: () => agentConnection.call('resetData', []) as Promise<ResetResult>,
 	};
 }

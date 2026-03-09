@@ -340,7 +340,22 @@
 		"proposalTimeout": "Timeout propozycji (sek)",
 		"strategyId": "ID strategii",
 		"strategyPlaceholder": "ID strategii",
-		"failedToLoad": "Nie udało się załadować konfiguracji."
+		"failedToLoad": "Nie udało się załadować konfiguracji.",
+		"resetData": {
+			"button": "Resetuj dane sesji",
+			"title": "Resetuj dane sesji",
+			"description": "To trwale usunie wszystkie wątki dyskusji, propozycje handlowe, wyniki i historię czatu z tej sesji. Tej operacji nie można cofnąć.",
+			"confirm": "Resetuj dane",
+			"cancel": "Anuluj",
+			"success": "Dane sesji zostały zresetowane.",
+			"error": "Nie udało się zresetować danych sesji.",
+			"mustStop": "Zatrzymaj sesję przed resetowaniem danych.",
+			"willClear": "Zostanie usunięte:",
+			"willPreserve": "Zostanie zachowane:",
+			"clearList": "Wątki dyskusji i wiadomości, Wszystkie propozycje handlowe (oczekujące wygaszone), Wszystkie wyniki i snapshoty, Szablony strategii (ponownie załadowane), Historia czatu",
+			"preserveList": "Konfiguracja sesji"
+		},
+		"dangerZone": "Strefa zagrożenia"
 	},
 	"profile": {
 		"title": "Profil",
