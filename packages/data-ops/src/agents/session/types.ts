@@ -170,4 +170,5 @@ export interface TradeProposal {
 	filledQty: number | null;
 	filledAvgPrice: number | null;
 	outcomeStatus: 'none' | 'tracking' | 'resolved';
+	orchestratorSessionId: string | null;
 }

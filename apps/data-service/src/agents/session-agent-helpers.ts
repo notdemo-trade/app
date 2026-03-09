@@ -79,6 +79,7 @@ export interface ProposalRow {
 	filled_qty: number | null;
 	filled_avg_price: number | null;
 	outcome_status: string;
+	orchestrator_session_id: string | null;
 }
 
 export interface ProposalOutcomeRow {
@@ -185,6 +186,7 @@ export function rowToProposal(row: ProposalRow): TradeProposal {
 		filledQty: row.filled_qty ?? null,
 		filledAvgPrice: row.filled_avg_price ?? null,
 		outcomeStatus: (row.outcome_status ?? 'none') as TradeProposal['outcomeStatus'],
+		orchestratorSessionId: row.orchestrator_session_id ?? null,
 	};
 }
 

@@ -514,8 +514,9 @@ export class SessionAgent extends AIChatAgent<Env, SessionState> {
 		})) as RunDebateResult;
 
 		const consensus = result.consensus;
+		const orchestratorSessionId = result.session.id;
 		if (consensus.action !== 'hold' && consensus.confidence >= config.minConfidenceThreshold) {
-			await this.createProposal(threadId, symbol, consensus, config);
+			await this.createProposal(threadId, symbol, consensus, config, orchestratorSessionId);
 		}
 
 		return `Debate analysis for ${symbol}: ${consensus.action} (confidence: ${consensus.confidence.toFixed(2)})`;
@@ -550,7 +551,8 @@ export class SessionAgent extends AIChatAgent<Env, SessionState> {
 		})) as RunPipelineResult;
 
 		if (result.proposal) {
-			const proposal = { ...result.proposal, threadId };
+			const orchestratorSessionId = result.session.id;
+			const proposal = { ...result.proposal, threadId, orchestratorSessionId };
 			this.storeProposal(proposal);
 			this.sql`UPDATE discussion_threads SET proposal_id = ${proposal.id} WHERE id = ${threadId}`;
 		}
@@ -796,6 +798,7 @@ export class SessionAgent extends AIChatAgent<Env, SessionState> {
 			risks: string[];
 		},
 		config: EffectiveConfig,
+		orchestratorSessionId: string,
 	): Promise<void> {
 		if (consensus.action === 'hold') return;
 
@@ -843,6 +846,7 @@ export class SessionAgent extends AIChatAgent<Env, SessionState> {
 			filledQty: null,
 			filledAvgPrice: null,
 			outcomeStatus: 'none',
+			orchestratorSessionId,
 		};
 
 		this.storeProposal(proposal);
@@ -853,13 +857,13 @@ export class SessionAgent extends AIChatAgent<Env, SessionState> {
 		this.sql`INSERT INTO trade_proposals
 			(id, thread_id, symbol, action, confidence, rationale, entry_price, target_price,
 			 stop_loss, qty, notional, position_size_pct, risks, warnings, expires_at, status, created_at, decided_at,
-			 order_id, filled_qty, filled_avg_price, outcome_status)
+			 order_id, filled_qty, filled_avg_price, outcome_status, orchestrator_session_id)
 			VALUES (${p.id}, ${p.threadId}, ${p.symbol}, ${p.action}, ${p.confidence}, ${p.rationale},
 				${p.entryPrice}, ${p.targetPrice}, ${p.stopLoss}, ${p.qty}, ${p.notional},
 				${p.positionSizePct}, ${JSON.stringify(p.risks)}, ${JSON.stringify(p.warnings)},
 				${p.expiresAt}, ${p.status},
 				${p.createdAt}, ${p.decidedAt}, ${p.orderId}, ${p.filledQty}, ${p.filledAvgPrice},
-				${p.outcomeStatus})`;
+				${p.outcomeStatus}, ${p.orchestratorSessionId})`;
 	}
 
 	private countPendingProposals(): number {
@@ -943,7 +947,21 @@ export class SessionAgent extends AIChatAgent<Env, SessionState> {
 		const threadRow = thread[0];
 
 		const orchestrationMode = threadRow?.orchestration_mode ?? 'debate';
-		const orchestratorSessionId = this.resolveOrchestratorSessionId(proposal, orchestrationMode);
+		const orchestratorSessionId = proposal.orchestratorSessionId;
+
+		if (!orchestratorSessionId) {
+			// Pre-fix proposal without stored session ID -- skip outcome distribution
+			// Still create the outcome row for tracking, but with empty session ID
+			const outcomeId = crypto.randomUUID();
+			this.sql`INSERT INTO proposal_outcomes
+				(id, proposal_id, thread_id, orchestration_mode, orchestrator_session_id,
+				 symbol, action, entry_price, entry_qty, status, created_at)
+				VALUES (${outcomeId}, ${proposal.id}, ${proposal.threadId},
+					${orchestrationMode}, ${''},
+					${proposal.symbol}, ${proposal.action},
+					${filledPrice}, ${filledQty}, 'tracking', ${Date.now()})`;
+			return;
+		}
 
 		const outcomeId = crypto.randomUUID();
 		this.sql`INSERT INTO proposal_outcomes
@@ -953,13 +971,6 @@ export class SessionAgent extends AIChatAgent<Env, SessionState> {
 				${orchestrationMode}, ${orchestratorSessionId},
 				${proposal.symbol}, ${proposal.action},
 				${filledPrice}, ${filledQty}, 'tracking', ${Date.now()})`;
-	}
-
-	private resolveOrchestratorSessionId(proposal: TradeProposal, _mode: string): string {
-		// The orchestrator session ID links this outcome back to the specific debate/pipeline session
-		// For now, use the convention: {userId}:{symbol}
-		const userId = this.name;
-		return `${userId}:${proposal.symbol}`;
 	}
 
 	async runOutcomeTrackingCycle(): Promise<void> {
@@ -1071,7 +1082,7 @@ export class SessionAgent extends AIChatAgent<Env, SessionState> {
 			if (outcome.orchestrationMode === 'debate') {
 				const debate = await getAgentByName<Env, DebateOrchestratorAgent>(
 					this.env.DebateOrchestratorAgent,
-					userId,
+					`${userId}:${outcome.symbol}`,
 				);
 				await debate.recordPersonaOutcome(
 					outcome.proposalId,
@@ -1081,7 +1092,7 @@ export class SessionAgent extends AIChatAgent<Env, SessionState> {
 			} else {
 				const pipeline = await getAgentByName<Env, PipelineOrchestratorAgent>(
 					this.env.PipelineOrchestratorAgent,
-					userId,
+					`${userId}:${outcome.symbol}`,
 				);
 				await pipeline.recordStepOutcome(
 					outcome.proposalId,
@@ -1308,7 +1319,8 @@ export class SessionAgent extends AIChatAgent<Env, SessionState> {
 			order_id          TEXT,
 			filled_qty        REAL,
 			filled_avg_price  REAL,
-			outcome_status    TEXT NOT NULL DEFAULT 'none'
+			outcome_status    TEXT NOT NULL DEFAULT 'none',
+			orchestrator_session_id TEXT
 		)`;
 
 		this.migrateTradeProposals();
@@ -1389,6 +1401,9 @@ export class SessionAgent extends AIChatAgent<Env, SessionState> {
 		}
 		if (!columnNames.has('warnings')) {
 			this.sql`ALTER TABLE trade_proposals ADD COLUMN warnings TEXT NOT NULL DEFAULT '[]'`;
+		}
+		if (!columnNames.has('orchestrator_session_id')) {
+			this.sql`ALTER TABLE trade_proposals ADD COLUMN orchestrator_session_id TEXT`;
 		}
 	}
 
