@@ -10,7 +10,7 @@ import {
 	TableHeader,
 	TableRow,
 } from '@/components/ui/table';
-import { formatRelativeTime } from '@/lib/formatters';
+import { formatCurrency, formatDateTime } from '@/lib/formatters';
 
 interface OrdersTableProps {
 	orders: Order[];
@@ -60,13 +60,15 @@ export function OrdersTable({ orders }: OrdersTableProps) {
 									</Badge>
 								</TableCell>
 								<TableCell>{order.type}</TableCell>
-								<TableCell className="text-right">{order.qty}</TableCell>
-								<TableCell className="text-right">{order.filled_qty}</TableCell>
+								<TableCell className="text-right">
+									{order.qty ?? (order.notional ? formatCurrency(Number(order.notional)) : '—')}
+								</TableCell>
+								<TableCell className="text-right">{formatFilledQty(order)}</TableCell>
 								<TableCell>
 									<OrderStatusBadge status={order.status} />
 								</TableCell>
 								<TableCell className="text-sm text-muted-foreground">
-									{formatRelativeTime(order.submitted_at)}
+									{formatDateTime(order.submitted_at)}
 								</TableCell>
 							</TableRow>
 						))}
@@ -97,4 +99,15 @@ const STATUS_VARIANTS: Record<OrderStatus, 'default' | 'secondary' | 'destructiv
 
 function OrderStatusBadge({ status }: { status: OrderStatus }) {
 	return <Badge variant={STATUS_VARIANTS[status] ?? 'outline'}>{status.replace(/_/g, ' ')}</Badge>;
+}
+
+function formatFilledQty(order: Order): string {
+	const filled = Number(order.filled_qty);
+	if (filled > 0) return order.filled_qty;
+	if (order.filled_avg_price && Number(order.filled_avg_price) > 0) {
+		return order.filled_qty;
+	}
+	// Not yet filled — show dash for notional orders, "0" for qty orders
+	if (!order.qty && order.notional) return '—';
+	return order.filled_qty;
 }

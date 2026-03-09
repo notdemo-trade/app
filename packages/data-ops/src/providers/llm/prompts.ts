@@ -12,6 +12,7 @@ Required JSON fields:
 - risks: string[] of key risk factors
 
 Consider all signals holistically. Weight recent signals higher. Account for the user's strategy parameters.
+If portfolio context is provided, factor in existing positions, pending proposals, and tracking outcomes. Avoid recommending buys that would create excessive concentration. If a pending proposal already exists for the symbol, acknowledge it and adjust accordingly.
 
 Market data:
 `;
@@ -31,6 +32,8 @@ Return a JSON object with these fields:
 - confidence: 0-1
 - rationale: detailed explanation from your perspective
 - keyPoints: string[] of 3-5 key supporting arguments
+
+If portfolio context is provided, factor the user's existing positions into your analysis. Consider whether to add to, hold, or exit an existing position rather than treating every analysis as a fresh entry.
 
 Market data and strategy context:
 `;
@@ -60,6 +63,8 @@ Return a JSON object with:
 - positionSizePct: number or null (1-10)
 - risks: string[] of key risk factors
 
+If portfolio context is provided, weigh whether to add to, hold, or exit an existing position. Consider pending proposals and tracking outcomes to avoid duplicate or conflicting recommendations.
+
 Debate transcript:
 `;
 
@@ -75,6 +80,8 @@ Focus your assessment on the PROPOSED TRADE's symbol only. Evaluate whether:
 1. The proposed position size is appropriate given available capital and buying power
 2. The trade would create excessive concentration in the TARGET symbol specifically
 3. The entry/stop-loss/target prices imply acceptable risk-reward
+4. There are pending proposals for the same symbol that would create duplicate exposure
+5. Total exposure including pending and tracking positions stays within acceptable limits
 
 Existing positions in OTHER symbols are portfolio context for diversification — they are NOT a reason to reject a trade in a different asset. A portfolio holding BTCUSD does not make an AAPL trade risky. Only flag other positions if the proposed trade would push total portfolio leverage or margin usage to dangerous levels.
 `;

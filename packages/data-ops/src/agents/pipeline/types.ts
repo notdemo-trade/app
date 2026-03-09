@@ -1,6 +1,6 @@
 import type { RiskValidation } from '../debate/types';
 import type { TradeRecommendation } from '../llm/types';
-import type { TradeProposal } from '../session/types';
+import type { PortfolioContext, TradeProposal } from '../session/types';
 import type { Bar, TechnicalIndicators, TechnicalSignal } from '../ta/types';
 
 export type PipelineStepName =
@@ -28,6 +28,7 @@ export interface PipelineContext {
 	recommendation: TradeRecommendation | null;
 	riskValidation: RiskValidation | null;
 	proposal: TradeProposal | null;
+	portfolioContext: PortfolioContext | null;
 }
 
 export interface PipelineSession {

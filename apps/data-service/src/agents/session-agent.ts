@@ -18,9 +18,12 @@ import type {
 	DiscussionMessage,
 	DiscussionThread,
 	EffectiveConfig,
+	PendingProposalSummary,
+	PortfolioContext,
 	ResetResult,
 	SessionConfig,
 	SessionState,
+	TrackingOutcomeSummary,
 	TradeProposal,
 } from '@repo/data-ops/agents/session/types';
 import type { LLMCredential } from '@repo/data-ops/credential';
@@ -120,7 +123,8 @@ export class SessionAgent extends AIChatAgent<Env, SessionState> {
 						required: ['symbol'],
 					}),
 					execute: async ({ symbol }) => {
-						return this.runAnalysisForSymbol(symbol.toUpperCase(), effectiveConfig);
+						const portfolioCtx = await this.assemblePortfolioContext();
+						return this.runAnalysisForSymbol(symbol.toUpperCase(), effectiveConfig, portfolioCtx);
 					},
 				}),
 				executeTrade: tool({
@@ -230,9 +234,10 @@ export class SessionAgent extends AIChatAgent<Env, SessionState> {
 	async triggerAnalysis(): Promise<{ threadIds: string[] }> {
 		this.setState({ ...this.state, lastError: null });
 		const effectiveConfig = await this.loadEffectiveConfig();
+		const portfolioContext = await this.assemblePortfolioContext();
 		const threadIds: string[] = [];
 		for (const symbol of effectiveConfig.watchlistSymbols) {
-			const result = await this.runAnalysisForSymbol(symbol, effectiveConfig);
+			const result = await this.runAnalysisForSymbol(symbol, effectiveConfig, portfolioContext);
 			if (result.threadId) {
 				threadIds.push(result.threadId);
 			}
@@ -403,6 +408,7 @@ export class SessionAgent extends AIChatAgent<Env, SessionState> {
 	private async runAnalysisForSymbol(
 		symbol: string,
 		config: EffectiveConfig,
+		portfolioContext?: PortfolioContext,
 	): Promise<{ threadId: string; summary: string }> {
 		const threadId = crypto.randomUUID();
 		const now = Date.now();
@@ -426,9 +432,23 @@ export class SessionAgent extends AIChatAgent<Env, SessionState> {
 			let summary: string;
 
 			if (config.orchestrationMode === 'debate') {
-				summary = await this.runDebateAnalysis(threadId, symbol, strategy, config, onMessage);
+				summary = await this.runDebateAnalysis(
+					threadId,
+					symbol,
+					strategy,
+					config,
+					onMessage,
+					portfolioContext,
+				);
 			} else {
-				summary = await this.runPipelineAnalysis(threadId, symbol, strategy, config, onMessage);
+				summary = await this.runPipelineAnalysis(
+					threadId,
+					symbol,
+					strategy,
+					config,
+					onMessage,
+					portfolioContext,
+				);
 			}
 
 			this
@@ -457,6 +477,7 @@ export class SessionAgent extends AIChatAgent<Env, SessionState> {
 		strategy: StrategyTemplate,
 		config: EffectiveConfig,
 		onMessage: (msg: Omit<DiscussionMessage, 'id' | 'threadId' | 'timestamp'>) => void,
+		portfolioContext?: PortfolioContext,
 	): Promise<string> {
 		const userId = this.name;
 		const debate = await getAgentByName<Env, DebateOrchestratorAgent>(
@@ -489,6 +510,7 @@ export class SessionAgent extends AIChatAgent<Env, SessionState> {
 				maxTokens: config.llmMaxTokens,
 			},
 			scoreWindows: config.scoreWindows,
+			portfolioContext,
 		})) as RunDebateResult;
 
 		const consensus = result.consensus;
@@ -505,6 +527,7 @@ export class SessionAgent extends AIChatAgent<Env, SessionState> {
 		strategy: StrategyTemplate,
 		config: EffectiveConfig,
 		onMessage: (msg: Omit<DiscussionMessage, 'id' | 'threadId' | 'timestamp'>) => void,
+		portfolioContext?: PortfolioContext,
 	): Promise<string> {
 		const userId = this.name;
 		const pipeline = await getAgentByName<Env, PipelineOrchestratorAgent>(
@@ -523,6 +546,7 @@ export class SessionAgent extends AIChatAgent<Env, SessionState> {
 			},
 			proposalTimeoutSec: config.proposalTimeoutSec,
 			scoreWindows: config.scoreWindows,
+			portfolioContext,
 		})) as RunPipelineResult;
 
 		if (result.proposal) {
@@ -629,6 +653,50 @@ export class SessionAgent extends AIChatAgent<Env, SessionState> {
 		}
 
 		return rowToThread(row, messages, proposal);
+	}
+
+	private async assemblePortfolioContext(): Promise<PortfolioContext> {
+		const userId = this.name;
+		const broker = await getAgentByName<Env, AlpacaBrokerAgent>(this.env.AlpacaBrokerAgent, userId);
+
+		const [positions, account] = await Promise.all([broker.getPositions(), broker.getAccount()]);
+
+		const pendingRows = this.sql<ProposalRow>`
+			SELECT * FROM trade_proposals WHERE status = 'pending'`;
+		const pendingProposals: PendingProposalSummary[] = pendingRows.map((r) => ({
+			symbol: r.symbol,
+			action: r.action as 'buy' | 'sell',
+			confidence: r.confidence,
+			positionSizePct: r.position_size_pct,
+			notional: r.notional,
+			createdAt: r.created_at,
+			expiresAt: r.expires_at,
+		}));
+
+		const trackingRows = this.sql<{
+			symbol: string;
+			action: string;
+			entry_price: number;
+			entry_qty: number;
+			target_price: number | null;
+			stop_loss: number | null;
+			created_at: number;
+		}>`SELECT po.symbol, po.action, po.entry_price, po.entry_qty,
+				tp.target_price, tp.stop_loss, po.created_at
+			FROM proposal_outcomes po
+			JOIN trade_proposals tp ON po.proposal_id = tp.id
+			WHERE po.status = 'tracking'`;
+		const trackingOutcomes: TrackingOutcomeSummary[] = trackingRows.map((r) => ({
+			symbol: r.symbol,
+			action: r.action as 'buy' | 'sell',
+			entryPrice: r.entry_price,
+			entryQty: r.entry_qty,
+			targetPrice: r.target_price,
+			stopLoss: r.stop_loss,
+			createdAt: r.created_at,
+		}));
+
+		return { positions, account, pendingProposals, trackingOutcomes };
 	}
 
 	private loadConfig(): SessionConfig {
@@ -920,6 +988,21 @@ export class SessionAgent extends AIChatAgent<Env, SessionState> {
 					await this.resolveOutcome(outcome, broker);
 				} else {
 					this.recordSnapshot(outcome, position);
+
+					// Check exit conditions
+					const proposalRow = this.sql<ProposalRow>`
+						SELECT * FROM trade_proposals WHERE id = ${outcome.proposalId}`;
+					if (proposalRow[0]) {
+						const proposal = rowToProposal(proposalRow[0]);
+						const exitTrigger = this.checkExitConditions(
+							position.currentPrice,
+							proposal,
+							position.side,
+						);
+						if (exitTrigger) {
+							await this.createExitProposal(outcome, proposal, position, exitTrigger);
+						}
+					}
 				}
 			}
 		} catch (err) {
@@ -1016,6 +1099,91 @@ export class SessionAgent extends AIChatAgent<Env, SessionState> {
 			(id, outcome_id, unrealized_pnl, unrealized_pnl_pct, current_price, snapshot_at)
 			VALUES (${crypto.randomUUID()}, ${outcome.id}, ${position.unrealizedPl},
 				${position.unrealizedPlPct}, ${position.currentPrice}, ${Date.now()})`;
+	}
+
+	private checkExitConditions(
+		currentPrice: number,
+		proposal: TradeProposal,
+		side: 'long' | 'short',
+	): 'stop_loss' | 'target_hit' | null {
+		if (side === 'long') {
+			if (proposal.stopLoss !== null && currentPrice <= proposal.stopLoss) return 'stop_loss';
+			if (proposal.targetPrice !== null && currentPrice >= proposal.targetPrice)
+				return 'target_hit';
+		} else {
+			// Short position: reversed logic
+			if (proposal.stopLoss !== null && currentPrice >= proposal.stopLoss) return 'stop_loss';
+			if (proposal.targetPrice !== null && currentPrice <= proposal.targetPrice)
+				return 'target_hit';
+		}
+		return null;
+	}
+
+	private async createExitProposal(
+		outcome: ProposalOutcome,
+		originalProposal: TradeProposal,
+		position: BrokerPosition,
+		trigger: 'stop_loss' | 'target_hit',
+	): Promise<void> {
+		// Dedup guard: skip if pending sell proposal already exists for this symbol
+		const existingPending = this.sql<CountRow>`
+			SELECT COUNT(*) as cnt FROM trade_proposals
+			WHERE symbol = ${outcome.symbol} AND action = 'sell' AND status = 'pending'`;
+		if ((existingPending[0]?.cnt ?? 0) > 0) return;
+
+		const config = this.loadConfig();
+		const exitAction = position.side === 'long' ? 'sell' : 'buy';
+		const lossPct = ((position.currentPrice - outcome.entryPrice) / outcome.entryPrice) * 100;
+		const rationale =
+			trigger === 'stop_loss'
+				? `Stop-loss triggered at $${position.currentPrice.toFixed(2)} (entry: $${outcome.entryPrice.toFixed(2)}, loss: ${lossPct.toFixed(1)}%)`
+				: `Target hit at $${position.currentPrice.toFixed(2)} (entry: $${outcome.entryPrice.toFixed(2)}, gain: ${lossPct.toFixed(1)}%)`;
+
+		const threadId = crypto.randomUUID();
+		const now = Date.now();
+
+		// Create discussion thread for the exit proposal
+		this.sql`INSERT INTO discussion_threads (id, orchestration_mode, symbol, status, started_at)
+			VALUES (${threadId}, ${config.orchestrationMode}, ${outcome.symbol}, 'completed', ${now})`;
+
+		// Add system message explaining the trigger
+		const msgId = crypto.randomUUID();
+		this
+			.sql`INSERT INTO discussion_messages (id, thread_id, timestamp, sender, phase, content, metadata)
+			VALUES (${msgId}, ${threadId}, ${now}, ${JSON.stringify({ type: 'system' })}, 'proposal',
+				${`Exit condition detected: ${rationale}`}, ${JSON.stringify({ trigger, outcomeId: outcome.id })})`;
+
+		const proposal: TradeProposal = {
+			id: crypto.randomUUID(),
+			threadId,
+			symbol: outcome.symbol,
+			action: exitAction as 'buy' | 'sell',
+			confidence: 1.0,
+			rationale,
+			entryPrice: position.currentPrice,
+			targetPrice: null,
+			stopLoss: null,
+			qty: position.qty,
+			notional: null,
+			positionSizePct: 100,
+			risks: [],
+			warnings: [],
+			expiresAt: now + config.proposalTimeoutSec * 1000,
+			status: 'pending',
+			createdAt: now,
+			decidedAt: null,
+			orderId: null,
+			filledQty: null,
+			filledAvgPrice: null,
+			outcomeStatus: 'none',
+		};
+
+		this.storeProposal(proposal);
+		this
+			.sql`UPDATE discussion_threads SET proposal_id = ${proposal.id}, completed_at = ${now} WHERE id = ${threadId}`;
+
+		// Broadcast update to frontend
+		this.broadcastThread(threadId);
 	}
 
 	private findExitOrder(

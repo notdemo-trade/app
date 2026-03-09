@@ -66,7 +66,8 @@ export interface Order {
 	symbol: string;
 	asset_id: string;
 	asset_class: string;
-	qty: string;
+	qty: string | null;
+	notional: string | null;
 	filled_qty: string;
 	filled_avg_price: string | null;
 	order_class: string;

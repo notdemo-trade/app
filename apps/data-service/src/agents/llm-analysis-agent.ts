@@ -22,6 +22,7 @@ import type {
 	UsageSummaryResult,
 } from '@repo/data-ops/agents/llm/types';
 import type { PerformanceContext, PersonaComparisonRow } from '@repo/data-ops/agents/memory/types';
+import type { PortfolioContext } from '@repo/data-ops/agents/session/types';
 import type { LLMCredential } from '@repo/data-ops/credential';
 import { getCredential } from '@repo/data-ops/credential';
 import { initDatabase } from '@repo/data-ops/database/setup';
@@ -90,12 +91,16 @@ export class LLMAnalysisAgent extends Agent<Env, LLMAgentState> {
 	async analyze(
 		request: AnalysisRequest,
 		llmPrefs?: { temperature: number; maxTokens: number },
+		portfolioContext?: PortfolioContext,
 	): Promise<LLMAnalysisResult> {
 		const userId = this.name;
 		const config = await this.resolveProviderConfig(userId);
 		const llm = createLLMProvider(config);
 
 		const strategyContext = buildStrategyContext(request.strategy);
+		const portfolioBlock = portfolioContext
+			? `\n\n${buildPortfolioContextBlock(portfolioContext, request.symbol)}`
+			: '';
 		const contextStr = JSON.stringify(
 			{
 				symbol: request.symbol,
@@ -115,7 +120,7 @@ export class LLMAnalysisAgent extends Agent<Env, LLMAgentState> {
 		const recResult = await llm.complete({
 			messages: [
 				{ role: 'system', content: `You are a trading analyst. ${strategyContext}` },
-				{ role: 'user', content: TRADE_RECOMMENDATION_PROMPT + contextStr },
+				{ role: 'user', content: TRADE_RECOMMENDATION_PROMPT + contextStr + portfolioBlock },
 			],
 			temperature: recTemp,
 			max_tokens: recMaxTokens,
@@ -285,9 +290,11 @@ export class LLMAnalysisAgent extends Agent<Env, LLMAgentState> {
 		const perfBlock = performanceContext
 			? buildPerformanceContextBlock(performanceContext, data.symbol)
 			: '';
-		const systemPrompt = perfBlock
-			? `${persona.systemPrompt}\n\n${perfBlock}`
-			: persona.systemPrompt;
+		const portfolioBlock = data.portfolioContext
+			? buildPortfolioContextBlock(data.portfolioContext, data.symbol)
+			: '';
+		const systemParts = [persona.systemPrompt, perfBlock, portfolioBlock].filter(Boolean);
+		const systemPrompt = systemParts.join('\n\n');
 
 		const messages: CompletionMessage[] = [
 			{ role: 'system', content: systemPrompt },
@@ -337,6 +344,8 @@ export class LLMAnalysisAgent extends Agent<Env, LLMAgentState> {
 		moderatorPrompt: string,
 		personaComparison?: PersonaComparisonRow[],
 		llmPrefs?: { temperature: number; maxTokens: number },
+		portfolioContext?: PortfolioContext,
+		targetSymbol?: string,
 	): Promise<ConsensusResult> {
 		const config = await this.resolveProviderConfig(this.name);
 		const llm = createLLMProvider(config);
@@ -346,6 +355,9 @@ export class LLMAnalysisAgent extends Agent<Env, LLMAgentState> {
 		let enrichedPrompt = moderatorPrompt;
 		if (personaComparison && personaComparison.length > 0) {
 			enrichedPrompt = `${moderatorPrompt}\n\n${buildComparisonTable(personaComparison)}`;
+		}
+		if (portfolioContext && targetSymbol) {
+			enrichedPrompt = `${enrichedPrompt}\n\n${buildPortfolioContextBlock(portfolioContext, targetSymbol)}`;
 		}
 
 		const messages: CompletionMessage[] = [
@@ -374,39 +386,49 @@ export class LLMAnalysisAgent extends Agent<Env, LLMAgentState> {
 		recommendation: TradeRecommendation,
 		portfolio: { positions: BrokerPosition[]; account: BrokerAccount },
 		llmPrefs?: { temperature: number; maxTokens: number },
+		portfolioContext?: PortfolioContext,
 	): Promise<RiskValidation> {
 		const config = await this.resolveProviderConfig(this.name);
 		const llm = createLLMProvider(config);
 
-		const contextStr = JSON.stringify(
-			{
-				targetSymbol: symbol,
-				recommendation: {
-					action: recommendation.action,
-					confidence: recommendation.confidence,
-					rationale: recommendation.rationale,
-					positionSizePct: recommendation.position_size_pct,
-					entryPrice: recommendation.entry_price,
-					targetPrice: recommendation.target_price,
-					stopLoss: recommendation.stop_loss,
-					risks: recommendation.risks,
-				},
-				portfolio: {
-					cash: portfolio.account.cash,
-					portfolioValue: portfolio.account.portfolioValue,
-					buyingPower: portfolio.account.buyingPower,
-					positions: portfolio.positions.map((p) => ({
-						symbol: p.symbol,
-						qty: p.qty,
-						side: p.side,
-						marketValue: p.marketValue,
-						unrealizedPl: p.unrealizedPl,
-					})),
-				},
+		const contextObj: Record<string, unknown> = {
+			targetSymbol: symbol,
+			recommendation: {
+				action: recommendation.action,
+				confidence: recommendation.confidence,
+				rationale: recommendation.rationale,
+				positionSizePct: recommendation.position_size_pct,
+				entryPrice: recommendation.entry_price,
+				targetPrice: recommendation.target_price,
+				stopLoss: recommendation.stop_loss,
+				risks: recommendation.risks,
 			},
-			null,
-			2,
-		);
+			portfolio: {
+				cash: portfolio.account.cash,
+				portfolioValue: portfolio.account.portfolioValue,
+				buyingPower: portfolio.account.buyingPower,
+				positions: portfolio.positions.map((p) => ({
+					symbol: p.symbol,
+					qty: p.qty,
+					side: p.side,
+					marketValue: p.marketValue,
+					unrealizedPl: p.unrealizedPl,
+				})),
+			},
+		};
+
+		if (portfolioContext) {
+			const symbolPending = portfolioContext.pendingProposals.filter((p) => p.symbol === symbol);
+			const symbolTracking = portfolioContext.trackingOutcomes.filter((t) => t.symbol === symbol);
+			if (symbolPending.length > 0) {
+				contextObj.pendingProposals = symbolPending;
+			}
+			if (symbolTracking.length > 0) {
+				contextObj.trackingOutcomes = symbolTracking;
+			}
+		}
+
+		const contextStr = JSON.stringify(contextObj, null, 2);
 
 		const messages: CompletionMessage[] = [
 			{ role: 'system', content: RISK_VALIDATION_PROMPT },
@@ -726,6 +748,59 @@ function parseRecommendation(content: string): TradeRecommendation {
 			risks: ['Analysis error'],
 		};
 	}
+}
+
+function buildPortfolioContextBlock(portfolio: PortfolioContext, targetSymbol: string): string {
+	const parts: string[] = ['## Portfolio Context'];
+
+	// Current position in target symbol
+	const position = portfolio.positions.find((p) => p.symbol === targetSymbol);
+	if (position) {
+		const plSign = position.unrealizedPl >= 0 ? '+' : '';
+		parts.push(
+			`Current ${targetSymbol} position: ${position.qty} shares @ $${position.avgEntryPrice.toFixed(2)} avg entry, ${position.side}, unrealized P&L: ${plSign}$${position.unrealizedPl.toFixed(2)} (${plSign}${(position.unrealizedPlPct * 100).toFixed(1)}%)`,
+		);
+	} else {
+		parts.push(`No current position in ${targetSymbol}.`);
+	}
+
+	// Pending proposals for this symbol
+	const pending = portfolio.pendingProposals.filter((p) => p.symbol === targetSymbol);
+	if (pending.length > 0) {
+		for (const p of pending) {
+			parts.push(
+				`Pending ${p.action} proposal: confidence ${p.confidence.toFixed(2)}, size ${p.positionSizePct}%`,
+			);
+		}
+	}
+
+	// Tracking outcomes for this symbol
+	const tracking = portfolio.trackingOutcomes.filter((t) => t.symbol === targetSymbol);
+	if (tracking.length > 0) {
+		for (const t of tracking) {
+			const sl = t.stopLoss !== null ? `SL: $${t.stopLoss.toFixed(2)}` : 'no SL';
+			const tp = t.targetPrice !== null ? `TP: $${t.targetPrice.toFixed(2)}` : 'no TP';
+			parts.push(
+				`Tracking ${t.action} outcome: ${t.entryQty} shares @ $${t.entryPrice.toFixed(2)}, ${sl}, ${tp}`,
+			);
+		}
+	}
+
+	// Account summary
+	parts.push(
+		`Account: $${portfolio.account.cash.toFixed(0)} cash, $${portfolio.account.buyingPower.toFixed(0)} buying power, $${portfolio.account.portfolioValue.toFixed(0)} portfolio value`,
+	);
+
+	// Other positions summary
+	const otherPositions = portfolio.positions.filter((p) => p.symbol !== targetSymbol);
+	if (otherPositions.length > 0) {
+		const totalOtherValue = otherPositions.reduce((sum, p) => sum + p.marketValue, 0);
+		parts.push(
+			`${otherPositions.length} other position(s) totaling $${totalOtherValue.toFixed(0)} market value`,
+		);
+	}
+
+	return parts.join('\n');
 }
 
 const PERFORMANCE_CONTEXT_MAX_CHARS = 2000;

@@ -11,6 +11,7 @@ import type {
 	DiscussionMessage,
 	DiscussionPhase,
 	MessageSender,
+	PortfolioContext,
 	TradeProposal,
 } from '@repo/data-ops/agents/session/types';
 import type { TechnicalSignal } from '@repo/data-ops/agents/ta/types';
@@ -28,6 +29,7 @@ export interface RunPipelineParams {
 	llmPrefs?: { temperature: number; maxTokens: number };
 	proposalTimeoutSec?: number;
 	scoreWindows?: number[];
+	portfolioContext?: PortfolioContext;
 }
 
 export interface RunPipelineResult {
@@ -127,6 +129,7 @@ export class PipelineOrchestratorAgent extends Agent<Env, PipelineOrchestratorSt
 			recommendation: null,
 			riskValidation: null,
 			proposal: null,
+			portfolioContext: params.portfolioContext ?? null,
 		};
 
 		this.setState({ ...this.state, activePipelineId: sessionId });
@@ -319,6 +322,7 @@ export class PipelineOrchestratorAgent extends Agent<Env, PipelineOrchestratorSt
 						strategy: params.strategy,
 					},
 					params.llmPrefs,
+					ctx.portfolioContext ?? undefined,
 				);
 				ctx.recommendation = result.recommendation;
 
@@ -350,6 +354,7 @@ export class PipelineOrchestratorAgent extends Agent<Env, PipelineOrchestratorSt
 						account,
 					},
 					params.llmPrefs,
+					ctx.portfolioContext ?? undefined,
 				);
 
 				const status = ctx.riskValidation.approved ? 'approved' : 'rejected';

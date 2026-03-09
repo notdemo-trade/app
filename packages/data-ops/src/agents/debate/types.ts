@@ -1,4 +1,4 @@
-import type { PersonaId } from '../session/types';
+import type { PersonaId, PortfolioContext } from '../session/types';
 
 export interface PersonaConfig {
 	id: PersonaId;
@@ -76,4 +76,5 @@ export interface AnalyzeAsPersonaData {
 	symbol: string;
 	signals: { type: string; direction: string; strength: number; source: string }[];
 	indicators: Record<string, unknown>;
+	portfolioContext?: PortfolioContext;
 }

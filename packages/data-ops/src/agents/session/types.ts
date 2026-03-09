@@ -1,3 +1,4 @@
+import type { BrokerAccount, BrokerPosition } from '../broker/types';
 import type { LLMProviderName } from '../llm/types';
 
 export interface EffectiveConfig {
@@ -117,6 +118,33 @@ export interface ResetResult {
 		outcomes: number;
 		snapshots: number;
 	};
+}
+
+export interface PortfolioContext {
+	positions: BrokerPosition[];
+	account: BrokerAccount;
+	pendingProposals: PendingProposalSummary[];
+	trackingOutcomes: TrackingOutcomeSummary[];
+}
+
+export interface PendingProposalSummary {
+	symbol: string;
+	action: 'buy' | 'sell';
+	confidence: number;
+	positionSizePct: number;
+	notional: number | null;
+	createdAt: number;
+	expiresAt: number;
+}
+
+export interface TrackingOutcomeSummary {
+	symbol: string;
+	action: 'buy' | 'sell';
+	entryPrice: number;
+	entryQty: number;
+	targetPrice: number | null;
+	stopLoss: number | null;
+	createdAt: number;
 }
 
 export interface TradeProposal {

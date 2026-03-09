@@ -20,6 +20,7 @@ import type {
 	DiscussionMessage,
 	DiscussionPhase,
 	MessageSender,
+	PortfolioContext,
 } from '@repo/data-ops/agents/session/types';
 import type { TechnicalIndicators, TechnicalSignal } from '@repo/data-ops/agents/ta/types';
 import { Agent, callable, getAgentByName } from 'agents';
@@ -34,6 +35,7 @@ export interface RunDebateParams {
 	onMessage: (msg: Omit<DiscussionMessage, 'id' | 'threadId' | 'timestamp'>) => void;
 	llmPrefs?: { temperature: number; maxTokens: number };
 	scoreWindows?: number[];
+	portfolioContext?: PortfolioContext;
 }
 
 export interface RunDebateResult {
@@ -178,6 +180,7 @@ export class DebateOrchestratorAgent extends Agent<Env, DebateOrchestratorState>
 				source: 'technical',
 			})),
 			indicators: params.indicators as unknown as Record<string, unknown>,
+			portfolioContext: params.portfolioContext,
 		};
 
 		try {
@@ -241,6 +244,8 @@ export class DebateOrchestratorAgent extends Agent<Env, DebateOrchestratorState>
 				params.config.moderatorPrompt,
 				comparison,
 				params.llmPrefs,
+				params.portfolioContext,
+				params.symbol,
 			);
 
 			this.emitMessage(params, { type: 'moderator' }, 'consensus', consensus.rationale, {
