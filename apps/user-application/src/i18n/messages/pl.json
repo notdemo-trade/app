@@ -326,8 +326,13 @@
 		"proposalHistory": "Historia propozycji",
 		"proposalHistoryDesc": "Przeglądaj wcześniejsze propozycje transakcji i ich pełną analizę",
 		"lastError": "Ostatni błąd",
+		"lastSkipReason": "Cykl pominięty",
 		"loadingProposals": "Ładowanie propozycji...",
-		"noProposals": "Brak propozycji"
+		"noProposals": "Brak propozycji",
+		"toastStartTitle": "Agent uruchomiony",
+		"toastStartDesc": "Pierwszy cykl analizy za ~2 minuty. Upewnij się, że masz symbole na liście obserwowanych.",
+		"toastStopTitle": "Agent zatrzymany",
+		"toastStopDesc": "Wszystkie zaplanowane cykle zostały anulowane. Oczekujące propozycje pozostaną do wygaśnięcia."
 	},
 	"sessionSettings": {
 		"title": "Ustawienia sesji",

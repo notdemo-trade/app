@@ -36,41 +36,48 @@ export async function getBarsForSymbol(
 	}));
 }
 
+// 9 params per row, Postgres limit is 65535 → safe batch size ~500
+const UPSERT_BATCH_SIZE = 500;
+
 export async function upsertBars(bars: UpsertBar[]): Promise<number> {
 	if (bars.length === 0) return 0;
 	const db = getDb();
 
-	// Batch insert with ON CONFLICT DO UPDATE
-	const result = await db
-		.insert(market_data_bars)
-		.values(
-			bars.map((b) => ({
-				symbol: b.symbol,
-				timeframe: b.timeframe,
-				timestamp: b.timestamp,
-				open: b.open,
-				high: b.high,
-				low: b.low,
-				close: b.close,
-				volume: b.volume,
-				source: b.source,
-			})),
-		)
-		.onConflictDoUpdate({
-			target: [market_data_bars.symbol, market_data_bars.timeframe, market_data_bars.timestamp],
-			set: {
-				open: sql`excluded.open`,
-				high: sql`excluded.high`,
-				low: sql`excluded.low`,
-				close: sql`excluded.close`,
-				volume: sql`excluded.volume`,
-				source: sql`excluded.source`,
-				fetchedAt: sql`now()`,
-			},
-		})
-		.returning({ id: market_data_bars.id });
+	let total = 0;
+	for (let i = 0; i < bars.length; i += UPSERT_BATCH_SIZE) {
+		const batch = bars.slice(i, i + UPSERT_BATCH_SIZE);
+		const result = await db
+			.insert(market_data_bars)
+			.values(
+				batch.map((b) => ({
+					symbol: b.symbol,
+					timeframe: b.timeframe,
+					timestamp: b.timestamp,
+					open: b.open,
+					high: b.high,
+					low: b.low,
+					close: b.close,
+					volume: b.volume,
+					source: b.source,
+				})),
+			)
+			.onConflictDoUpdate({
+				target: [market_data_bars.symbol, market_data_bars.timeframe, market_data_bars.timestamp],
+				set: {
+					open: sql`excluded.open`,
+					high: sql`excluded.high`,
+					low: sql`excluded.low`,
+					close: sql`excluded.close`,
+					volume: sql`excluded.volume`,
+					source: sql`excluded.source`,
+					fetchedAt: sql`now()`,
+				},
+			})
+			.returning({ id: market_data_bars.id });
+		total += result.length;
+	}
 
-	return result.length;
+	return total;
 }
 
 export async function getLatestBarTimestamp(

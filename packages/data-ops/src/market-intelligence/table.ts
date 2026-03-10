@@ -23,15 +23,3 @@ export const institutional_holdings = pgTable(
 	},
 	(table) => [index('idx_inst_holdings_symbol').on(table.symbol, table.reportDate)],
 );
-
-export const price_targets = pgTable(
-	'price_targets',
-	{
-		id: uuid('id').defaultRandom().primaryKey(),
-		symbol: text('symbol').notNull(),
-		publishedDate: timestamp('published_date').notNull(),
-		data: jsonb('data').notNull(),
-		fetchedAt: timestamp('fetched_at').defaultNow().notNull(),
-	},
-	(table) => [index('idx_price_targets_symbol').on(table.symbol, table.publishedDate)],
-);

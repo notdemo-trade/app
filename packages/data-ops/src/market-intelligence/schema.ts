@@ -16,14 +16,5 @@ export const InstitutionalHoldingSchema = z.object({
 	fetchedAt: z.date(),
 });
 
-export const PriceTargetSchema = z.object({
-	id: z.string().uuid(),
-	symbol: z.string(),
-	publishedDate: z.date(),
-	data: z.record(z.string(), z.unknown()),
-	fetchedAt: z.date(),
-});
-
 export type InsiderTrade = z.infer<typeof InsiderTradeSchema>;
 export type InstitutionalHolding = z.infer<typeof InstitutionalHoldingSchema>;
-export type PriceTarget = z.infer<typeof PriceTargetSchema>;

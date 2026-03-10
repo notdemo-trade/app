@@ -11,9 +11,6 @@ export interface MarketIntelligenceContext {
 		shares: number;
 		changePct: number;
 	}[];
-	analystPriceTargets?: { firm: string; target: number; rating: string; date: string }[];
-	consensusTarget?: number;
-	consensusRating?: string;
 }
 
 export interface EarningsContext {

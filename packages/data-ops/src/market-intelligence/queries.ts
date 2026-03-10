@@ -1,6 +1,6 @@
 import { desc, eq } from 'drizzle-orm';
 import { getDb } from '../database/setup';
-import { insider_trades, institutional_holdings, price_targets } from './table';
+import { insider_trades, institutional_holdings } from './table';
 
 export async function getRecentInsiderTrades(
 	symbol: string,
@@ -30,20 +30,6 @@ export async function getTopInstitutionalHoldings(
 	return rows.map((r) => r.data as Record<string, unknown>);
 }
 
-export async function getRecentPriceTargets(
-	symbol: string,
-	limit = 10,
-): Promise<Record<string, unknown>[]> {
-	const db = getDb();
-	const rows = await db
-		.select({ data: price_targets.data })
-		.from(price_targets)
-		.where(eq(price_targets.symbol, symbol))
-		.orderBy(desc(price_targets.publishedDate))
-		.limit(limit);
-	return rows.map((r) => r.data as Record<string, unknown>);
-}
-
 export async function upsertInsiderTrades(
 	symbol: string,
 	trades: { tradeDate: Date; data: Record<string, unknown> }[],
@@ -65,17 +51,5 @@ export async function upsertInstitutionalHoldings(
 	await db
 		.insert(institutional_holdings)
 		.values(holdings.map((h) => ({ symbol, reportDate: h.reportDate, data: h.data })))
-		.onConflictDoNothing();
-}
-
-export async function upsertPriceTargets(
-	symbol: string,
-	targets: { publishedDate: Date; data: Record<string, unknown> }[],
-): Promise<void> {
-	if (targets.length === 0) return;
-	const db = getDb();
-	await db
-		.insert(price_targets)
-		.values(targets.map((t) => ({ symbol, publishedDate: t.publishedDate, data: t.data })))
 		.onConflictDoNothing();
 }

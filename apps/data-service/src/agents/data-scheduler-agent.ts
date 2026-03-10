@@ -95,6 +95,61 @@ export class DataSchedulerAgent extends Agent<Env, DataSchedulerState> {
 		return { status: 'stopped' };
 	}
 
+	@callable()
+	async fetchEnrichmentNow(symbol: string): Promise<{
+		fundamentals: { ok: boolean; error?: string };
+		insiderTrades: { ok: boolean; error?: string };
+		institutionalHoldings: { ok: boolean; error?: string };
+		earnings: { ok: boolean; error?: string };
+	}> {
+		const errMsg = (e: unknown) => (e instanceof Error ? e.message : String(e));
+
+		const fundamentals = await (async () => {
+			try {
+				const agent = await getAgentByName<FundamentalsAgent>(this.env.FundamentalsAgent, 'global');
+				await agent.fetchStatements(symbol);
+				return { ok: true };
+			} catch (e) {
+				return { ok: false, error: errMsg(e) };
+			}
+		})();
+
+		const miAgent = await getAgentByName<MarketIntelligenceAgent>(
+			this.env.MarketIntelligenceAgent,
+			'global',
+		);
+
+		const insiderTrades = await (async () => {
+			try {
+				await miAgent.fetchInsiderTrades(symbol);
+				return { ok: true };
+			} catch (e) {
+				return { ok: false, error: errMsg(e) };
+			}
+		})();
+
+		const institutionalHoldings = await (async () => {
+			try {
+				await miAgent.fetchInstitutionalHoldings(symbol);
+				return { ok: true };
+			} catch (e) {
+				return { ok: false, error: errMsg(e) };
+			}
+		})();
+
+		const earnings = await (async () => {
+			try {
+				const agent = await getAgentByName<EarningsAgent>(this.env.EarningsAgent, 'global');
+				await agent.fetchEarnings(symbol);
+				return { ok: true };
+			} catch (e) {
+				return { ok: false, error: errMsg(e) };
+			}
+		})();
+
+		return { fundamentals, insiderTrades, institutionalHoldings, earnings };
+	}
+
 	async runSchedulerCycle(): Promise<void> {
 		if (!this.state.isRunning) return;
 
@@ -186,7 +241,6 @@ export class DataSchedulerAgent extends Agent<Env, DataSchedulerState> {
 						);
 						await agent.fetchInsiderTrades(symbol);
 						await agent.fetchInstitutionalHoldings(symbol);
-						await agent.fetchPriceTargets(symbol);
 						this.updateEnrichmentSchedule(symbol, 'market_intel');
 					}
 

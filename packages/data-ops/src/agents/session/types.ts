@@ -72,6 +72,7 @@ export interface SessionState {
 	pendingProposalCount: number;
 	errorCount: number;
 	lastError: string | null;
+	lastSkipReason: string | null;
 }
 
 export type PersonaId = 'bull_analyst' | 'bear_analyst' | 'risk_manager' | string;

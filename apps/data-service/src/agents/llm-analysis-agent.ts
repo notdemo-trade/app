@@ -904,15 +904,6 @@ function buildEnrichmentBlock(request: AnalysisRequest): string {
 				`### Top Institutional Holders\n${JSON.stringify(mi.topInstitutionalHolders, null, 2)}`,
 			);
 		}
-		if (mi.analystPriceTargets && mi.analystPriceTargets.length > 0) {
-			parts.push(`### Analyst Price Targets\n${JSON.stringify(mi.analystPriceTargets, null, 2)}`);
-		}
-		if (mi.consensusTarget) {
-			parts.push(`Consensus target: $${mi.consensusTarget}`);
-		}
-		if (mi.consensusRating) {
-			parts.push(`Consensus rating: ${mi.consensusRating}`);
-		}
 	}
 
 	if (request.earningsContext) {

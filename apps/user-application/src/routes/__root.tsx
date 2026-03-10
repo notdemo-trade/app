@@ -10,6 +10,7 @@ import { IntlProvider } from 'use-intl';
 import { DefaultCatchBoundary } from '@/components/default-catch-boundary';
 import { NotFound } from '@/components/not-found';
 import { ThemeProvider } from '@/components/theme';
+import { Toaster } from '@/components/ui/sonner';
 import { TooltipProvider } from '@/components/ui/tooltip';
 import type { Locale } from '@/i18n/core/shared';
 import { getCurrentLocale } from '@/i18n/get-locale';
@@ -101,6 +102,7 @@ function RootComponent() {
 				>
 					<TooltipProvider>
 						<Outlet />
+						<Toaster />
 					</TooltipProvider>
 				</ThemeProvider>
 			</IntlProvider>

@@ -2,7 +2,6 @@ import { initDatabase } from '@repo/data-ops/database/setup';
 import {
 	upsertInsiderTrades,
 	upsertInstitutionalHoldings,
-	upsertPriceTargets,
 } from '@repo/data-ops/market-intelligence';
 import { MarketIntelProvider } from '@repo/data-ops/providers/financialdatasets';
 import { Agent, callable } from 'agents';
@@ -49,10 +48,12 @@ export class MarketIntelligenceAgent extends Agent<Env, MarketIntelligenceAgentS
 
 			await upsertInsiderTrades(
 				symbol,
-				trades.map((t) => ({
-					tradeDate: new Date(t.trade_date),
-					data: t as unknown as Record<string, unknown>,
-				})),
+				trades
+					.filter((t) => t.transaction_date)
+					.map((t) => ({
+						tradeDate: new Date(t.transaction_date),
+						data: t as unknown as Record<string, unknown>,
+					})),
 			);
 
 			const now = Date.now();
@@ -78,10 +79,12 @@ export class MarketIntelligenceAgent extends Agent<Env, MarketIntelligenceAgentS
 
 			await upsertInstitutionalHoldings(
 				symbol,
-				holdings.map((h) => ({
-					reportDate: new Date(h.filing_date),
-					data: h as unknown as Record<string, unknown>,
-				})),
+				holdings
+					.filter((h) => h.report_period)
+					.map((h) => ({
+						reportDate: new Date(h.report_period),
+						data: h as unknown as Record<string, unknown>,
+					})),
 			);
 
 			const now = Date.now();
@@ -90,35 +93,6 @@ export class MarketIntelligenceAgent extends Agent<Env, MarketIntelligenceAgentS
 
 			this.setState({ ...this.state, totalFetches: this.state.totalFetches + 1, lastFetchAt: now });
 			return { count: holdings.length };
-		} catch (error) {
-			this.handleError(error);
-			throw error;
-		}
-	}
-
-	@callable()
-	async fetchPriceTargets(symbol: string): Promise<{ count: number }> {
-		const provider = new MarketIntelProvider({
-			apiKey: this.env.FINANCIAL_DATASETS_API_KEY,
-		});
-
-		try {
-			const targets = await provider.fetchPriceTargets(symbol, 20);
-
-			await upsertPriceTargets(
-				symbol,
-				targets.map((t) => ({
-					publishedDate: new Date(t.published_date),
-					data: t as unknown as Record<string, unknown>,
-				})),
-			);
-
-			const now = Date.now();
-			this.sql`INSERT INTO market_intel_fetch_log (symbol, type, count, fetched_at)
-				VALUES (${symbol}, 'price_targets', ${targets.length}, ${now})`;
-
-			this.setState({ ...this.state, totalFetches: this.state.totalFetches + 1, lastFetchAt: now });
-			return { count: targets.length };
 		} catch (error) {
 			this.handleError(error);
 			throw error;

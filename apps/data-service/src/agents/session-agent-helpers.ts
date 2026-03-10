@@ -1,3 +1,4 @@
+import type { EnrichmentData } from '@repo/data-ops/agents/enrichment/types';
 import type { StrategyTemplate } from '@repo/data-ops/agents/llm/types';
 import type {
 	ExitReason,
@@ -293,3 +294,66 @@ You have access to tools for analyzing symbols and executing trades.
 When the user asks about a symbol, use the analyzeSymbol tool to start a full analysis cycle.
 When the user approves a trade proposal, use the executeTrade tool to submit the order.
 Always explain your reasoning and present analysis results clearly.`;
+
+/** Build a human-readable summary of enrichment data for the discussion chat. */
+export function summarizeEnrichment(symbol: string, data: EnrichmentData): string {
+	const sections: string[] = [];
+
+	// Fundamentals
+	const f = data.fundamentals;
+	if (f) {
+		const hasData = f.latestIncome || f.latestBalanceSheet || f.latestCashFlow;
+		if (hasData) {
+			const parts: string[] = [];
+			if (f.latestIncome) parts.push('income statement');
+			if (f.latestBalanceSheet) parts.push('balance sheet');
+			if (f.latestCashFlow) parts.push('cash flow');
+			sections.push(`**Fundamentals**: ${parts.join(', ')} available`);
+		} else {
+			sections.push('**Fundamentals**: no data in database');
+		}
+	}
+
+	// Market Intelligence
+	const mi = data.marketIntelligence;
+	if (mi) {
+		const parts: string[] = [];
+		if (mi.recentInsiderTrades?.length) {
+			parts.push(`${mi.recentInsiderTrades.length} insider trades`);
+		}
+		if (mi.topInstitutionalHolders?.length) {
+			parts.push(`${mi.topInstitutionalHolders.length} institutional holders`);
+		}
+		if (parts.length > 0) {
+			sections.push(`**Market Intelligence**: ${parts.join(' · ')}`);
+		} else {
+			sections.push('**Market Intelligence**: no data in database');
+		}
+	}
+
+	// Earnings
+	const e = data.earnings;
+	if (e) {
+		const parts: string[] = [];
+		if (e.lastEarnings) {
+			const surprise = e.lastEarnings.surprisePct >= 0 ? '+' : '';
+			parts.push(
+				`last EPS ${e.lastEarnings.epsActual} vs est ${e.lastEarnings.epsEstimate} (${surprise}${e.lastEarnings.surprisePct.toFixed(1)}%)`,
+			);
+		}
+		if (e.nextEarningsDate) {
+			parts.push(`next report: ${e.nextEarningsDate}`);
+		}
+		if (parts.length > 0) {
+			sections.push(`**Earnings**: ${parts.join(' · ')}`);
+		} else {
+			sections.push('**Earnings**: no data in database');
+		}
+	}
+
+	if (sections.length === 0) {
+		return `Enrichment data for ${symbol}: no data available in database`;
+	}
+
+	return `Enrichment data for ${symbol}:\n${sections.join('\n')}`;
+}

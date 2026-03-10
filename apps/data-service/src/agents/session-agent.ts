@@ -66,6 +66,7 @@ import {
 	type SessionConfigRow,
 	type StrategyTemplateRow,
 	SYSTEM_PROMPT,
+	summarizeEnrichment,
 	type ThreadRow,
 } from './session-agent-helpers';
 import type { TechnicalAnalysisAgent } from './technical-analysis-agent';
@@ -83,6 +84,7 @@ export class SessionAgent extends AIChatAgent<Env, SessionState> {
 		pendingProposalCount: 0,
 		errorCount: 0,
 		lastError: null,
+		lastSkipReason: null,
 	};
 
 	async onStart() {
@@ -171,8 +173,8 @@ export class SessionAgent extends AIChatAgent<Env, SessionState> {
 	// --- Scheduling helpers ---
 
 	private async rescheduleAnalysisCycle(intervalSec: number): Promise<void> {
-		// Cancel existing analysis schedules
-		const existing = this.getSchedules({ type: 'interval' });
+		// Cancel existing analysis schedules (one-shot type created by this.schedule())
+		const existing = this.getSchedules();
 		for (const s of existing) {
 			if (s.callback === 'runScheduledCycle') {
 				await this.cancelSchedule(s.id);
@@ -195,7 +197,13 @@ export class SessionAgent extends AIChatAgent<Env, SessionState> {
 	@callable()
 	async start(): Promise<SessionState> {
 		const config = this.loadConfig();
-		this.setState({ ...this.state, enabled: true });
+		this.setState({
+			...this.state,
+			enabled: true,
+			lastCycleAt: Date.now(),
+			lastSkipReason: null,
+			lastError: null,
+		});
 		await this.cancelAllSchedules();
 		await this.rescheduleAnalysisCycle(config.analysisIntervalSec);
 		await this.scheduleEvery(300, 'runOutcomeTrackingCycle');
@@ -247,77 +255,75 @@ export class SessionAgent extends AIChatAgent<Env, SessionState> {
 	}
 
 	@callable()
-	async triggerAnalysis(): Promise<{ threadIds: string[] }> {
-		this.setState({ ...this.state, lastError: null });
+	async triggerAnalysis(): Promise<{ threadIds: string[]; skipReason?: string }> {
 		const effectiveConfig = await this.loadEffectiveConfig();
+		let skipReason: string | undefined;
 
 		// --- G1: Market hours gate ---
 		if (effectiveConfig.tradingHoursOnly) {
 			const marketOpen = await this.isMarketOpen();
 			if (!marketOpen) {
-				console.log('[triggerAnalysis] Skipped: market is closed and tradingHoursOnly is enabled');
-				return { threadIds: [] };
+				skipReason = 'Market is closed (tradingHoursOnly enabled)';
 			}
 		}
 
 		// --- G4: Daily loss circuit breaker ---
-		const dailyLossTriggered = await this.isDailyLossBreached(effectiveConfig.maxDailyLossPct);
-		if (dailyLossTriggered) {
-			console.log(
-				`[triggerAnalysis] Skipped: daily loss exceeds ${(effectiveConfig.maxDailyLossPct * 100).toFixed(1)}% limit`,
-			);
-
-			// Phase 011: Telegram risk alert
-			this.notifyRiskAlert('daily_loss_limit', 'Daily loss limit exceeded', {
-				maxDailyLossPct: effectiveConfig.maxDailyLossPct,
-			});
-
-			return { threadIds: [] };
+		if (!skipReason) {
+			const dailyLossTriggered = await this.isDailyLossBreached(effectiveConfig.maxDailyLossPct);
+			if (dailyLossTriggered) {
+				this.notifyRiskAlert('daily_loss_limit', 'Daily loss limit exceeded', {
+					maxDailyLossPct: effectiveConfig.maxDailyLossPct,
+				});
+				skipReason = `Daily loss exceeds ${(effectiveConfig.maxDailyLossPct * 100).toFixed(1)}% limit`;
+			}
 		}
 
 		// --- G5: Cooldown after loss ---
-		if (effectiveConfig.cooldownMinutesAfterLoss > 0) {
+		if (!skipReason && effectiveConfig.cooldownMinutesAfterLoss > 0) {
 			const cooldownActive = this.isCooldownActive(effectiveConfig.cooldownMinutesAfterLoss);
 			if (cooldownActive) {
-				console.log(
-					`[triggerAnalysis] Skipped: cooldown active (${effectiveConfig.cooldownMinutesAfterLoss} min after loss)`,
-				);
-				return { threadIds: [] };
+				skipReason = `Cooldown active (${effectiveConfig.cooldownMinutesAfterLoss} min after loss)`;
 			}
 		}
 
 		// --- G2 + G3: Ticker filtering ---
-		const symbols = this.filterWatchlist(
-			effectiveConfig.watchlistSymbols,
-			effectiveConfig.tickerBlacklist,
-			effectiveConfig.tickerAllowlist,
-		);
-
-		if (symbols.length === 0) {
-			console.log('[triggerAnalysis] Skipped: no symbols remaining after filtering');
-			return { threadIds: [] };
-		}
-
-		const portfolioContext = await this.assemblePortfolioContext();
-		const threadIds: string[] = [];
-		for (const symbol of symbols) {
-			const result = await this.runAnalysisForSymbol(symbol, effectiveConfig, portfolioContext);
-			if (result.threadId) {
-				threadIds.push(result.threadId);
+		let symbols: string[] = [];
+		if (!skipReason) {
+			symbols = this.filterWatchlist(
+				effectiveConfig.watchlistSymbols,
+				effectiveConfig.tickerBlacklist,
+				effectiveConfig.tickerAllowlist,
+			);
+			if (symbols.length === 0) {
+				skipReason = 'No symbols remaining after filtering';
 			}
 		}
+
+		// --- Run analysis if no skip ---
+		const threadIds: string[] = [];
+		if (!skipReason) {
+			const portfolioContext = await this.assemblePortfolioContext();
+			for (const symbol of symbols) {
+				const result = await this.runAnalysisForSymbol(symbol, effectiveConfig, portfolioContext);
+				if (result.threadId) {
+					threadIds.push(result.threadId);
+				}
+			}
+		}
+
+		// --- Always update state and reschedule ---
 		this.setState({
 			...this.state,
 			lastCycleAt: Date.now(),
 			cycleCount: this.state.cycleCount + 1,
+			lastError: null,
+			lastSkipReason: skipReason ?? null,
 		});
-
-		// Reschedule so next cycle aligns with this trigger
 		if (this.state.enabled) {
 			await this.rescheduleAnalysisCycle(effectiveConfig.analysisIntervalSec);
 		}
 
-		return { threadIds };
+		return { threadIds, skipReason };
 	}
 
 	@callable()
@@ -457,6 +463,7 @@ export class SessionAgent extends AIChatAgent<Env, SessionState> {
 			cycleCount: 0,
 			errorCount: 0,
 			lastError: null,
+			lastSkipReason: null,
 			lastCycleAt: null,
 			activeThreadId: null,
 			activeThread: null,
@@ -485,6 +492,8 @@ export class SessionAgent extends AIChatAgent<Env, SessionState> {
 			await this.triggerAnalysis();
 			this.expireProposals();
 		} catch (err) {
+			// triggerAnalysis handles its own state updates on success/skip,
+			// but if it throws unexpectedly, update error state + reschedule here
 			const message = err instanceof Error ? err.message : String(err);
 			const config = this.loadConfig();
 			this.setState({
@@ -492,8 +501,11 @@ export class SessionAgent extends AIChatAgent<Env, SessionState> {
 				lastCycleAt: Date.now(),
 				errorCount: this.state.errorCount + 1,
 				lastError: message,
+				lastSkipReason: null,
 			});
-			await this.rescheduleAnalysisCycle(config.analysisIntervalSec);
+			if (this.state.enabled) {
+				await this.rescheduleAnalysisCycle(config.analysisIntervalSec);
+			}
 		}
 	}
 
@@ -607,6 +619,12 @@ export class SessionAgent extends AIChatAgent<Env, SessionState> {
 				marketIntelligence: feeds.marketIntelligence ? full.marketIntelligence : undefined,
 				earnings: feeds.earnings ? full.earnings : undefined,
 			};
+			onMessage({
+				sender: { type: 'data_agent', name: 'EnrichmentData' },
+				phase: 'data_collection',
+				content: summarizeEnrichment(symbol, enrichment),
+				metadata: {},
+			});
 		}
 
 		const personas = await this.loadPersonasFromDb();

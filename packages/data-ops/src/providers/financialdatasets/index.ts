@@ -9,6 +9,5 @@ export type {
 	FDIncomeStatement,
 	FDInsiderTrade,
 	FDInstitutionalHolding,
-	FDPriceTarget,
 	FinancialDatasetsConfig,
 } from './types';

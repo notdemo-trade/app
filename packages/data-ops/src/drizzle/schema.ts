@@ -28,7 +28,6 @@ export { market_data_bars } from '../market-data-bars/table';
 export {
 	insider_trades,
 	institutional_holdings,
-	price_targets,
 } from '../market-intelligence/table';
 export { notification_settings } from '../notification-settings/table';
 export { signals } from '../signal/table';

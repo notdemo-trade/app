@@ -46,34 +46,27 @@ export interface FDCashFlow {
 export interface FDInsiderTrade {
 	ticker: string;
 	filing_date: string;
-	trade_date: string;
-	owner_name: string;
-	owner_title: string;
-	transaction_type: string;
-	shares_traded: number;
-	price_per_share: number;
-	total_value: number;
+	transaction_date: string;
+	name: string;
+	title: string;
+	is_board_director: boolean;
+	transaction_shares: number;
+	transaction_price_per_share: number;
+	transaction_value: number;
+	shares_owned_before_transaction: number;
+	shares_owned_after_transaction: number;
+	security_title: string;
+	issuer: string;
 	[key: string]: unknown;
 }
 
 export interface FDInstitutionalHolding {
 	ticker: string;
-	filing_date: string;
-	investor_name: string;
+	investor: string;
+	report_period: string;
+	price: number;
 	shares: number;
-	value: number;
-	change_in_shares: number;
-	change_in_shares_pct: number;
-	[key: string]: unknown;
-}
-
-export interface FDPriceTarget {
-	ticker: string;
-	published_date: string;
-	analyst_company: string;
-	analyst_name: string;
-	price_target: number;
-	rating: string;
+	market_value: number;
 	[key: string]: unknown;
 }
 

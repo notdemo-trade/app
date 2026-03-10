@@ -326,8 +326,13 @@
 		"proposalHistory": "Proposal History",
 		"proposalHistoryDesc": "Review past trade proposals and their full analysis",
 		"lastError": "Last Error",
+		"lastSkipReason": "Cycle Skipped",
 		"loadingProposals": "Loading proposals...",
-		"noProposals": "No proposals yet"
+		"noProposals": "No proposals yet",
+		"toastStartTitle": "Agent started",
+		"toastStartDesc": "First analysis cycle in ~2 minutes. Make sure you have symbols in your watchlist.",
+		"toastStopTitle": "Agent stopped",
+		"toastStopDesc": "All scheduled cycles have been cancelled. Pending proposals will remain until they expire."
 	},
 	"sessionSettings": {
 		"title": "Session Settings",

@@ -1,6 +1,7 @@
 import { createFileRoute, Link } from '@tanstack/react-router';
 import { Bot, Clock, History, Play, RefreshCw, Settings } from 'lucide-react';
 import { useCallback, useEffect, useState } from 'react';
+import { toast } from 'sonner';
 import { useTranslations } from 'use-intl';
 import { DiscussionThread, SessionSettings, TradeProposalCard } from '@/components/agents';
 import { Badge } from '@/components/ui/badge';
@@ -29,12 +30,21 @@ interface SessionDashboardProps {
 	userId: string;
 }
 
-function useNextCycleCountdown(enabled: boolean, lastCycleAt: number | null, intervalSec: number) {
+function NextCycleCountdown({
+	enabled,
+	lastCycleAt,
+	intervalSec,
+}: {
+	enabled: boolean;
+	lastCycleAt: number | null;
+	intervalSec: number;
+}) {
+	const t = useTranslations();
+
 	const computeRemaining = useCallback(() => {
 		if (!enabled || !lastCycleAt) return null;
 		const nextAt = lastCycleAt + intervalSec * 1000;
-		const remaining = Math.max(0, Math.ceil((nextAt - Date.now()) / 1000));
-		return remaining;
+		return Math.max(0, Math.ceil((nextAt - Date.now()) / 1000));
 	}, [enabled, lastCycleAt, intervalSec]);
 
 	const [remaining, setRemaining] = useState(computeRemaining);
@@ -47,10 +57,18 @@ function useNextCycleCountdown(enabled: boolean, lastCycleAt: number | null, int
 	}, [enabled, lastCycleAt, computeRemaining]);
 
 	if (remaining === null) return null;
-	if (remaining === 0) return 'Due...';
-	const mins = Math.floor(remaining / 60);
-	const secs = remaining % 60;
-	return `${mins}:${secs.toString().padStart(2, '0')}`;
+
+	const display =
+		remaining === 0
+			? 'Due...'
+			: `${Math.floor(remaining / 60)}:${(remaining % 60).toString().padStart(2, '0')}`;
+
+	return (
+		<div className="flex items-center gap-1 text-muted-foreground">
+			<Clock className="h-3.5 w-3.5" />
+			{t('sessionPage.next')} <span className="font-mono text-foreground">{display}</span>
+		</div>
+	);
 }
 
 function SessionDashboard({ userId }: SessionDashboardProps) {
@@ -62,11 +80,6 @@ function SessionDashboard({ userId }: SessionDashboardProps) {
 	const isEnabled = session.state?.enabled ?? false;
 	const cycleCount = session.state?.cycleCount ?? 0;
 	const errorCount = session.state?.errorCount ?? 0;
-	const countdown = useNextCycleCountdown(
-		isEnabled,
-		session.state?.lastCycleAt ?? null,
-		session.state?.analysisIntervalSec ?? 120,
-	);
 	const pendingProposalCount = session.state?.pendingProposalCount ?? 0;
 	const activeProposal = session.state?.activeThread?.proposal ?? null;
 	const pendingProposal = activeProposal?.status === 'pending' ? activeProposal : null;
@@ -104,7 +117,21 @@ function SessionDashboard({ userId }: SessionDashboardProps) {
 							<span className="text-sm font-medium text-foreground">{t('sessionPage.agent')}</span>
 							<Switch
 								checked={isEnabled}
-								onCheckedChange={(checked) => (checked ? session.start() : session.stop())}
+								onCheckedChange={(checked) => {
+									if (checked) {
+										session.start();
+										toast.success(t('sessionPage.toastStartTitle'), {
+											description: t('sessionPage.toastStartDesc'),
+											duration: 6000,
+										});
+									} else {
+										session.stop();
+										toast.info(t('sessionPage.toastStopTitle'), {
+											description: t('sessionPage.toastStopDesc'),
+											duration: 6000,
+										});
+									}
+								}}
 							/>
 							<Badge variant={isEnabled ? 'success' : 'secondary'}>
 								{isEnabled ? t('sessionPage.running') : t('sessionPage.stopped')}
@@ -122,13 +149,11 @@ function SessionDashboard({ userId }: SessionDashboardProps) {
 								<span className="font-mono text-foreground">{errorCount}</span>
 								<InfoTip content={t('session.tips.errors')} side="bottom" />
 							</div>
-							{countdown && (
-								<div className="flex items-center gap-1 text-muted-foreground">
-									<Clock className="h-3.5 w-3.5" />
-									{t('sessionPage.next')}{' '}
-									<span className="font-mono text-foreground">{countdown}</span>
-								</div>
-							)}
+							<NextCycleCountdown
+								enabled={isEnabled}
+								lastCycleAt={session.state?.lastCycleAt ?? null}
+								intervalSec={session.state?.analysisIntervalSec ?? 120}
+							/>
 							{pendingProposalCount > 0 && (
 								<div className="flex items-center gap-1">
 									<Badge variant="warning">
@@ -227,6 +252,20 @@ function SessionDashboard({ userId }: SessionDashboardProps) {
 						<History className="h-4 w-4" />
 						{t('sessionPage.proposalHistory')}
 					</Link>
+
+					{/* Last Skip Reason */}
+					{session.state?.lastSkipReason && !session.state?.lastError && (
+						<Card className="border-yellow-500/50">
+							<CardHeader className="pb-2">
+								<CardTitle className="text-sm text-yellow-600 dark:text-yellow-400">
+									{t('sessionPage.lastSkipReason')}
+								</CardTitle>
+							</CardHeader>
+							<CardContent>
+								<p className="text-xs text-muted-foreground">{session.state.lastSkipReason}</p>
+							</CardContent>
+						</Card>
+					)}
 
 					{/* Last Error */}
 					{session.state?.lastError && (

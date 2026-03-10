@@ -1,4 +1,5 @@
 import { getEnrichmentForSymbol } from '@repo/data-ops/agents/enrichment/queries';
+import type { EnrichmentData } from '@repo/data-ops/agents/enrichment/types';
 import type { StrategyTemplate } from '@repo/data-ops/agents/llm/types';
 import type { PipelineScore, ScoreWindow } from '@repo/data-ops/agents/memory/types';
 import type {
@@ -22,7 +23,7 @@ import { Agent, callable, getAgentByName } from 'agents';
 import type { AlpacaBrokerAgent } from './alpaca-broker-agent';
 import type { AlpacaMarketDataAgent } from './alpaca-market-data-agent';
 import type { LLMAnalysisAgent } from './llm-analysis-agent';
-import { normalizePositionSizePct } from './session-agent-helpers';
+import { normalizePositionSizePct, summarizeEnrichment } from './session-agent-helpers';
 import type { TechnicalAnalysisAgent } from './technical-analysis-agent';
 
 export interface RunPipelineParams {
@@ -340,23 +341,18 @@ export class PipelineOrchestratorAgent extends Agent<Env, PipelineOrchestratorSt
 				const feeds = params.dataFeeds;
 				if (feeds.fundamentals || feeds.marketIntelligence || feeds.earnings) {
 					const full = await getEnrichmentForSymbol(params.symbol);
-					ctx.enrichment = {
+					const enrichment: EnrichmentData = {
 						fundamentals: feeds.fundamentals ? full.fundamentals : undefined,
 						marketIntelligence: feeds.marketIntelligence ? full.marketIntelligence : undefined,
 						earnings: feeds.earnings ? full.earnings : undefined,
 					};
-
-					const sources = [
-						feeds.fundamentals && 'fundamentals',
-						feeds.marketIntelligence && 'market intelligence',
-						feeds.earnings && 'earnings',
-					].filter(Boolean);
+					ctx.enrichment = enrichment;
 
 					this.emitMessage(
 						params,
 						{ type: 'data_agent', name: 'EnrichmentData' },
 						'data_collection',
-						`Fetched enrichment data for ${params.symbol}: ${sources.join(', ')}`,
+						summarizeEnrichment(params.symbol, enrichment),
 					);
 				}
 				break;

@@ -74,6 +74,11 @@ export class AlphaVantageDataAgent extends Agent<Env, AlphaVantageDataAgentState
 				return { symbol, timeframe, barsStored: 0 };
 			}
 
+			// Cap to last 2 years to avoid storing decades of unused history
+			const twoYearsAgo = new Date();
+			twoYearsAgo.setFullYear(twoYearsAgo.getFullYear() - 2);
+			bars = bars.filter((b) => new Date(b.t) >= twoYearsAgo);
+
 			// Convert to upsert format
 			const upsertData = bars.map((bar) => ({
 				symbol,

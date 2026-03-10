@@ -3,7 +3,6 @@ import type {
 	FDInsiderTrade,
 	FDInstitutionalHolding,
 	FDListResponse,
-	FDPriceTarget,
 	FinancialDatasetsConfig,
 } from './types';
 
@@ -24,18 +23,10 @@ export class MarketIntelProvider {
 
 	async fetchInstitutionalHoldings(ticker: string, limit = 20): Promise<FDInstitutionalHolding[]> {
 		const data = await this.client.request<FDListResponse<FDInstitutionalHolding>>(
-			'/institutional-holdings',
+			'/institutional-ownership',
 			{ ticker, limit: String(limit) },
 		);
-		return this.extractArray<FDInstitutionalHolding>(data, 'institutional_holdings');
-	}
-
-	async fetchPriceTargets(ticker: string, limit = 20): Promise<FDPriceTarget[]> {
-		const data = await this.client.request<FDListResponse<FDPriceTarget>>('/price-targets', {
-			ticker,
-			limit: String(limit),
-		});
-		return this.extractArray<FDPriceTarget>(data, 'price_targets');
+		return this.extractArray<FDInstitutionalHolding>(data, 'institutional_ownership');
 	}
 
 	private extractArray<T>(data: FDListResponse<T>, key: string): T[] {

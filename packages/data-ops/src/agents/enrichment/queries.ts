@@ -2,7 +2,6 @@ import { getLatestEarnings, getUpcomingEarnings } from '../../earnings/queries';
 import { getLatestStatement } from '../../financial-statements/queries';
 import {
 	getRecentInsiderTrades,
-	getRecentPriceTargets,
 	getTopInstitutionalHoldings,
 } from '../../market-intelligence/queries';
 import type {
@@ -29,54 +28,28 @@ export async function getFundamentalsContext(symbol: string): Promise<Fundamenta
 export async function getMarketIntelligenceContext(
 	symbol: string,
 ): Promise<MarketIntelligenceContext> {
-	const [insiderTrades, holdings, priceTargets] = await Promise.all([
+	const [insiderTrades, holdings] = await Promise.all([
 		getRecentInsiderTrades(symbol, 10),
 		getTopInstitutionalHoldings(symbol, 10),
-		getRecentPriceTargets(symbol, 10),
 	]);
 
 	const context: MarketIntelligenceContext = {};
 
 	if (insiderTrades.length > 0) {
 		context.recentInsiderTrades = insiderTrades.map((t) => ({
-			name: String(t.owner_name ?? ''),
-			type: String(t.transaction_type ?? ''),
-			shares: Number(t.shares_traded ?? 0),
-			date: String(t.trade_date ?? ''),
+			name: String(t.name ?? ''),
+			type: String(t.title ?? ''),
+			shares: Number(t.transaction_shares ?? 0),
+			date: String(t.transaction_date ?? ''),
 		}));
 	}
 
 	if (holdings.length > 0) {
 		context.topInstitutionalHolders = holdings.map((h) => ({
-			name: String(h.investor_name ?? ''),
+			name: String(h.investor ?? ''),
 			shares: Number(h.shares ?? 0),
-			changePct: Number(h.change_in_shares_pct ?? 0),
+			changePct: 0,
 		}));
-	}
-
-	if (priceTargets.length > 0) {
-		context.analystPriceTargets = priceTargets.map((pt) => ({
-			firm: String(pt.analyst_company ?? ''),
-			target: Number(pt.price_target ?? 0),
-			rating: String(pt.rating ?? ''),
-			date: String(pt.published_date ?? ''),
-		}));
-
-		// Compute consensus
-		const targets = priceTargets.map((pt) => Number(pt.price_target ?? 0)).filter((t) => t > 0);
-		if (targets.length > 0) {
-			context.consensusTarget = targets.reduce((a, b) => a + b, 0) / targets.length;
-		}
-
-		// Simple consensus rating
-		const ratings = priceTargets.map((pt) => String(pt.rating ?? '').toLowerCase());
-		const buyCount = ratings.filter((r) => r.includes('buy') || r.includes('outperform')).length;
-		const sellCount = ratings.filter(
-			(r) => r.includes('sell') || r.includes('underperform'),
-		).length;
-		if (buyCount > sellCount * 2) context.consensusRating = 'Buy';
-		else if (sellCount > buyCount * 2) context.consensusRating = 'Sell';
-		else context.consensusRating = 'Hold';
 	}
 
 	return context;
