@@ -1,3 +1,8 @@
+import type {
+	EarningsContext,
+	FundamentalsContext,
+	MarketIntelligenceContext,
+} from '../enrichment/types';
 import type { PersonaId, PortfolioContext } from '../session/types';
 
 export interface PersonaConfig {
@@ -77,4 +82,7 @@ export interface AnalyzeAsPersonaData {
 	signals: { type: string; direction: string; strength: number; source: string }[];
 	indicators: Record<string, unknown>;
 	portfolioContext?: PortfolioContext;
+	fundamentals?: FundamentalsContext;
+	marketIntelligence?: MarketIntelligenceContext;
+	earningsContext?: EarningsContext;
 }

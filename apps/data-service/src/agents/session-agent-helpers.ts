@@ -5,6 +5,7 @@ import type {
 	ProposalOutcome,
 } from '@repo/data-ops/agents/memory/types';
 import type {
+	DataFeedsConfig,
 	DiscussionMessage,
 	DiscussionPhase,
 	DiscussionThread,
@@ -27,6 +28,7 @@ export interface SessionConfigRow {
 	active_strategy_id: string;
 	debate_rounds: number;
 	proposal_timeout_sec: number;
+	data_feeds: string | null;
 }
 
 export interface StrategyTemplateRow {
@@ -117,7 +119,23 @@ export interface CountRow {
 
 // --- Row → domain mappers ---
 
+const DEFAULT_DATA_FEEDS: DataFeedsConfig = {
+	technicalAnalysis: true,
+	fundamentals: false,
+	marketIntelligence: false,
+	earnings: false,
+};
+
 export function rowToConfig(row: SessionConfigRow): SessionConfig {
+	let dataFeeds: DataFeedsConfig = DEFAULT_DATA_FEEDS;
+	if (row.data_feeds) {
+		try {
+			dataFeeds = JSON.parse(row.data_feeds) as DataFeedsConfig;
+		} catch {
+			dataFeeds = DEFAULT_DATA_FEEDS;
+		}
+	}
+
 	return {
 		orchestrationMode: row.orchestration_mode as SessionConfig['orchestrationMode'],
 		brokerType: row.broker_type,
@@ -130,6 +148,7 @@ export function rowToConfig(row: SessionConfigRow): SessionConfig {
 		activeStrategyId: row.active_strategy_id,
 		debateRounds: row.debate_rounds,
 		proposalTimeoutSec: row.proposal_timeout_sec,
+		dataFeeds,
 	};
 }
 

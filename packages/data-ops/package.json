@@ -82,6 +82,34 @@
 		"./invite-code": {
 			"types": "./dist/invite-code/index.d.ts",
 			"default": "./dist/invite-code/index.js"
+		},
+		"./active-symbol": {
+			"types": "./dist/active-symbol/index.d.ts",
+			"default": "./dist/active-symbol/index.js"
+		},
+		"./market-data-bars": {
+			"types": "./dist/market-data-bars/index.d.ts",
+			"default": "./dist/market-data-bars/index.js"
+		},
+		"./providers/alphavantage": {
+			"types": "./dist/providers/alphavantage/index.d.ts",
+			"default": "./dist/providers/alphavantage/index.js"
+		},
+		"./financial-statements": {
+			"types": "./dist/financial-statements/index.d.ts",
+			"default": "./dist/financial-statements/index.js"
+		},
+		"./market-intelligence": {
+			"types": "./dist/market-intelligence/index.d.ts",
+			"default": "./dist/market-intelligence/index.js"
+		},
+		"./earnings": {
+			"types": "./dist/earnings/index.d.ts",
+			"default": "./dist/earnings/index.js"
+		},
+		"./providers/financialdatasets": {
+			"types": "./dist/providers/financialdatasets/index.d.ts",
+			"default": "./dist/providers/financialdatasets/index.js"
 		}
 	},
 	"scripts": {
@@ -101,7 +129,10 @@
 		"seed:production": "dotenvx run -f .env.production -- tsx src/database/seed/seed.ts",
 		"generate-codes:dev": "dotenvx run -f .env.dev -- tsx src/database/seed/generate-invite-codes.ts",
 		"generate-codes:staging": "dotenvx run -f .env.staging -- tsx src/database/seed/generate-invite-codes.ts",
-		"generate-codes:production": "dotenvx run -f .env.production -- tsx src/database/seed/generate-invite-codes.ts"
+		"generate-codes:production": "dotenvx run -f .env.production -- tsx src/database/seed/generate-invite-codes.ts",
+		"symbols:dev": "dotenvx run -f .env.dev -- tsx src/database/seed/manage-active-symbols.ts",
+		"symbols:staging": "dotenvx run -f .env.staging -- tsx src/database/seed/manage-active-symbols.ts",
+		"symbols:production": "dotenvx run -f .env.production -- tsx src/database/seed/manage-active-symbols.ts"
 	},
 	"keywords": [],
 	"author": "",

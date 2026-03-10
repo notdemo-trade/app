@@ -1,3 +1,4 @@
+import { getEnrichmentForSymbol } from '@repo/data-ops/agents/enrichment/queries';
 import type { StrategyTemplate } from '@repo/data-ops/agents/llm/types';
 import type { PipelineScore, ScoreWindow } from '@repo/data-ops/agents/memory/types';
 import type {
@@ -8,6 +9,7 @@ import type {
 	PipelineStepName,
 } from '@repo/data-ops/agents/pipeline/types';
 import type {
+	DataFeedsConfig,
 	DiscussionMessage,
 	DiscussionPhase,
 	MessageSender,
@@ -15,6 +17,7 @@ import type {
 	TradeProposal,
 } from '@repo/data-ops/agents/session/types';
 import type { TechnicalSignal } from '@repo/data-ops/agents/ta/types';
+import { initDatabase } from '@repo/data-ops/database/setup';
 import { Agent, callable, getAgentByName } from 'agents';
 import type { AlpacaBrokerAgent } from './alpaca-broker-agent';
 import type { AlpacaMarketDataAgent } from './alpaca-market-data-agent';
@@ -35,6 +38,7 @@ export interface RunPipelineParams {
 	positionSizePctOfCash?: number;
 	minConfidenceThreshold?: number;
 	threadId: string;
+	dataFeeds?: DataFeedsConfig;
 }
 
 export interface RunPipelineResult {
@@ -45,6 +49,7 @@ export interface RunPipelineResult {
 const PIPELINE_STEPS: PipelineStepName[] = [
 	'fetch_market_data',
 	'technical_analysis',
+	'fetch_enrichment_data',
 	'llm_analysis',
 	'risk_validation',
 	'generate_proposal',
@@ -59,6 +64,12 @@ export class PipelineOrchestratorAgent extends Agent<Env, PipelineOrchestratorSt
 	};
 
 	async onStart() {
+		initDatabase({
+			host: this.env.DATABASE_HOST,
+			username: this.env.DATABASE_USERNAME,
+			password: this.env.DATABASE_PASSWORD,
+		});
+
 		this.sql`CREATE TABLE IF NOT EXISTS pipeline_sessions (
 			id          TEXT PRIMARY KEY,
 			symbol      TEXT NOT NULL,
@@ -135,6 +146,7 @@ export class PipelineOrchestratorAgent extends Agent<Env, PipelineOrchestratorSt
 			riskValidation: null,
 			proposal: null,
 			portfolioContext: params.portfolioContext ?? null,
+			enrichment: null,
 		};
 
 		this.setState({ ...this.state, activePipelineId: sessionId });
@@ -314,6 +326,42 @@ export class PipelineOrchestratorAgent extends Agent<Env, PipelineOrchestratorSt
 				break;
 			}
 
+			case 'fetch_enrichment_data': {
+				if (!params.dataFeeds) {
+					this.emitMessage(
+						params,
+						{ type: 'system' },
+						'data_collection',
+						'No enrichment data feeds enabled, skipping.',
+					);
+					break;
+				}
+
+				const feeds = params.dataFeeds;
+				if (feeds.fundamentals || feeds.marketIntelligence || feeds.earnings) {
+					const full = await getEnrichmentForSymbol(params.symbol);
+					ctx.enrichment = {
+						fundamentals: feeds.fundamentals ? full.fundamentals : undefined,
+						marketIntelligence: feeds.marketIntelligence ? full.marketIntelligence : undefined,
+						earnings: feeds.earnings ? full.earnings : undefined,
+					};
+
+					const sources = [
+						feeds.fundamentals && 'fundamentals',
+						feeds.marketIntelligence && 'market intelligence',
+						feeds.earnings && 'earnings',
+					].filter(Boolean);
+
+					this.emitMessage(
+						params,
+						{ type: 'data_agent', name: 'EnrichmentData' },
+						'data_collection',
+						`Fetched enrichment data for ${params.symbol}: ${sources.join(', ')}`,
+					);
+				}
+				break;
+			}
+
 			case 'llm_analysis': {
 				if (!ctx.signals || !ctx.indicators) {
 					throw new Error('No signals/indicators available for LLM analysis');
@@ -331,6 +379,9 @@ export class PipelineOrchestratorAgent extends Agent<Env, PipelineOrchestratorSt
 						})),
 						technicals: ctx.indicators as unknown as Record<string, unknown>,
 						strategy: params.strategy,
+						fundamentals: ctx.enrichment?.fundamentals,
+						marketIntelligence: ctx.enrichment?.marketIntelligence,
+						earningsContext: ctx.enrichment?.earnings,
 					},
 					params.llmPrefs,
 					ctx.portfolioContext ?? undefined,
@@ -526,6 +577,7 @@ export class PipelineOrchestratorAgent extends Agent<Env, PipelineOrchestratorSt
 	private stepToPhase(step: PipelineStepName): DiscussionPhase {
 		switch (step) {
 			case 'fetch_market_data':
+			case 'fetch_enrichment_data':
 				return 'data_collection';
 			case 'technical_analysis':
 			case 'llm_analysis':
@@ -542,6 +594,8 @@ export class PipelineOrchestratorAgent extends Agent<Env, PipelineOrchestratorSt
 				return 'Fetch Market Data';
 			case 'technical_analysis':
 				return 'Technical Analysis';
+			case 'fetch_enrichment_data':
+				return 'Fetch Enrichment Data';
 			case 'llm_analysis':
 				return 'LLM Analysis';
 			case 'risk_validation':

@@ -69,4 +69,10 @@ export const DEFAULT_SESSION_CONFIG: SessionConfig = {
 	activeStrategyId: 'moderate',
 	debateRounds: 2,
 	proposalTimeoutSec: 900,
+	dataFeeds: {
+		technicalAnalysis: true,
+		fundamentals: false,
+		marketIntelligence: false,
+		earnings: false,
+	},
 };

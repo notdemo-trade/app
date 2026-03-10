@@ -40,6 +40,13 @@ export interface EffectiveConfig {
 	_sources: Record<string, 'trading_config' | 'session_config' | 'strategy_profile' | 'default'>;
 }
 
+export interface DataFeedsConfig {
+	technicalAnalysis: boolean;
+	fundamentals: boolean;
+	marketIntelligence: boolean;
+	earnings: boolean;
+}
+
 export interface SessionConfig {
 	orchestrationMode: 'debate' | 'pipeline';
 	brokerType: string;
@@ -52,6 +59,7 @@ export interface SessionConfig {
 	activeStrategyId: string;
 	debateRounds: number;
 	proposalTimeoutSec: number;
+	dataFeeds: DataFeedsConfig;
 }
 
 export interface SessionState {

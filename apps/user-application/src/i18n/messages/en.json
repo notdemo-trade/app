@@ -360,7 +360,15 @@
 			"clearList": "Discussion threads and messages, All trade proposals (pending ones expired), All outcomes and snapshots, Strategy templates (re-seeded), Chat history",
 			"preserveList": "Session configuration"
 		},
-		"dangerZone": "Danger Zone"
+		"dangerZone": "Danger Zone",
+		"dataFeeds": {
+			"title": "Data Feeds",
+			"description": "Toggle which data sources enrich the LLM analysis. Technical analysis is always enabled.",
+			"technicalAnalysis": "Technical Analysis",
+			"fundamentals": "Fundamentals",
+			"marketIntelligence": "Market Intelligence",
+			"earnings": "Earnings"
+		}
 	},
 	"profile": {
 		"title": "Profile",

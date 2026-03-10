@@ -58,6 +58,9 @@ export interface AnalysisRequest {
 	technicals?: Record<string, unknown>;
 	strategy: StrategyTemplate;
 	includeResearch?: boolean;
+	fundamentals?: import('../enrichment/types').FundamentalsContext;
+	marketIntelligence?: import('../enrichment/types').MarketIntelligenceContext;
+	earningsContext?: import('../enrichment/types').EarningsContext;
 }
 
 export interface TradeRecommendation {

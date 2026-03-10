@@ -1,4 +1,4 @@
-import type { SessionConfig } from '@repo/data-ops/agents/session/types';
+import type { DataFeedsConfig, SessionConfig } from '@repo/data-ops/agents/session/types';
 import { Loader2, Settings } from 'lucide-react';
 import { useCallback, useEffect, useState } from 'react';
 import { useTranslations } from 'use-intl';
@@ -8,6 +8,7 @@ import { InfoTip } from '@/components/ui/info-tip';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select } from '@/components/ui/select';
+import { Switch } from '@/components/ui/switch';
 import type { useSession } from '@/lib/session-connection';
 import { OrchestrationModeSelector } from './orchestration-mode-selector';
 import { SessionResetDialog } from './session-reset-dialog';
@@ -45,6 +46,16 @@ export function SessionSettings({ session }: SessionSettingsProps) {
 			if (!config) return;
 			setConfig({ ...config, [key]: value });
 			session.updateConfig({ [key]: value });
+		},
+		[config, session.updateConfig],
+	);
+
+	const updateDataFeed = useCallback(
+		(feed: keyof DataFeedsConfig, enabled: boolean) => {
+			if (!config) return;
+			const updated = { ...config.dataFeeds, [feed]: enabled };
+			setConfig({ ...config, dataFeeds: updated });
+			session.updateConfig({ dataFeeds: updated });
 		},
 		[config, session.updateConfig],
 	);
@@ -172,6 +183,55 @@ export function SessionSettings({ session }: SessionSettingsProps) {
 						<option value="alpaca">Alpaca</option>
 						<option value="paper">Paper Trading</option>
 					</Select>
+				</section>
+
+				{/* Data Feeds */}
+				<section className="space-y-3 rounded-md border border-border p-4">
+					<div className="flex items-center gap-1">
+						<h4 className="text-sm font-medium text-foreground">
+							{t('sessionSettings.dataFeeds.title')}
+						</h4>
+						<InfoTip content={t('sessionSettings.dataFeeds.description')} side="right" />
+					</div>
+					<div className="space-y-3">
+						<div className="flex items-center justify-between">
+							<Label className="text-xs text-muted-foreground">
+								{t('sessionSettings.dataFeeds.technicalAnalysis')}
+							</Label>
+							<Switch
+								checked={config.dataFeeds.technicalAnalysis}
+								onCheckedChange={(v) => updateDataFeed('technicalAnalysis', v)}
+								disabled
+							/>
+						</div>
+						<div className="flex items-center justify-between">
+							<Label className="text-xs text-muted-foreground">
+								{t('sessionSettings.dataFeeds.fundamentals')}
+							</Label>
+							<Switch
+								checked={config.dataFeeds.fundamentals}
+								onCheckedChange={(v) => updateDataFeed('fundamentals', v)}
+							/>
+						</div>
+						<div className="flex items-center justify-between">
+							<Label className="text-xs text-muted-foreground">
+								{t('sessionSettings.dataFeeds.marketIntelligence')}
+							</Label>
+							<Switch
+								checked={config.dataFeeds.marketIntelligence}
+								onCheckedChange={(v) => updateDataFeed('marketIntelligence', v)}
+							/>
+						</div>
+						<div className="flex items-center justify-between">
+							<Label className="text-xs text-muted-foreground">
+								{t('sessionSettings.dataFeeds.earnings')}
+							</Label>
+							<Switch
+								checked={config.dataFeeds.earnings}
+								onCheckedChange={(v) => updateDataFeed('earnings', v)}
+							/>
+						</div>
+					</div>
 				</section>
 
 				{/* Advanced Settings */}

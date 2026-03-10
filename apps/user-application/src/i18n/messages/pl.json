@@ -360,7 +360,15 @@
 			"clearList": "Wątki dyskusji i wiadomości, Wszystkie propozycje handlowe (oczekujące wygaszone), Wszystkie wyniki i snapshoty, Szablony strategii (ponownie załadowane), Historia czatu",
 			"preserveList": "Konfiguracja sesji"
 		},
-		"dangerZone": "Strefa zagrożenia"
+		"dangerZone": "Strefa zagrożenia",
+		"dataFeeds": {
+			"title": "Źródła danych",
+			"description": "Włącz lub wyłącz źródła danych wzbogacające analizę LLM. Analiza techniczna jest zawsze włączona.",
+			"technicalAnalysis": "Analiza techniczna",
+			"fundamentals": "Dane fundamentalne",
+			"marketIntelligence": "Wywiad rynkowy",
+			"earnings": "Wyniki finansowe"
+		}
 	},
 	"profile": {
 		"title": "Profil",

@@ -1,4 +1,5 @@
 import type { RiskValidation } from '../debate/types';
+import type { EnrichmentData } from '../enrichment/types';
 import type { TradeRecommendation } from '../llm/types';
 import type { PortfolioContext, TradeProposal } from '../session/types';
 import type { Bar, TechnicalIndicators, TechnicalSignal } from '../ta/types';
@@ -6,6 +7,7 @@ import type { Bar, TechnicalIndicators, TechnicalSignal } from '../ta/types';
 export type PipelineStepName =
 	| 'fetch_market_data'
 	| 'technical_analysis'
+	| 'fetch_enrichment_data'
 	| 'llm_analysis'
 	| 'risk_validation'
 	| 'generate_proposal';
@@ -29,6 +31,7 @@ export interface PipelineContext {
 	riskValidation: RiskValidation | null;
 	proposal: TradeProposal | null;
 	portfolioContext: PortfolioContext | null;
+	enrichment: EnrichmentData | null;
 }
 
 export interface PipelineSession {

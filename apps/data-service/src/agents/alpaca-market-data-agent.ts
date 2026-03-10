@@ -4,6 +4,8 @@ import type {
 	MarketDataResult,
 } from '@repo/data-ops/agents/market-data/types';
 import type { Bar } from '@repo/data-ops/agents/ta/types';
+import { initDatabase } from '@repo/data-ops/database/setup';
+import { getBarsForSymbol } from '@repo/data-ops/market-data-bars';
 import {
 	AlpacaMarketDataProvider,
 	getAlpacaMarketDataConfig,
@@ -28,6 +30,12 @@ export class AlpacaMarketDataAgent extends Agent<Env, AlpacaMarketDataAgentState
 	private parsedIdentity: ParsedIdentity | null = null;
 
 	async onStart() {
+		initDatabase({
+			host: this.env.DATABASE_HOST,
+			username: this.env.DATABASE_USERNAME,
+			password: this.env.DATABASE_PASSWORD,
+		});
+
 		this.sql`CREATE TABLE IF NOT EXISTS bars (
 			symbol    TEXT NOT NULL,
 			timeframe TEXT NOT NULL,
@@ -59,12 +67,36 @@ export class AlpacaMarketDataAgent extends Agent<Env, AlpacaMarketDataAgentState
 	): Promise<MarketDataResult> {
 		const { symbol, timeframe, limit = 250 } = params;
 
+		// L1: Check SQLite DO cache
 		const cacheFreshnessMs = (params.cacheFreshnessSec ?? 60) * 1000;
 		const cached = this.getCachedIfFresh(symbol, timeframe, cacheFreshnessMs);
 		if (cached) return cached;
 
+		// L2: Read from Neon (populated by AlphaVantageDataAgent)
+		const neonBars = await getBarsForSymbol(symbol, timeframe, limit);
+		if (neonBars.length > 0) {
+			const now = Date.now();
+			this.cacheBars(symbol, timeframe, neonBars, now);
+
+			this.sql`INSERT INTO fetch_log (symbol, timeframe, bar_count, fetched_at)
+				VALUES (${symbol}, ${timeframe}, ${neonBars.length}, ${now})`;
+
+			this.setState({
+				...this.state,
+				lastFetchAt: now,
+				barCount: this.state.barCount + neonBars.length,
+			});
+
+			return { symbol, timeframe, bars: neonBars, fetchedAt: now };
+		}
+
+		// L3: Fallback to Alpaca API if user has credentials
 		const { userId } = this.getIdentity();
-		const provider = await this.createProvider(userId);
+		const provider = await this.createProvider(userId).catch(() => null);
+		if (!provider) {
+			return { symbol, timeframe, bars: [], fetchedAt: Date.now() };
+		}
+
 		const bars = await provider.getBars(symbol, timeframe, {
 			limit,
 			adjustment: 'split',

@@ -7,6 +7,7 @@ import type {
 	PersonaAnalysis,
 	PersonaConfig,
 } from '@repo/data-ops/agents/debate/types';
+import type { EnrichmentData } from '@repo/data-ops/agents/enrichment/types';
 import type { StrategyTemplate } from '@repo/data-ops/agents/llm/types';
 import type {
 	CalibrationRating,
@@ -36,6 +37,7 @@ export interface RunDebateParams {
 	llmPrefs?: { temperature: number; maxTokens: number };
 	scoreWindows?: number[];
 	portfolioContext?: PortfolioContext;
+	enrichment?: EnrichmentData;
 }
 
 export interface RunDebateResult {
@@ -181,6 +183,9 @@ export class DebateOrchestratorAgent extends Agent<Env, DebateOrchestratorState>
 			})),
 			indicators: params.indicators as unknown as Record<string, unknown>,
 			portfolioContext: params.portfolioContext,
+			fundamentals: params.enrichment?.fundamentals,
+			marketIntelligence: params.enrichment?.marketIntelligence,
+			earningsContext: params.enrichment?.earnings,
 		};
 
 		try {

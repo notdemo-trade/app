@@ -18,7 +18,12 @@
       { "name": "AlpacaBrokerAgent", "class_name": "AlpacaBrokerAgent" },
       { "name": "SessionAgent", "class_name": "SessionAgent" },
       { "name": "DebateOrchestratorAgent", "class_name": "DebateOrchestratorAgent" },
-      { "name": "PipelineOrchestratorAgent", "class_name": "PipelineOrchestratorAgent" }
+      { "name": "PipelineOrchestratorAgent", "class_name": "PipelineOrchestratorAgent" },
+      { "name": "DataSchedulerAgent", "class_name": "DataSchedulerAgent" },
+      { "name": "AlphaVantageDataAgent", "class_name": "AlphaVantageDataAgent" },
+      { "name": "FundamentalsAgent", "class_name": "FundamentalsAgent" },
+      { "name": "MarketIntelligenceAgent", "class_name": "MarketIntelligenceAgent" },
+      { "name": "EarningsAgent", "class_name": "EarningsAgent" }
     ]
   },
   "migrations": [
@@ -27,13 +32,15 @@
     { "tag": "v3", "new_sqlite_classes": ["OrchestratorAgent"] },
     { "tag": "v4", "new_sqlite_classes": ["AlpacaMarketDataAgent", "AlpacaBrokerAgent", "SessionAgent"] },
     { "tag": "v5", "new_sqlite_classes": ["DebateOrchestratorAgent", "PipelineOrchestratorAgent"] },
-    { "tag": "v6", "deleted_classes": ["OrchestratorAgent"] }
+    { "tag": "v6", "deleted_classes": ["OrchestratorAgent"] },
+    { "tag": "v7", "new_sqlite_classes": ["DataSchedulerAgent", "AlphaVantageDataAgent"] },
+    { "tag": "v8", "new_sqlite_classes": ["FundamentalsAgent", "MarketIntelligenceAgent", "EarningsAgent"] }
   ],
-  // "triggers": {
-  //   "crons": [
-  //     "0 * * * *"
-  //   ]
-  // },
+  "triggers": {
+    "crons": [
+      "0 * * * *"
+    ]
+  },
   "env": {
     /**
 		* Local / Development environment
@@ -49,7 +56,12 @@
           { "name": "AlpacaBrokerAgent", "class_name": "AlpacaBrokerAgent" },
           { "name": "SessionAgent", "class_name": "SessionAgent" },
           { "name": "DebateOrchestratorAgent", "class_name": "DebateOrchestratorAgent" },
-          { "name": "PipelineOrchestratorAgent", "class_name": "PipelineOrchestratorAgent" }
+          { "name": "PipelineOrchestratorAgent", "class_name": "PipelineOrchestratorAgent" },
+          { "name": "DataSchedulerAgent", "class_name": "DataSchedulerAgent" },
+          { "name": "AlphaVantageDataAgent", "class_name": "AlphaVantageDataAgent" },
+          { "name": "FundamentalsAgent", "class_name": "FundamentalsAgent" },
+          { "name": "MarketIntelligenceAgent", "class_name": "MarketIntelligenceAgent" },
+          { "name": "EarningsAgent", "class_name": "EarningsAgent" }
         ]
       },
       // "kv_namespaces": [
@@ -97,7 +109,12 @@
           { "name": "AlpacaBrokerAgent", "class_name": "AlpacaBrokerAgent" },
           { "name": "SessionAgent", "class_name": "SessionAgent" },
           { "name": "DebateOrchestratorAgent", "class_name": "DebateOrchestratorAgent" },
-          { "name": "PipelineOrchestratorAgent", "class_name": "PipelineOrchestratorAgent" }
+          { "name": "PipelineOrchestratorAgent", "class_name": "PipelineOrchestratorAgent" },
+          { "name": "DataSchedulerAgent", "class_name": "DataSchedulerAgent" },
+          { "name": "AlphaVantageDataAgent", "class_name": "AlphaVantageDataAgent" },
+          { "name": "FundamentalsAgent", "class_name": "FundamentalsAgent" },
+          { "name": "MarketIntelligenceAgent", "class_name": "MarketIntelligenceAgent" },
+          { "name": "EarningsAgent", "class_name": "EarningsAgent" }
         ]
       },
       // "kv_namespaces": [
@@ -145,7 +162,12 @@
           { "name": "AlpacaBrokerAgent", "class_name": "AlpacaBrokerAgent" },
           { "name": "SessionAgent", "class_name": "SessionAgent" },
           { "name": "DebateOrchestratorAgent", "class_name": "DebateOrchestratorAgent" },
-          { "name": "PipelineOrchestratorAgent", "class_name": "PipelineOrchestratorAgent" }
+          { "name": "PipelineOrchestratorAgent", "class_name": "PipelineOrchestratorAgent" },
+          { "name": "DataSchedulerAgent", "class_name": "DataSchedulerAgent" },
+          { "name": "AlphaVantageDataAgent", "class_name": "AlphaVantageDataAgent" },
+          { "name": "FundamentalsAgent", "class_name": "FundamentalsAgent" },
+          { "name": "MarketIntelligenceAgent", "class_name": "MarketIntelligenceAgent" },
+          { "name": "EarningsAgent", "class_name": "EarningsAgent" }
         ]
       },
       // "kv_namespaces": [

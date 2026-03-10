@@ -2,6 +2,8 @@ import type { OnChatMessageOptions } from '@cloudflare/ai-chat';
 import { AIChatAgent } from '@cloudflare/ai-chat';
 import type { BrokerPosition, OrderLogEntry } from '@repo/data-ops/agents/broker/types';
 import type { PersonaConfig } from '@repo/data-ops/agents/debate/types';
+import { getEnrichmentForSymbol } from '@repo/data-ops/agents/enrichment/queries';
+import type { EnrichmentData } from '@repo/data-ops/agents/enrichment/types';
 import type { LLMProviderConfig, StrategyTemplate } from '@repo/data-ops/agents/llm/types';
 import type {
 	ExitReason,
@@ -594,6 +596,19 @@ export class SessionAgent extends AIChatAgent<Env, SessionState> {
 		);
 		const taResult = await ta.analyze('1Day');
 
+		// Conditionally fetch enrichment data based on dataFeeds config
+		const sessionConfig = this.loadConfig();
+		let enrichment: EnrichmentData | undefined;
+		const feeds = sessionConfig.dataFeeds;
+		if (feeds?.fundamentals || feeds?.marketIntelligence || feeds?.earnings) {
+			const full = await getEnrichmentForSymbol(symbol);
+			enrichment = {
+				fundamentals: feeds.fundamentals ? full.fundamentals : undefined,
+				marketIntelligence: feeds.marketIntelligence ? full.marketIntelligence : undefined,
+				earnings: feeds.earnings ? full.earnings : undefined,
+			};
+		}
+
 		const personas = await this.loadPersonasFromDb();
 		const moderatorPrompt = await this.loadModeratorPrompt();
 		const debateConfig = {
@@ -615,6 +630,7 @@ export class SessionAgent extends AIChatAgent<Env, SessionState> {
 			},
 			scoreWindows: config.scoreWindows,
 			portfolioContext,
+			enrichment,
 		})) as RunDebateResult;
 
 		const consensus = result.consensus;
@@ -640,6 +656,11 @@ export class SessionAgent extends AIChatAgent<Env, SessionState> {
 			`${userId}:${symbol}`,
 		);
 
+		// Conditionally fetch enrichment data based on dataFeeds config
+		const sessionConfig = this.loadConfig();
+		const feeds = sessionConfig.dataFeeds;
+		const enableEnrichment = feeds?.fundamentals || feeds?.marketIntelligence || feeds?.earnings;
+
 		const result = (await pipeline.runPipeline({
 			symbol,
 			strategyId: config.activeStrategyId,
@@ -655,6 +676,7 @@ export class SessionAgent extends AIChatAgent<Env, SessionState> {
 			positionSizePctOfCash: config.positionSizePctOfCash,
 			minConfidenceThreshold: config.minConfidenceThreshold,
 			threadId,
+			dataFeeds: enableEnrichment ? feeds : undefined,
 		})) as RunPipelineResult;
 
 		if (result.proposal) {
@@ -889,7 +911,8 @@ export class SessionAgent extends AIChatAgent<Env, SessionState> {
 		const rows = this.sql<SessionConfigRow>`
 			SELECT orchestration_mode, broker_type, llm_provider, llm_model,
 				watchlist_symbols, analysis_interval_sec, min_confidence_threshold,
-				position_size_pct, active_strategy_id, debate_rounds, proposal_timeout_sec
+				position_size_pct, active_strategy_id, debate_rounds, proposal_timeout_sec,
+				data_feeds
 			FROM session_config WHERE id = 'current'`;
 		if (rows[0]) return rowToConfig(rows[0]);
 		return DEFAULT_SESSION_CONFIG;
@@ -915,6 +938,7 @@ export class SessionAgent extends AIChatAgent<Env, SessionState> {
 			active_strategy_id = ${config.activeStrategyId},
 			debate_rounds = ${config.debateRounds},
 			proposal_timeout_sec = ${config.proposalTimeoutSec},
+			data_feeds = ${JSON.stringify(config.dataFeeds)},
 			updated_at = ${Date.now()}
 			WHERE id = 'current'`;
 	}
@@ -1635,6 +1659,7 @@ export class SessionAgent extends AIChatAgent<Env, SessionState> {
 		)`;
 
 		this.migrateTradeProposals();
+		this.migrateSessionConfig();
 
 		this.sql`CREATE TABLE IF NOT EXISTS proposal_outcomes (
 			id                      TEXT PRIMARY KEY,
@@ -1718,6 +1743,15 @@ export class SessionAgent extends AIChatAgent<Env, SessionState> {
 		}
 		if (!columnNames.has('telegram_message_id')) {
 			this.sql`ALTER TABLE trade_proposals ADD COLUMN telegram_message_id INTEGER`;
+		}
+	}
+
+	private migrateSessionConfig(): void {
+		const columns = this.sql<{ name: string }>`PRAGMA table_info(session_config)`;
+		const columnNames = new Set(columns.map((c) => c.name));
+
+		if (!columnNames.has('data_feeds')) {
+			this.sql`ALTER TABLE session_config ADD COLUMN data_feeds TEXT`;
 		}
 	}
 

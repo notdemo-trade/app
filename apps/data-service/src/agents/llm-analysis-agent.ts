@@ -102,6 +102,7 @@ export class LLMAnalysisAgent extends Agent<Env, LLMAgentState> {
 		const portfolioBlock = portfolioContext
 			? `\n\n${buildPortfolioContextBlock(portfolioContext, request.symbol)}`
 			: '';
+		const enrichmentBlock = buildEnrichmentBlock(request);
 		const contextStr = JSON.stringify(
 			{
 				symbol: request.symbol,
@@ -121,7 +122,10 @@ export class LLMAnalysisAgent extends Agent<Env, LLMAgentState> {
 		const recResult = await llm.complete({
 			messages: [
 				{ role: 'system', content: `You are a trading analyst. ${strategyContext}` },
-				{ role: 'user', content: TRADE_RECOMMENDATION_PROMPT + contextStr + portfolioBlock },
+				{
+					role: 'user',
+					content: TRADE_RECOMMENDATION_PROMPT + contextStr + portfolioBlock + enrichmentBlock,
+				},
 			],
 			temperature: recTemp,
 			max_tokens: recMaxTokens,
@@ -294,6 +298,7 @@ export class LLMAnalysisAgent extends Agent<Env, LLMAgentState> {
 		const portfolioBlock = data.portfolioContext
 			? buildPortfolioContextBlock(data.portfolioContext, data.symbol)
 			: '';
+		const enrichmentBlock = buildEnrichmentBlockFromPersonaData(data);
 		const systemParts = [persona.systemPrompt, perfBlock, portfolioBlock].filter(Boolean);
 		const systemPrompt = systemParts.join('\n\n');
 
@@ -301,7 +306,7 @@ export class LLMAnalysisAgent extends Agent<Env, LLMAgentState> {
 			{ role: 'system', content: systemPrompt },
 			{
 				role: 'user',
-				content: `${PERSONA_ANALYSIS_PROMPT}${contextStr}\n\nStrategy: ${strategyContext}`,
+				content: `${PERSONA_ANALYSIS_PROMPT}${contextStr}\n\nStrategy: ${strategyContext}${enrichmentBlock}`,
 			},
 		];
 
@@ -866,6 +871,81 @@ function buildPerformanceContextBlock(context: PerformanceContext, symbol: strin
 
 	const result = parts.join('\n');
 	return result.slice(0, PERFORMANCE_CONTEXT_MAX_CHARS);
+}
+
+function buildEnrichmentBlock(request: AnalysisRequest): string {
+	const parts: string[] = [];
+
+	if (request.fundamentals) {
+		parts.push('\n\n## Fundamental Data');
+		if (request.fundamentals.latestIncome) {
+			parts.push(
+				`### Income Statement\n${JSON.stringify(request.fundamentals.latestIncome, null, 2)}`,
+			);
+		}
+		if (request.fundamentals.latestBalanceSheet) {
+			parts.push(
+				`### Balance Sheet\n${JSON.stringify(request.fundamentals.latestBalanceSheet, null, 2)}`,
+			);
+		}
+		if (request.fundamentals.latestCashFlow) {
+			parts.push(`### Cash Flow\n${JSON.stringify(request.fundamentals.latestCashFlow, null, 2)}`);
+		}
+	}
+
+	if (request.marketIntelligence) {
+		parts.push('\n\n## Market Intelligence');
+		const mi = request.marketIntelligence;
+		if (mi.recentInsiderTrades && mi.recentInsiderTrades.length > 0) {
+			parts.push(`### Recent Insider Trades\n${JSON.stringify(mi.recentInsiderTrades, null, 2)}`);
+		}
+		if (mi.topInstitutionalHolders && mi.topInstitutionalHolders.length > 0) {
+			parts.push(
+				`### Top Institutional Holders\n${JSON.stringify(mi.topInstitutionalHolders, null, 2)}`,
+			);
+		}
+		if (mi.analystPriceTargets && mi.analystPriceTargets.length > 0) {
+			parts.push(`### Analyst Price Targets\n${JSON.stringify(mi.analystPriceTargets, null, 2)}`);
+		}
+		if (mi.consensusTarget) {
+			parts.push(`Consensus target: $${mi.consensusTarget}`);
+		}
+		if (mi.consensusRating) {
+			parts.push(`Consensus rating: ${mi.consensusRating}`);
+		}
+	}
+
+	if (request.earningsContext) {
+		parts.push('\n\n## Earnings Context');
+		const ec = request.earningsContext;
+		if (ec.lastEarnings) {
+			parts.push(
+				`Last earnings (${ec.lastEarnings.period}): EPS actual ${ec.lastEarnings.epsActual} vs estimate ${ec.lastEarnings.epsEstimate} (surprise: ${ec.lastEarnings.surprisePct.toFixed(1)}%)`,
+			);
+		}
+		if (ec.nextEarningsDate) {
+			parts.push(`Next earnings date: ${ec.nextEarningsDate}`);
+		}
+		if (ec.estimatedEps !== undefined) {
+			parts.push(`Estimated EPS: ${ec.estimatedEps}`);
+		}
+		if (ec.estimatedRevenue !== undefined) {
+			parts.push(`Estimated Revenue: $${ec.estimatedRevenue}`);
+		}
+	}
+
+	return parts.length > 0 ? parts.join('\n') : '';
+}
+
+function buildEnrichmentBlockFromPersonaData(data: AnalyzeAsPersonaData): string {
+	return buildEnrichmentBlock({
+		symbol: data.symbol,
+		signals: data.signals,
+		strategy: {} as AnalysisRequest['strategy'],
+		fundamentals: data.fundamentals,
+		marketIntelligence: data.marketIntelligence,
+		earningsContext: data.earningsContext,
+	});
 }
 
 function buildComparisonTable(rows: PersonaComparisonRow[]): string {

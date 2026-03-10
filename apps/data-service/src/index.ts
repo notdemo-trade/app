@@ -8,8 +8,13 @@ import { handleScheduled } from './scheduled';
 
 export { AlpacaBrokerAgent } from './agents/alpaca-broker-agent';
 export { AlpacaMarketDataAgent } from './agents/alpaca-market-data-agent';
+export { AlphaVantageDataAgent } from './agents/alpha-vantage-data-agent';
+export { DataSchedulerAgent } from './agents/data-scheduler-agent';
 export { DebateOrchestratorAgent } from './agents/debate-orchestrator-agent';
+export { EarningsAgent } from './agents/earnings-agent';
+export { FundamentalsAgent } from './agents/fundamentals-agent';
 export { LLMAnalysisAgent } from './agents/llm-analysis-agent';
+export { MarketIntelligenceAgent } from './agents/market-intelligence-agent';
 export { PipelineOrchestratorAgent } from './agents/pipeline-orchestrator-agent';
 export { SessionAgent } from './agents/session-agent';
 export { TechnicalAnalysisAgent } from './agents/technical-analysis-agent';
