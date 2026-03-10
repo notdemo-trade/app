@@ -576,7 +576,8 @@
 		"profile": "Profile",
 		"performance": "Performance",
 		"technicalAnalysis": "Indicators",
-		"debate": "Debate"
+		"debate": "Debate",
+		"notifications": "Notifications"
 	},
 	"auth": {
 		"online": "Online",
@@ -627,5 +628,54 @@
 		"defaultBarsToFetchHint": "Default number of bars to request",
 		"cacheFreshnessSec": "Cache Freshness (seconds)",
 		"cacheFreshnessSecHint": "Market data cache TTL"
+	},
+	"notifications": {
+		"title": "Notifications",
+		"tabs": {
+			"setup": "Telegram Setup",
+			"preferences": "Preferences"
+		},
+		"setup": {
+			"connectedTitle": "Telegram Connected",
+			"connectedBadge": "Connected",
+			"botLabel": "Bot: @{username}",
+			"sendTest": "Send Test Message",
+			"sending": "Sending...",
+			"testSent": "Test message sent!",
+			"title": "Setup Telegram Notifications",
+			"description": "3 steps to enable trade approvals on Telegram",
+			"step1Label": "Create Bot",
+			"step2Label": "Get Chat ID",
+			"step3Label": "Test",
+			"step1Instruction1": "1. Open Telegram and search for",
+			"step1Instruction2": "2. Send {command} and follow the prompts",
+			"step1Instruction3": "3. Copy the bot token and paste below",
+			"tokenPlaceholder": "123456789:ABCdefGHIjklMNOpqrsTUVwxyz",
+			"saving": "Saving...",
+			"continue": "Continue",
+			"step2Instruction1": "1. Open your bot in Telegram (search for @{botUsername})",
+			"step2Instruction2": "2. Send {command} to the bot",
+			"step2Instruction3": "3. Click below to verify connection",
+			"checkConnection": "Check Connection",
+			"waitingForStart": "Waiting for /start message...",
+			"completeTitle": "Setup Complete!",
+			"completeDescription": "You'll now receive trade proposals and notifications on Telegram."
+		},
+		"prefs": {
+			"typesTitle": "Notification Types",
+			"typesDescription": "Choose which notifications to receive",
+			"tradeProposals": "Trade Proposals",
+			"tradeResults": "Trade Results (executions, failures)",
+			"dailySummary": "Daily Summary",
+			"riskAlerts": "Risk Alerts",
+			"scheduleTitle": "Schedule",
+			"dailySummaryTime": "Daily Summary Time",
+			"quietHoursTitle": "Quiet Hours",
+			"quietHoursDescription": "Suppress non-critical notifications during these hours",
+			"quietStart": "Start",
+			"quietEnd": "End",
+			"quietTo": "to",
+			"loading": "Loading preferences..."
+		}
 	}
 }

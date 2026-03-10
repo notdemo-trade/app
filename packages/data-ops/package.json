@@ -70,6 +70,14 @@
 		"./debate-persona": {
 			"types": "./dist/debate-persona/index.d.ts",
 			"default": "./dist/debate-persona/index.js"
+		},
+		"./notification-settings": {
+			"types": "./dist/notification-settings/index.d.ts",
+			"default": "./dist/notification-settings/index.js"
+		},
+		"./telegram": {
+			"types": "./dist/telegram/index.d.ts",
+			"default": "./dist/telegram/index.js"
 		}
 	},
 	"scripts": {

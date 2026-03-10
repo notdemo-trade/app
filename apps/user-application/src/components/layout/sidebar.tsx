@@ -1,5 +1,6 @@
 import { useNavigate, useRouterState } from '@tanstack/react-router';
 import {
+	Bell,
 	Bot,
 	BrainCircuit,
 	Coins,
@@ -82,6 +83,11 @@ const navigationGroups: NavigationGroup[] = [
 				nameKey: 'sidebar.credentials',
 				icon: KeyRound,
 				href: '/settings/credentials',
+			},
+			{
+				nameKey: 'sidebar.notifications',
+				icon: Bell,
+				href: '/settings/notifications',
 			},
 			{
 				nameKey: 'sidebar.tokens',

@@ -8,6 +8,7 @@ export const CredentialProviderSchema = z.enum([
 	'xai',
 	'deepseek',
 	'workers-ai',
+	'telegram',
 ]);
 export type CredentialProvider = z.infer<typeof CredentialProviderSchema>;
 
@@ -34,7 +35,18 @@ export const LLMCredentialSchema = z.object({
 });
 export type LLMCredential = z.infer<typeof LLMCredentialSchema>;
 
-export const CredentialDataSchema = z.union([AlpacaCredentialSchema, LLMCredentialSchema]);
+export const TelegramCredentialSchema = z.object({
+	botToken: z.string().min(1),
+	chatId: z.string(),
+	webhookSecret: z.string().optional(),
+});
+export type TelegramCredential = z.infer<typeof TelegramCredentialSchema>;
+
+export const CredentialDataSchema = z.union([
+	AlpacaCredentialSchema,
+	LLMCredentialSchema,
+	TelegramCredentialSchema,
+]);
 
 export const SaveCredentialRequestSchema = z.object({
 	provider: CredentialProviderSchema,

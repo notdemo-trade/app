@@ -9,23 +9,24 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
-import { Route as AuthDashboardIndexRouteImport } from './routes/_auth/dashboard/index'
-import { Route as AuthPerformanceIndexRouteImport } from './routes/_auth/performance/index'
-import { Route as AuthProfileIndexRouteImport } from './routes/_auth/profile/index'
 import { Route as AuthRouteRouteImport } from './routes/_auth/route'
-import { Route as AuthSessionIndexRouteImport } from './routes/_auth/session/index'
-import { Route as AuthSessionProposalsProposalIdRouteImport } from './routes/_auth/session/proposals.$proposalId'
-import { Route as AuthSessionProposalsIndexRouteImport } from './routes/_auth/session/proposals.index'
-import { Route as AuthSettingsCredentialsRouteImport } from './routes/_auth/settings/credentials'
-import { Route as AuthSettingsDebateRouteImport } from './routes/_auth/settings/debate'
-import { Route as AuthSettingsModelsRouteImport } from './routes/_auth/settings/models'
-import { Route as AuthSettingsTechnicalAnalysisRouteImport } from './routes/_auth/settings/technical-analysis'
-import { Route as AuthSettingsTokensRouteImport } from './routes/_auth/settings/tokens'
-import { Route as AuthSettingsTradingRouteImport } from './routes/_auth/settings/trading'
-import { Route as ApiAuthSplatRouteImport } from './routes/api/auth.$'
-import { Route as ApiHealthRouteImport } from './routes/api/health'
-import { Route as FaqCategoryIdRouteImport } from './routes/faq/$categoryId'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as FaqCategoryIdRouteImport } from './routes/faq/$categoryId'
+import { Route as ApiHealthRouteImport } from './routes/api/health'
+import { Route as AuthSessionIndexRouteImport } from './routes/_auth/session/index'
+import { Route as AuthProfileIndexRouteImport } from './routes/_auth/profile/index'
+import { Route as AuthPerformanceIndexRouteImport } from './routes/_auth/performance/index'
+import { Route as AuthDashboardIndexRouteImport } from './routes/_auth/dashboard/index'
+import { Route as ApiAuthSplatRouteImport } from './routes/api/auth.$'
+import { Route as AuthSettingsTradingRouteImport } from './routes/_auth/settings/trading'
+import { Route as AuthSettingsTokensRouteImport } from './routes/_auth/settings/tokens'
+import { Route as AuthSettingsTechnicalAnalysisRouteImport } from './routes/_auth/settings/technical-analysis'
+import { Route as AuthSettingsNotificationsRouteImport } from './routes/_auth/settings/notifications'
+import { Route as AuthSettingsModelsRouteImport } from './routes/_auth/settings/models'
+import { Route as AuthSettingsDebateRouteImport } from './routes/_auth/settings/debate'
+import { Route as AuthSettingsCredentialsRouteImport } from './routes/_auth/settings/credentials'
+import { Route as AuthSessionProposalsIndexRouteImport } from './routes/_auth/session/proposals.index'
+import { Route as AuthSessionProposalsProposalIdRouteImport } from './routes/_auth/session/proposals.$proposalId'
 
 const AuthRouteRoute = AuthRouteRouteImport.update({
   id: '/_auth',
@@ -87,6 +88,12 @@ const AuthSettingsTechnicalAnalysisRoute =
     path: '/settings/technical-analysis',
     getParentRoute: () => AuthRouteRoute,
   } as any)
+const AuthSettingsNotificationsRoute =
+  AuthSettingsNotificationsRouteImport.update({
+    id: '/settings/notifications',
+    path: '/settings/notifications',
+    getParentRoute: () => AuthRouteRoute,
+  } as any)
 const AuthSettingsModelsRoute = AuthSettingsModelsRouteImport.update({
   id: '/settings/models',
   path: '/settings/models',
@@ -122,6 +129,7 @@ export interface FileRoutesByFullPath {
   '/settings/credentials': typeof AuthSettingsCredentialsRoute
   '/settings/debate': typeof AuthSettingsDebateRoute
   '/settings/models': typeof AuthSettingsModelsRoute
+  '/settings/notifications': typeof AuthSettingsNotificationsRoute
   '/settings/technical-analysis': typeof AuthSettingsTechnicalAnalysisRoute
   '/settings/tokens': typeof AuthSettingsTokensRoute
   '/settings/trading': typeof AuthSettingsTradingRoute
@@ -140,6 +148,7 @@ export interface FileRoutesByTo {
   '/settings/credentials': typeof AuthSettingsCredentialsRoute
   '/settings/debate': typeof AuthSettingsDebateRoute
   '/settings/models': typeof AuthSettingsModelsRoute
+  '/settings/notifications': typeof AuthSettingsNotificationsRoute
   '/settings/technical-analysis': typeof AuthSettingsTechnicalAnalysisRoute
   '/settings/tokens': typeof AuthSettingsTokensRoute
   '/settings/trading': typeof AuthSettingsTradingRoute
@@ -160,6 +169,7 @@ export interface FileRoutesById {
   '/_auth/settings/credentials': typeof AuthSettingsCredentialsRoute
   '/_auth/settings/debate': typeof AuthSettingsDebateRoute
   '/_auth/settings/models': typeof AuthSettingsModelsRoute
+  '/_auth/settings/notifications': typeof AuthSettingsNotificationsRoute
   '/_auth/settings/technical-analysis': typeof AuthSettingsTechnicalAnalysisRoute
   '/_auth/settings/tokens': typeof AuthSettingsTokensRoute
   '/_auth/settings/trading': typeof AuthSettingsTradingRoute
@@ -180,6 +190,7 @@ export interface FileRouteTypes {
     | '/settings/credentials'
     | '/settings/debate'
     | '/settings/models'
+    | '/settings/notifications'
     | '/settings/technical-analysis'
     | '/settings/tokens'
     | '/settings/trading'
@@ -198,6 +209,7 @@ export interface FileRouteTypes {
     | '/settings/credentials'
     | '/settings/debate'
     | '/settings/models'
+    | '/settings/notifications'
     | '/settings/technical-analysis'
     | '/settings/tokens'
     | '/settings/trading'
@@ -217,6 +229,7 @@ export interface FileRouteTypes {
     | '/_auth/settings/credentials'
     | '/_auth/settings/debate'
     | '/_auth/settings/models'
+    | '/_auth/settings/notifications'
     | '/_auth/settings/technical-analysis'
     | '/_auth/settings/tokens'
     | '/_auth/settings/trading'
@@ -323,6 +336,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthSettingsTechnicalAnalysisRouteImport
       parentRoute: typeof AuthRouteRoute
     }
+    '/_auth/settings/notifications': {
+      id: '/_auth/settings/notifications'
+      path: '/settings/notifications'
+      fullPath: '/settings/notifications'
+      preLoaderRoute: typeof AuthSettingsNotificationsRouteImport
+      parentRoute: typeof AuthRouteRoute
+    }
     '/_auth/settings/models': {
       id: '/_auth/settings/models'
       path: '/settings/models'
@@ -365,6 +385,7 @@ interface AuthRouteRouteChildren {
   AuthSettingsCredentialsRoute: typeof AuthSettingsCredentialsRoute
   AuthSettingsDebateRoute: typeof AuthSettingsDebateRoute
   AuthSettingsModelsRoute: typeof AuthSettingsModelsRoute
+  AuthSettingsNotificationsRoute: typeof AuthSettingsNotificationsRoute
   AuthSettingsTechnicalAnalysisRoute: typeof AuthSettingsTechnicalAnalysisRoute
   AuthSettingsTokensRoute: typeof AuthSettingsTokensRoute
   AuthSettingsTradingRoute: typeof AuthSettingsTradingRoute
@@ -380,6 +401,7 @@ const AuthRouteRouteChildren: AuthRouteRouteChildren = {
   AuthSettingsCredentialsRoute: AuthSettingsCredentialsRoute,
   AuthSettingsDebateRoute: AuthSettingsDebateRoute,
   AuthSettingsModelsRoute: AuthSettingsModelsRoute,
+  AuthSettingsNotificationsRoute: AuthSettingsNotificationsRoute,
   AuthSettingsTechnicalAnalysisRoute: AuthSettingsTechnicalAnalysisRoute,
   AuthSettingsTokensRoute: AuthSettingsTokensRoute,
   AuthSettingsTradingRoute: AuthSettingsTradingRoute,
@@ -408,7 +430,6 @@ export const routeTree = rootRouteImport
 
 import type { getRouter } from './router.tsx'
 import type { startInstance } from './start.tsx'
-
 declare module '@tanstack/react-start' {
   interface Register {
     ssr: true

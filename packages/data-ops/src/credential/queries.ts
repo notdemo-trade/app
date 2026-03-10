@@ -103,6 +103,15 @@ export async function listCredentials(userId: string) {
 		.where(eq(user_credentials.userId, userId));
 }
 
+export async function listUserIdsByProvider(provider: CredentialProvider): Promise<string[]> {
+	const db = getDb();
+	const rows = await db
+		.select({ userId: user_credentials.userId })
+		.from(user_credentials)
+		.where(eq(user_credentials.provider, provider));
+	return rows.map((r) => r.userId);
+}
+
 export async function updateValidationStatus(params: {
 	userId: string;
 	provider: CredentialProvider;

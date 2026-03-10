@@ -14,6 +14,9 @@ export async function validateCredentialByProvider(
 	if (provider === 'alpaca') {
 		return validateAlpacaCredential(data as AlpacaCredential);
 	}
+	if (provider === 'telegram') {
+		return validateTelegramCredential(data as { botToken: string });
+	}
 	if (LLM_PROVIDERS.includes(provider as LLMProvider)) {
 		return validateLLMCredential(provider as LLMProvider, data as LLMCredential);
 	}
@@ -35,6 +38,16 @@ export async function validateAlpacaCredential(cred: AlpacaCredential): Promise<
 		if (res.status === 403) return { success: false, error: 'Account access denied' };
 		if (!res.ok) return { success: false, error: `Alpaca API error: ${res.status}` };
 
+		return { success: true };
+	} catch (e) {
+		return { success: false, error: `Connection failed: ${String(e)}` };
+	}
+}
+
+async function validateTelegramCredential(cred: { botToken: string }): Promise<ValidationResult> {
+	try {
+		const res = await fetch(`https://api.telegram.org/bot${cred.botToken}/getMe`);
+		if (!res.ok) return { success: false, error: 'Invalid bot token' };
 		return { success: true };
 	} catch (e) {
 		return { success: false, error: `Connection failed: ${String(e)}` };

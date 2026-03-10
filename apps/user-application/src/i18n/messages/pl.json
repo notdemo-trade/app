@@ -576,7 +576,8 @@
 		"profile": "Profil",
 		"performance": "Wydajność",
 		"technicalAnalysis": "Wskaźniki",
-		"debate": "Debata"
+		"debate": "Debata",
+		"notifications": "Powiadomienia"
 	},
 	"auth": {
 		"online": "Online",
@@ -627,5 +628,54 @@
 		"defaultBarsToFetchHint": "Domyślna liczba słupków do pobrania",
 		"cacheFreshnessSec": "Świeżość Cache (sekundy)",
 		"cacheFreshnessSecHint": "TTL cache danych rynkowych"
+	},
+	"notifications": {
+		"title": "Powiadomienia",
+		"tabs": {
+			"setup": "Konfiguracja Telegram",
+			"preferences": "Preferencje"
+		},
+		"setup": {
+			"connectedTitle": "Telegram Połączony",
+			"connectedBadge": "Połączony",
+			"botLabel": "Bot: @{username}",
+			"sendTest": "Wyślij Testową Wiadomość",
+			"sending": "Wysyłanie...",
+			"testSent": "Wiadomość testowa wysłana!",
+			"title": "Konfiguracja Powiadomień Telegram",
+			"description": "3 kroki do włączenia zatwierdzeń transakcji na Telegramie",
+			"step1Label": "Utwórz Bota",
+			"step2Label": "Pobierz Chat ID",
+			"step3Label": "Test",
+			"step1Instruction1": "1. Otwórz Telegram i wyszukaj",
+			"step1Instruction2": "2. Wyślij {command} i postępuj zgodnie z instrukcjami",
+			"step1Instruction3": "3. Skopiuj token bota i wklej poniżej",
+			"tokenPlaceholder": "123456789:ABCdefGHIjklMNOpqrsTUVwxyz",
+			"saving": "Zapisywanie...",
+			"continue": "Dalej",
+			"step2Instruction1": "1. Otwórz swojego bota w Telegramie (wyszukaj @{botUsername})",
+			"step2Instruction2": "2. Wyślij {command} do bota",
+			"step2Instruction3": "3. Kliknij poniżej, aby zweryfikować połączenie",
+			"checkConnection": "Sprawdź Połączenie",
+			"waitingForStart": "Oczekiwanie na wiadomość /start...",
+			"completeTitle": "Konfiguracja Zakończona!",
+			"completeDescription": "Będziesz teraz otrzymywać propozycje transakcji i powiadomienia na Telegramie."
+		},
+		"prefs": {
+			"typesTitle": "Typy Powiadomień",
+			"typesDescription": "Wybierz, które powiadomienia chcesz otrzymywać",
+			"tradeProposals": "Propozycje Transakcji",
+			"tradeResults": "Wyniki Transakcji (realizacje, błędy)",
+			"dailySummary": "Podsumowanie Dzienne",
+			"riskAlerts": "Alerty Ryzyka",
+			"scheduleTitle": "Harmonogram",
+			"dailySummaryTime": "Czas Podsumowania Dziennego",
+			"quietHoursTitle": "Godziny Ciszy",
+			"quietHoursDescription": "Wycisz niekrytyczne powiadomienia w tych godzinach",
+			"quietStart": "Początek",
+			"quietEnd": "Koniec",
+			"quietTo": "do",
+			"loading": "Ładowanie preferencji..."
+		}
 	}
 }

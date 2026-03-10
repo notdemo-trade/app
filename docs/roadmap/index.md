@@ -15,11 +15,11 @@ These phases were superseded by the SRP multi-agent refactor (Phase 020+). The o
 
 ## Trading Tier
 
-| Order | Phase | Summary |
-|-------|-------|---------|
-| 1 | [011: Telegram Approvals](./011/index.md) | Mobile approvals via Telegram bot. Inline buttons, timeout auto-reject |
+| Order | Phase | Summary | Status |
+|-------|-------|---------|--------|
+| 1 | [011: Telegram Approvals](./011/index.md) | Mobile approvals via Telegram bot. Inline buttons, timeout auto-reject | Ready to implement |
 
-> **Note:** Specs reference pre-020 architecture. Update agent names and API shapes before implementing.
+> Spec updated to SRP multi-agent architecture (SessionAgent, AlpacaBrokerAgent, getAgentByName RPC).
 
 ## Data Expansion Tier
 

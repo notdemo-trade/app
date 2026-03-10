@@ -2,6 +2,7 @@ export {
 	deleteCredential,
 	getCredential,
 	listCredentials,
+	listUserIdsByProvider,
 	saveCredential,
 	updateValidationStatus,
 } from './queries';
@@ -13,6 +14,7 @@ export type {
 	LLMCredential,
 	LLMProvider,
 	SaveCredentialRequest,
+	TelegramCredential,
 } from './schema';
 export {
 	AlpacaCredentialSchema,
@@ -23,6 +25,7 @@ export {
 	LLMCredentialSchema,
 	LLMProviderSchema,
 	SaveCredentialRequestSchema,
+	TelegramCredentialSchema,
 } from './schema';
 export { credentialProviderEnum, user_credentials } from './table';
 export { validateCredentialByProvider } from './validation';

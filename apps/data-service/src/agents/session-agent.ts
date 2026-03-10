@@ -31,6 +31,14 @@ import { getCredential } from '@repo/data-ops/credential';
 import { initDatabase } from '@repo/data-ops/database/setup';
 import { getDebatePersonas, seedDefaultPersonas } from '@repo/data-ops/debate-persona';
 import { createLanguageModel } from '@repo/data-ops/providers/llm';
+import {
+	buildProposalMessage,
+	buildProposalUpdatedMessage,
+	buildRiskAlertMessage,
+	buildTradeExecutedMessage,
+	buildTradeFailedMessage,
+	dispatchNotification,
+} from '@repo/data-ops/telegram';
 import { getTradingConfig } from '@repo/data-ops/trading-config';
 import { callable, getAgentByName } from 'agents';
 import type { StreamTextOnFinishCallback, ToolSet } from 'ai';
@@ -256,6 +264,12 @@ export class SessionAgent extends AIChatAgent<Env, SessionState> {
 			console.log(
 				`[triggerAnalysis] Skipped: daily loss exceeds ${(effectiveConfig.maxDailyLossPct * 100).toFixed(1)}% limit`,
 			);
+
+			// Phase 011: Telegram risk alert
+			this.notifyRiskAlert('daily_loss_limit', 'Daily loss limit exceeded', {
+				maxDailyLossPct: effectiveConfig.maxDailyLossPct,
+			});
+
 			return { threadIds: [] };
 		}
 
@@ -679,6 +693,10 @@ export class SessionAgent extends AIChatAgent<Env, SessionState> {
 		if (!approved) {
 			this
 				.sql`UPDATE trade_proposals SET status = 'rejected', decided_at = ${decidedAt} WHERE id = ${proposalId}`;
+
+			// Phase 011: Telegram notification for rejection
+			this.notifyProposalUpdated(proposal, 'rejected');
+
 			return { status: 'rejected', message: 'Trade rejected by user' };
 		}
 
@@ -777,6 +795,10 @@ export class SessionAgent extends AIChatAgent<Env, SessionState> {
 
 			this.sql`UPDATE trade_proposals SET status = 'executed' WHERE id = ${proposal.id}`;
 			this.createOutcomeTracking(proposal, orderResult);
+
+			// Phase 011: Telegram notification for execution
+			this.notifyTradeExecuted(proposal, orderResult);
+
 			return {
 				status: 'executed',
 				message: `Trade executed: ${proposal.action} ${proposal.symbol}`,
@@ -784,6 +806,10 @@ export class SessionAgent extends AIChatAgent<Env, SessionState> {
 		} catch (err) {
 			const message = err instanceof Error ? err.message : String(err);
 			this.sql`UPDATE trade_proposals SET status = 'failed' WHERE id = ${proposal.id}`;
+
+			// Phase 011: Telegram notification for failure
+			this.notifyTradeFailed(proposal, message);
+
 			return { status: 'failed', message: `Execution failed: ${message}` };
 		}
 	}
@@ -1018,6 +1044,9 @@ export class SessionAgent extends AIChatAgent<Env, SessionState> {
 
 		this.storeProposal(proposal);
 		this.sql`UPDATE discussion_threads SET proposal_id = ${proposal.id} WHERE id = ${threadId}`;
+
+		// Phase 011: Telegram notification for new proposal
+		this.notifyProposalCreated(proposal);
 	}
 
 	private storeProposal(p: TradeProposal): void {
@@ -1041,8 +1070,18 @@ export class SessionAgent extends AIChatAgent<Env, SessionState> {
 
 	private expireProposals(): void {
 		const now = Date.now();
+		// Fetch proposals about to expire for notifications before updating
+		const expiring = this.sql<ProposalRow>`
+			SELECT * FROM trade_proposals
+			WHERE status IN ('pending', 'failed', 'approved') AND expires_at < ${now}`;
+
 		this.sql`UPDATE trade_proposals SET status = 'expired', decided_at = ${now}
 			WHERE status IN ('pending', 'failed', 'approved') AND expires_at < ${now}`;
+
+		// Phase 011: Telegram notification for expirations
+		for (const row of expiring) {
+			this.notifyProposalUpdated(rowToProposal(row), 'expired');
+		}
 	}
 
 	// --- Risk management helpers ---
@@ -1677,6 +1716,9 @@ export class SessionAgent extends AIChatAgent<Env, SessionState> {
 		if (!columnNames.has('orchestrator_session_id')) {
 			this.sql`ALTER TABLE trade_proposals ADD COLUMN orchestrator_session_id TEXT`;
 		}
+		if (!columnNames.has('telegram_message_id')) {
+			this.sql`ALTER TABLE trade_proposals ADD COLUMN telegram_message_id INTEGER`;
+		}
 	}
 
 	private seedDefaults(): void {
@@ -1696,5 +1738,84 @@ export class SessionAgent extends AIChatAgent<Env, SessionState> {
 
 		// Phase 24: Personas are now stored in PostgreSQL via debate_personas table.
 		// DO SQLite personas table is kept for backward compat but no longer seeded or read.
+	}
+
+	// --- Phase 011: Telegram notification helpers ---
+
+	private notifyProposalCreated(proposal: TradeProposal): void {
+		const { text, keyboard } = buildProposalMessage(proposal);
+		const userId = this.name;
+		dispatchNotification(
+			{ userId, masterKey: this.env.CREDENTIALS_ENCRYPTION_KEY },
+			'trade_proposal',
+			text,
+			keyboard,
+		)
+			.then((result) => {
+				if (result.sent && result.messageId) {
+					this
+						.sql`UPDATE trade_proposals SET telegram_message_id = ${result.messageId} WHERE id = ${proposal.id}`;
+				}
+			})
+			.catch((err) => console.error('[telegram] proposal notification failed:', err));
+	}
+
+	private notifyTradeExecuted(proposal: TradeProposal, orderResult: OrderLogEntry): void {
+		const userId = this.name;
+		dispatchNotification(
+			{ userId, masterKey: this.env.CREDENTIALS_ENCRYPTION_KEY },
+			'trade_executed',
+			buildTradeExecutedMessage({
+				symbol: proposal.symbol,
+				action: proposal.action,
+				filledQty: orderResult.filledQty ?? proposal.qty ?? 0,
+				filledAvgPrice: orderResult.filledAvgPrice ?? proposal.entryPrice ?? 0,
+				orderId: orderResult.id,
+			}),
+		).catch((err) => console.error('[telegram] execution notification failed:', err));
+	}
+
+	private notifyTradeFailed(proposal: TradeProposal, error: string): void {
+		const userId = this.name;
+		dispatchNotification(
+			{ userId, masterKey: this.env.CREDENTIALS_ENCRYPTION_KEY },
+			'trade_failed',
+			buildTradeFailedMessage({
+				symbol: proposal.symbol,
+				action: proposal.action,
+				error,
+			}),
+		).catch((err) => console.error('[telegram] failure notification failed:', err));
+	}
+
+	private notifyProposalUpdated(
+		proposal: TradeProposal,
+		status: 'approved' | 'rejected' | 'expired',
+	): void {
+		const userId = this.name;
+		dispatchNotification(
+			{ userId, masterKey: this.env.CREDENTIALS_ENCRYPTION_KEY },
+			'trade_rejected',
+			buildProposalUpdatedMessage(proposal, status),
+		).catch((err) => console.error('[telegram] proposal update notification failed:', err));
+	}
+
+	private notifyRiskAlert(
+		type: 'daily_loss_limit' | 'kill_switch',
+		reason: string,
+		details?: { maxDailyLossPct?: number },
+	): void {
+		const userId = this.name;
+		dispatchNotification(
+			{ userId, masterKey: this.env.CREDENTIALS_ENCRYPTION_KEY },
+			'risk_alert',
+			buildRiskAlertMessage({
+				type,
+				reason,
+				details: details?.maxDailyLossPct
+					? `Limit: ${(details.maxDailyLossPct * 100).toFixed(1)}%`
+					: undefined,
+			}),
+		).catch((err) => console.error('[telegram] risk alert notification failed:', err));
 	}
 }
