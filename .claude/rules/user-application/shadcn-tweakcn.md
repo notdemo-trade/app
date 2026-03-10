@@ -1,7 +1,7 @@
 ---
 paths:
-  - apps/user-application/src/styles.css
-  - apps/user-application/src/components/ui/**
+  - "apps/user-application/src/styles.css"
+  - "apps/user-application/src/components/ui/**"
 ---
 
 # shadcn/ui Theming & tweakcn Compatibility

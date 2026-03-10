@@ -1,7 +1,6 @@
 ---
 paths:
   - "packages/data-ops/src/auth/**/*.ts"
-  - "packages/data-ops/src/config/auth.ts"
 ---
 
 # Better Auth Rules
