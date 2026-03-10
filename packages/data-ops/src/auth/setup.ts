@@ -17,6 +17,14 @@ export const createBetterAuth = (config: {
 		socialProviders: config.socialProviders,
 		user: {
 			modelName: 'auth_user',
+			additionalFields: {
+				activated: {
+					type: 'boolean',
+					required: true,
+					defaultValue: false,
+					input: false,
+				},
+			},
 		},
 		session: {
 			modelName: 'auth_session',

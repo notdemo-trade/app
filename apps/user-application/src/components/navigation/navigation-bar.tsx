@@ -133,7 +133,7 @@ export function NavigationBar() {
 							</AccountDialog>
 						) : (
 							<Button asChild>
-								<Link to="/app">{t('nav.signIn')}</Link>
+								<Link to="/dashboard">{t('nav.signIn')}</Link>
 							</Button>
 						)}
 					</div>
@@ -220,7 +220,7 @@ export function NavigationBar() {
 										</div>
 									) : (
 										<Button asChild className="w-full" onClick={closeMenu}>
-											<Link to="/app">{t('nav.signIn')}</Link>
+											<Link to="/dashboard">{t('nav.signIn')}</Link>
 										</Button>
 									)}
 								</div>

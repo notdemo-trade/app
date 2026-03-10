@@ -1,6 +1,7 @@
 import { relations } from 'drizzle-orm/relations';
 import { api_tokens } from '../api-token/table';
 import { user_credentials } from '../credential/table';
+import { invite_codes } from '../invite-code/table';
 import { llm_analyses, llm_usage } from '../llm-analysis/table';
 import { notification_settings } from '../notification-settings/table';
 import { technicalAnalysisConfig } from '../ta-config/table';
@@ -62,6 +63,13 @@ export const notificationSettingsRelations = relations(notification_settings, ({
 export const technicalAnalysisConfigRelations = relations(technicalAnalysisConfig, ({ one }) => ({
 	user: one(auth_user, {
 		fields: [technicalAnalysisConfig.userId],
+		references: [auth_user.id],
+	}),
+}));
+
+export const inviteCodeRelations = relations(invite_codes, ({ one }) => ({
+	usedByUser: one(auth_user, {
+		fields: [invite_codes.usedByUserId],
 		references: [auth_user.id],
 	}),
 }));

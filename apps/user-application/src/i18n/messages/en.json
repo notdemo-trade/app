@@ -579,6 +579,21 @@
 		"debate": "Debate",
 		"notifications": "Notifications"
 	},
+	"activation": {
+		"title": "Account Created!",
+		"description": "Enter your invite code to get access to the platform.",
+		"codeLabel": "Invite Code",
+		"codePlaceholder": "NT-XXXX-XXXX",
+		"codeRequired": "Invite code is required",
+		"activate": "Activate Account",
+		"invalidFormat": "Invalid format. Expected NT-XXXX-XXXX",
+		"alreadyUsed": "This invite code has already been used.",
+		"invalidCode": "Invalid invite code."
+	},
+	"turnstile": {
+		"verificationRequired": "Please complete the verification",
+		"verificationFailed": "Verification failed. Please try again."
+	},
 	"auth": {
 		"online": "Online",
 		"account": "Account",

@@ -78,6 +78,10 @@
 		"./telegram": {
 			"types": "./dist/telegram/index.d.ts",
 			"default": "./dist/telegram/index.js"
+		},
+		"./invite-code": {
+			"types": "./dist/invite-code/index.d.ts",
+			"default": "./dist/invite-code/index.js"
 		}
 	},
 	"scripts": {
@@ -94,7 +98,10 @@
 		"drizzle:production:pull": "dotenvx run -f .env.production -- drizzle-kit pull --config drizzle-production.config.ts",
 		"seed:dev": "dotenvx run -f .env.dev -- tsx src/database/seed/seed.ts",
 		"seed:staging": "dotenvx run -f .env.staging -- tsx src/database/seed/seed.ts",
-		"seed:production": "dotenvx run -f .env.production -- tsx src/database/seed/seed.ts"
+		"seed:production": "dotenvx run -f .env.production -- tsx src/database/seed/seed.ts",
+		"generate-codes:dev": "dotenvx run -f .env.dev -- tsx src/database/seed/generate-invite-codes.ts",
+		"generate-codes:staging": "dotenvx run -f .env.staging -- tsx src/database/seed/generate-invite-codes.ts",
+		"generate-codes:production": "dotenvx run -f .env.production -- tsx src/database/seed/generate-invite-codes.ts"
 	},
 	"keywords": [],
 	"author": "",

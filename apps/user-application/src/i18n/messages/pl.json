@@ -579,6 +579,21 @@
 		"debate": "Debata",
 		"notifications": "Powiadomienia"
 	},
+	"activation": {
+		"title": "Konto utworzone!",
+		"description": "Wprowadź kod zaproszenia, aby uzyskać dostęp do platformy.",
+		"codeLabel": "Kod zaproszenia",
+		"codePlaceholder": "NT-XXXX-XXXX",
+		"codeRequired": "Kod zaproszenia jest wymagany",
+		"activate": "Aktywuj konto",
+		"invalidFormat": "Nieprawidłowy format. Oczekiwany NT-XXXX-XXXX",
+		"alreadyUsed": "Ten kod zaproszenia został już wykorzystany.",
+		"invalidCode": "Nieprawidłowy kod zaproszenia."
+	},
+	"turnstile": {
+		"verificationRequired": "Proszę dokończyć weryfikację",
+		"verificationFailed": "Weryfikacja nie powiodła się. Spróbuj ponownie."
+	},
 	"auth": {
 		"online": "Online",
 		"account": "Konto",

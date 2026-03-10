@@ -1,21 +1,32 @@
+import type { TurnstileInstance } from '@marsidev/react-turnstile';
 import { useForm } from '@tanstack/react-form';
 import { useMutation } from '@tanstack/react-query';
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import { useTranslations } from 'use-intl';
 import { Alert } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
+import { verifyTurnstile } from '@/core/functions/auth/turnstile';
 import { authClient } from '@/lib/auth-client';
+import { TurnstileWidget } from './turnstile-widget';
 
 type AuthMode = 'signin' | 'signup';
 
 export function EmailLogin() {
 	const t = useTranslations();
 	const [mode, setMode] = useState<AuthMode>('signin');
+	const [turnstileToken, setTurnstileToken] = useState<string | null>(null);
+	const turnstileRef = useRef<TurnstileInstance | null>(null);
 
 	const mutation = useMutation({
 		mutationFn: async (data: { email: string; password: string; name?: string }) => {
+			if (!turnstileToken) {
+				throw new Error(t('turnstile.verificationRequired'));
+			}
+
+			await verifyTurnstile({ data: { token: turnstileToken } });
+
 			if (mode === 'signup') {
 				const result = await authClient.signUp.email({
 					email: data.email,
@@ -32,6 +43,10 @@ export function EmailLogin() {
 			if (result.error) throw new Error(result.error.message);
 			return result;
 		},
+		onError: () => {
+			setTurnstileToken(null);
+			turnstileRef.current?.reset();
+		},
 	});
 
 	const form = useForm({
@@ -45,6 +60,8 @@ export function EmailLogin() {
 	const toggleMode = () => {
 		setMode((m) => (m === 'signin' ? 'signup' : 'signin'));
 		mutation.reset();
+		setTurnstileToken(null);
+		turnstileRef.current?.reset();
 	};
 
 	return (
@@ -156,12 +173,18 @@ export function EmailLogin() {
 							)}
 						</form.Field>
 
+						<TurnstileWidget
+							onSuccess={(token) => setTurnstileToken(token)}
+							onError={() => setTurnstileToken(null)}
+							onExpire={() => setTurnstileToken(null)}
+						/>
+
 						<form.Subscribe selector={(s) => s.canSubmit}>
 							{(canSubmit) => (
 								<Button
 									type="submit"
 									className="w-full h-12 text-base"
-									disabled={!canSubmit || mutation.isPending}
+									disabled={!canSubmit || !turnstileToken || mutation.isPending}
 								>
 									{mutation.isPending
 										? t('common.loading')

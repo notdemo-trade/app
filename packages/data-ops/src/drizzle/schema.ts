@@ -19,6 +19,7 @@ export const agentActivityLog = pgTable('agent_activity_log', {
 export { api_tokens, tokenTypeEnum } from '../api-token/table';
 export { credentialProviderEnum, user_credentials } from '../credential/table';
 export { debate_personas, personaBiasEnum } from '../debate-persona/table';
+export { invite_codes } from '../invite-code/table';
 export { llm_analyses, llm_usage } from '../llm-analysis/table';
 export { notification_settings } from '../notification-settings/table';
 export { signals } from '../signal/table';
