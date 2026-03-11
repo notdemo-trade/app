@@ -559,6 +559,7 @@ export class PipelineOrchestratorAgent extends Agent<Env, PipelineOrchestratorSt
 			filledQty: null,
 			filledAvgPrice: null,
 			outcomeStatus: 'none',
+			orchestratorSessionId: null,
 		};
 	}
 

@@ -489,8 +489,12 @@ export class SessionAgent extends AIChatAgent<Env, SessionState> {
 		if (!this.state.enabled) return;
 
 		try {
+			try {
+				this.expireProposals();
+			} catch (err) {
+				console.error('[SessionAgent] expireProposals failed:', err);
+			}
 			await this.triggerAnalysis();
-			this.expireProposals();
 		} catch (err) {
 			// triggerAnalysis handles its own state updates on success/skip,
 			// but if it throws unexpectedly, update error state + reschedule here
@@ -516,10 +520,11 @@ export class SessionAgent extends AIChatAgent<Env, SessionState> {
 		config: EffectiveConfig,
 		portfolioContext?: PortfolioContext,
 	): Promise<{ threadId: string; summary: string }> {
-		// Dedup guard: skip if pending or approved proposal already exists for this symbol
+		// Dedup guard: skip if non-expired pending or approved proposal already exists
+		const now = Date.now();
 		const existingActive = this.sql<CountRow>`
 			SELECT COUNT(*) as cnt FROM trade_proposals
-			WHERE symbol = ${symbol} AND status IN ('pending', 'approved')`;
+			WHERE symbol = ${symbol} AND status IN ('pending', 'approved') AND expires_at > ${now}`;
 		if ((existingActive[0]?.cnt ?? 0) > 0) {
 			console.log(`[SessionAgent] Skipped analysis for ${symbol}: active proposal exists`);
 			return {
@@ -529,7 +534,6 @@ export class SessionAgent extends AIChatAgent<Env, SessionState> {
 		}
 
 		const threadId = crypto.randomUUID();
-		const now = Date.now();
 
 		this.sql`INSERT INTO discussion_threads (id, orchestration_mode, symbol, status, started_at)
 			VALUES (${threadId}, ${config.orchestrationMode}, ${symbol}, 'in_progress', ${now})`;
@@ -1519,6 +1523,7 @@ export class SessionAgent extends AIChatAgent<Env, SessionState> {
 			filledQty: null,
 			filledAvgPrice: null,
 			outcomeStatus: 'none',
+			orchestratorSessionId: null,
 		};
 
 		this.storeProposal(proposal);

@@ -11,12 +11,17 @@ export const permissiveTradingConfig = {
 	maxPositionValue: 1_000_000,
 	takeProfitPct: 0.1,
 	stopLossPct: 0.05,
+	positionSizePctOfCash: 0.05,
 	proposalTimeoutSec: 900,
 	llmTemperature: 0.7,
 	llmMaxTokens: 2048,
 	scoreWindows: [5, 20],
 	confidenceDisplayHigh: 0.8,
 	confidenceDisplayMed: 0.5,
+	researchModel: null,
+	analystModel: null,
+	extendedHoursAllowed: false,
+	moderatorPrompt: null,
 };
 
 /** TradingConfig with strict risk limits */

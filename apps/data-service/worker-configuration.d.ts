@@ -3,19 +3,8 @@
 // Runtime types generated with workerd@1.20260301.1 2025-04-01 nodejs_compat
 declare namespace Cloudflare {
 	interface GlobalProps {
-		mainModule: typeof import('./src/index');
-		durableNamespaces:
-			| 'TechnicalAnalysisAgent'
-			| 'LLMAnalysisAgent'
-			| 'AlpacaBrokerAgent'
-			| 'SessionAgent'
-			| 'DebateOrchestratorAgent'
-			| 'PipelineOrchestratorAgent'
-			| 'DataSchedulerAgent'
-			| 'AlphaVantageDataAgent'
-			| 'FundamentalsAgent'
-			| 'MarketIntelligenceAgent'
-			| 'EarningsAgent';
+		mainModule: typeof import("./src/index");
+		durableNamespaces: "TechnicalAnalysisAgent" | "LLMAnalysisAgent" | "AlpacaBrokerAgent" | "SessionAgent" | "DebateOrchestratorAgent" | "PipelineOrchestratorAgent" | "DataSchedulerAgent" | "AlphaVantageDataAgent" | "FundamentalsAgent" | "MarketIntelligenceAgent" | "EarningsAgent";
 	}
 	interface Env {
 		AI: Ai;
@@ -29,19 +18,17 @@ declare namespace Cloudflare {
 		CREDENTIALS_ENCRYPTION_KEY: string;
 		ALPHA_VANTAGE_API_KEY: string;
 		FINANCIAL_DATASETS_API_KEY: string;
-		TechnicalAnalysisAgent: DurableObjectNamespace<import('./src/index').TechnicalAnalysisAgent>;
-		LLMAnalysisAgent: DurableObjectNamespace<import('./src/index').LLMAnalysisAgent>;
-		AlpacaBrokerAgent: DurableObjectNamespace<import('./src/index').AlpacaBrokerAgent>;
-		SessionAgent: DurableObjectNamespace<import('./src/index').SessionAgent>;
-		DebateOrchestratorAgent: DurableObjectNamespace<import('./src/index').DebateOrchestratorAgent>;
-		PipelineOrchestratorAgent: DurableObjectNamespace<
-			import('./src/index').PipelineOrchestratorAgent
-		>;
-		DataSchedulerAgent: DurableObjectNamespace<import('./src/index').DataSchedulerAgent>;
-		AlphaVantageDataAgent: DurableObjectNamespace<import('./src/index').AlphaVantageDataAgent>;
-		FundamentalsAgent: DurableObjectNamespace<import('./src/index').FundamentalsAgent>;
-		MarketIntelligenceAgent: DurableObjectNamespace<import('./src/index').MarketIntelligenceAgent>;
-		EarningsAgent: DurableObjectNamespace<import('./src/index').EarningsAgent>;
+		TechnicalAnalysisAgent: DurableObjectNamespace<import("./src/index").TechnicalAnalysisAgent>;
+		LLMAnalysisAgent: DurableObjectNamespace<import("./src/index").LLMAnalysisAgent>;
+		AlpacaBrokerAgent: DurableObjectNamespace<import("./src/index").AlpacaBrokerAgent>;
+		SessionAgent: DurableObjectNamespace<import("./src/index").SessionAgent>;
+		DebateOrchestratorAgent: DurableObjectNamespace<import("./src/index").DebateOrchestratorAgent>;
+		PipelineOrchestratorAgent: DurableObjectNamespace<import("./src/index").PipelineOrchestratorAgent>;
+		DataSchedulerAgent: DurableObjectNamespace<import("./src/index").DataSchedulerAgent>;
+		AlphaVantageDataAgent: DurableObjectNamespace<import("./src/index").AlphaVantageDataAgent>;
+		FundamentalsAgent: DurableObjectNamespace<import("./src/index").FundamentalsAgent>;
+		MarketIntelligenceAgent: DurableObjectNamespace<import("./src/index").MarketIntelligenceAgent>;
+		EarningsAgent: DurableObjectNamespace<import("./src/index").EarningsAgent>;
 	}
 }
 interface BaseEnv extends Cloudflare.Env {}
@@ -49,22 +36,7 @@ type StringifyValues<EnvType extends Record<string, unknown>> = {
 	[Binding in keyof EnvType]: EnvType[Binding] extends string ? EnvType[Binding] : string;
 };
 declare namespace NodeJS {
-	interface ProcessEnv
-		extends StringifyValues<
-			Pick<
-				Cloudflare.Env,
-				| 'CLOUDFLARE_ENV'
-				| 'CLOUDFLARE_ENV_STAGING_ADDRESS'
-				| 'CLOUDFLARE_ENV_PRODUCTION_ADDRESS'
-				| 'DATABASE_HOST'
-				| 'DATABASE_USERNAME'
-				| 'DATABASE_PASSWORD'
-				| 'BETTER_AUTH_SECRET'
-				| 'CREDENTIALS_ENCRYPTION_KEY'
-				| 'ALPHA_VANTAGE_API_KEY'
-				| 'FINANCIAL_DATASETS_API_KEY'
-			>
-		> {}
+	interface ProcessEnv extends StringifyValues<Pick<Cloudflare.Env, "CLOUDFLARE_ENV" | "CLOUDFLARE_ENV_STAGING_ADDRESS" | "CLOUDFLARE_ENV_PRODUCTION_ADDRESS" | "DATABASE_HOST" | "DATABASE_USERNAME" | "DATABASE_PASSWORD" | "BETTER_AUTH_SECRET" | "CREDENTIALS_ENCRYPTION_KEY" | "ALPHA_VANTAGE_API_KEY" | "FINANCIAL_DATASETS_API_KEY">> {}
 }
 
 // Begin runtime types
