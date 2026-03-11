@@ -14,7 +14,7 @@ wss://api.notdemo.trade/agents/<agent-kebab-name>/<instance-name>
 | Pattern | Used by | Example |
 |---------|---------|---------|
 | `{userId}` | SessionAgent, AlpacaBrokerAgent, DataSchedulerAgent | `tkowalczyk` |
-| `{userId}:{symbol}` | TechnicalAnalysisAgent, AlpacaMarketDataAgent, LLMAnalysisAgent, DebateOrchestratorAgent, PipelineOrchestratorAgent, AlphaVantageDataAgent | `tkowalczyk:AAPL` |
+| `{userId}:{symbol}` | TechnicalAnalysisAgent, LLMAnalysisAgent, DebateOrchestratorAgent, PipelineOrchestratorAgent, AlphaVantageDataAgent | `tkowalczyk:AAPL` |
 | `global` | EarningsAgent, FundamentalsAgent, MarketIntelligenceAgent | `global` |
 
 ### Quick connect (wscat)
@@ -451,16 +451,6 @@ Methods available only via internal agent-to-agent calls: `getAccount()`, `getPo
 
 ---
 
-### AlpacaMarketDataAgent
-
-```
-ws://localhost:8788/agents/alpaca-market-data-agent/{userId}:{symbol}
-```
-
-**No `@callable()` methods** — invoked internally by other agents. Methods: `fetchBars()`, `getLatestBars()`.
-
----
-
 ## Agent URL Quick Reference
 
 | Agent | URL | RPC Methods |
@@ -476,4 +466,3 @@ ws://localhost:8788/agents/alpaca-market-data-agent/{userId}:{symbol}
 | FundamentalsAgent | `/agents/fundamentals-agent/global` | 1 method |
 | MarketIntelligenceAgent | `/agents/market-intelligence-agent/global` | 2 methods |
 | AlpacaBrokerAgent | `/agents/alpaca-broker-agent/{userId}` | internal only |
-| AlpacaMarketDataAgent | `/agents/alpaca-market-data-agent/{userId}:{symbol}` | internal only |

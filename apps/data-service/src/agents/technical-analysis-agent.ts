@@ -7,12 +7,12 @@ import type {
 	Timeframe,
 } from '@repo/data-ops/agents/ta/types';
 import { initDatabase } from '@repo/data-ops/database/setup';
+import { getBarsForSymbol } from '@repo/data-ops/market-data-bars';
 import { computeTechnicals, detectSignals } from '@repo/data-ops/providers/technicals';
 import { insertSignal } from '@repo/data-ops/signal';
 import type { TechnicalAnalysisConfig } from '@repo/data-ops/ta-config';
 import { getTaConfig } from '@repo/data-ops/ta-config';
-import { Agent, callable, getAgentByName } from 'agents';
-import type { AlpacaMarketDataAgent } from './alpaca-market-data-agent';
+import { Agent, callable } from 'agents';
 
 interface ParsedIdentity {
 	userId: string;
@@ -90,17 +90,7 @@ export class TechnicalAnalysisAgent extends Agent<Env, TAAgentState> {
 		const config = configOverride ?? (await getTaConfig(userId));
 
 		if (!bars) {
-			const marketData = await getAgentByName<Env, AlpacaMarketDataAgent>(
-				this.env.AlpacaMarketDataAgent,
-				`${userId}:${symbol}`,
-			);
-			const result = await marketData.fetchBars({
-				symbol,
-				timeframe,
-				limit: config.defaultBarsToFetch,
-				cacheFreshnessSec: config.cacheFreshnessSec,
-			});
-			bars = result.bars;
+			bars = await getBarsForSymbol(symbol, timeframe, config.defaultBarsToFetch);
 		}
 
 		if (bars.length < config.minBarsRequired) {

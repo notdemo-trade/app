@@ -19,9 +19,9 @@ import type {
 } from '@repo/data-ops/agents/session/types';
 import type { TechnicalSignal } from '@repo/data-ops/agents/ta/types';
 import { initDatabase } from '@repo/data-ops/database/setup';
+import { getBarsForSymbol } from '@repo/data-ops/market-data-bars';
 import { Agent, callable, getAgentByName } from 'agents';
 import type { AlpacaBrokerAgent } from './alpaca-broker-agent';
-import type { AlpacaMarketDataAgent } from './alpaca-market-data-agent';
 import type { LLMAnalysisAgent } from './llm-analysis-agent';
 import { normalizePositionSizePct, summarizeEnrichment } from './session-agent-helpers';
 import type { TechnicalAnalysisAgent } from './technical-analysis-agent';
@@ -287,22 +287,14 @@ export class PipelineOrchestratorAgent extends Agent<Env, PipelineOrchestratorSt
 
 		switch (name) {
 			case 'fetch_market_data': {
-				const marketData = await getAgentByName<AlpacaMarketDataAgent>(
-					this.env.AlpacaMarketDataAgent,
-					`${userId}:${params.symbol}`,
-				);
-				const result = await marketData.fetchBars({
-					symbol: params.symbol,
-					timeframe: '1Day',
-					limit: 200,
-				});
-				ctx.bars = result.bars;
+				const bars = await getBarsForSymbol(params.symbol, '1Day', 200);
+				ctx.bars = bars;
 
 				this.emitMessage(
 					params,
-					{ type: 'data_agent', name: 'AlpacaMarketDataAgent' },
+					{ type: 'data_agent', name: 'MarketData' },
 					'data_collection',
-					`Fetched ${result.bars.length} bars for ${params.symbol}`,
+					`Fetched ${bars.length} bars for ${params.symbol}`,
 				);
 				break;
 			}

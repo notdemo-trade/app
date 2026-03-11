@@ -7,7 +7,6 @@ import { handleQueue } from './queues';
 import { handleScheduled } from './scheduled';
 
 export { AlpacaBrokerAgent } from './agents/alpaca-broker-agent';
-export { AlpacaMarketDataAgent } from './agents/alpaca-market-data-agent';
 export { AlphaVantageDataAgent } from './agents/alpha-vantage-data-agent';
 export { DataSchedulerAgent } from './agents/data-scheduler-agent';
 export { DebateOrchestratorAgent } from './agents/debate-orchestrator-agent';
