@@ -3,7 +3,7 @@
 ## Goal
 Build the full test harness (mock agent shell, SQL adapter, mock factories) and write Round 1 lifecycle tests. This is the tracer bullet that proves we can instantiate a SessionAgent in tests and call its methods.
 
-## Status: NOT STARTED
+## Status: COMPLETE
 
 ## Prerequisites
 - Phase 1 complete (vitest installed, config working, pure helper tests pass)

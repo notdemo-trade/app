@@ -3,7 +3,7 @@
 ## Goal
 Test all 5 risk gates through `triggerAnalysis()`. Each gate can skip the analysis cycle for a specific risk reason.
 
-## Status: NOT STARTED
+## Status: DONE
 
 ## Prerequisites
 - Phase 2 complete (test harness working, lifecycle tests pass)

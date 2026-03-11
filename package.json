@@ -14,6 +14,7 @@
 		"seed:dev": "pnpm run --filter data-ops seed:dev",
 		"seed:staging": "pnpm run --filter data-ops seed:staging",
 		"seed:production": "pnpm run --filter data-ops seed:production",
+		"test:data-service": "pnpm run --filter data-service test",
 		"lint": "biome check .",
 		"lint:fix": "biome check --fix ."
 	},

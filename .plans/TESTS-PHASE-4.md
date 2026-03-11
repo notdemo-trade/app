@@ -3,7 +3,7 @@
 ## Goal
 Test all 4 execution guards through `approveProposal()`. Guards run at trade execution time and block individual orders that violate risk limits.
 
-## Status: NOT STARTED
+## Status: DONE
 
 ## Prerequisites
 - Phase 2 complete (test harness working)

@@ -3,7 +3,7 @@
 ## Goal
 Install vitest, configure it for data-service, and write Round 0 tests for pure helper functions. This proves the test toolchain works before touching any agent code.
 
-## Status: NOT STARTED
+## Status: DONE
 
 ## Steps
 

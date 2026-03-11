@@ -3,7 +3,7 @@
 ## Goal
 Test read-only data queries, the outcome tracking cycle (snapshots, resolution, exit triggers), and the reset flow. Combines Rounds 6, 7, and 8 — these are the final tests.
 
-## Status: NOT STARTED
+## Status: DONE
 
 ## Prerequisites
 - Phase 2 complete (test harness working)

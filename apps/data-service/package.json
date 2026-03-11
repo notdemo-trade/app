@@ -6,12 +6,17 @@
 		"deploy:staging": "wrangler deploy --env staging",
 		"deploy:production": "wrangler deploy --env production",
 		"dev": "wrangler dev --env dev --port 8788",
-		"cf-typegen": "wrangler types --env-interface BaseEnv --env dev"
+		"cf-typegen": "wrangler types --env-interface BaseEnv --env dev",
+		"test": "vitest run",
+		"test:watch": "vitest"
 	},
 	"devDependencies": {
 		"@cloudflare/ai-chat": "^0.1.8",
+		"@types/better-sqlite3": "^7.6.13",
 		"@types/node": "^22.15.19",
+		"better-sqlite3": "^12.6.2",
 		"typescript": "^5.9.3",
+		"vitest": "^4.0.18",
 		"wrangler": "^4.71.0"
 	},
 	"dependencies": {

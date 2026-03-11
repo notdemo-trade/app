@@ -3,7 +3,7 @@
 ## Goal
 Test proposal CRUD operations, status transitions, and the trade execution flow (order placement, result storage, failure handling). Combines Rounds 4 and 5 from the master plan since they share the same `approveProposal` path.
 
-## Status: NOT STARTED
+## Status: DONE
 
 ## Prerequisites
 - Phase 2 complete (test harness working)
